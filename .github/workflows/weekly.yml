@@ -1,0 +1,94 @@
+# Every Monday: fetch any new Rule 605 / 606 reports, rebuild the database and the site, deploy to GitHub Pages.
+# Raw downloads are never committed (some firms forbid redistribution); they live in the Actions cache
+# between runs, so each week only downloads what is new.
+name: Weekly refresh
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # Mondays 06:00 UTC
+  workflow_dispatch:       # "Run workflow" button in the Actions tab
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Restore raw reports from earlier runs
+        uses: actions/cache/restore@v4
+        with:
+          path: data/raw
+          key: raw-${{ github.run_id }}
+          restore-keys: raw-
+
+      - name: Fetch new reports
+        run: |
+          python fetch_finra_606.py
+          python fetch_s3_605.py --all-firms --summary-only
+          python fetch_s3_605.py
+          python fetch_mm_605.py
+          python fetch_context.py
+
+      - name: List raw files (cache key changes only when something new arrived)
+        run: find data/raw -type f -printf '%P %s\n' | sort > raw-manifest.txt
+
+      - name: Save raw reports for next week
+        uses: actions/cache/save@v4
+        with:
+          path: data/raw
+          key: raw-${{ hashFiles('raw-manifest.txt') }}
+        continue-on-error: true   # same key already saved = nothing new this week
+
+      - name: Build database and analysis
+        run: |
+          python parse_605_summary.py
+          python parse_606.py
+          python parse_605_detail.py
+          python pfof_vs_execution.py
+          python same_stock.py
+          python build_site.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build website
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

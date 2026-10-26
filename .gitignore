@@ -1,0 +1,27 @@
+# Raw regulatory reports and the database: never commit (some firms forbid redistribution)
+data/
+raw-manifest.txt
+
+# Generated outputs (commit selected charts deliberately, e.g. into docs/)
+reports/
+web/public/data/
+web/dist/
+web/node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Partial downloads
+*.part
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+
+# Superseded by this file (it was missing the leading dot)
+/gitignore

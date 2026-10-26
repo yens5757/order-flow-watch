@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Validated dataviz palette (light / dark stepped separately, not auto-flipped). */
+:root {
+  color-scheme: light;
+  --page: #f6f5f1; --surface: #fcfcfb; --surface-2: #efeee9;
+  --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11, 11, 11, 0.1);
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300;
+  --better: #2a78d6; --worse: #e34948;
+  --context: #b9b7af; --wash: rgba(137, 135, 129, 0.14);
+  --pay-wash: rgba(42, 120, 214, 0.12); --cost-wash: rgba(235, 104, 52, 0.1);
+  --shadow: 0 8px 28px rgba(11, 11, 11, 0.1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0f0f0e; --surface: #1a1a19; --surface-2: #252523;
+    --ink: #f0efec; --ink-2: #c3c2b7; --muted: #8f8d87;
+    --grid: #2c2c2a; --baseline: #45453f; --border: rgba(255, 255, 255, 0.1);
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300;
+    --better: #3987e5; --worse: #e66767;
+    --context: #5d5c57; --wash: rgba(137, 135, 129, 0.18);
+    --pay-wash: rgba(57, 135, 229, 0.18); --cost-wash: rgba(217, 89, 38, 0.16);
+    --shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0f0f0e; --surface: #1a1a19; --surface-2: #252523;
+  --ink: #f0efec; --ink-2: #c3c2b7; --muted: #8f8d87;
+  --grid: #2c2c2a; --baseline: #45453f; --border: rgba(255, 255, 255, 0.1);
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300;
+  --better: #3987e5; --worse: #e66767;
+  --context: #5d5c57; --wash: rgba(137, 135, 129, 0.18);
+  --pay-wash: rgba(57, 135, 229, 0.18); --cost-wash: rgba(217, 89, 38, 0.16);
+  --shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}
+
+html, body { background: var(--page); color: var(--ink); }
+body { -webkit-font-smoothing: antialiased; }
+svg text { font-family: inherit; }
+.tnum { font-variant-numeric: tabular-nums; }
+::selection { background: var(--pay-wash); }

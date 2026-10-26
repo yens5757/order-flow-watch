@@ -1,0 +1,29 @@
+reporter_id,name,short_name,firm_type,crd_606,routes_own_orders,notes
+HOOD,Robinhood Securities,Robinhood,broker,287900,Y,Robinhood Financial routes to its clearing firm Robinhood Securities
+CHAS,Charles Schwab,Schwab,broker,5393,,verify; 606 file context CHAS
+FIBS,Fidelity Brokerage Services,Fidelity,broker,7784,,"CRD 7784 verified on BrokerCheck Oct 2026 (205 is Sanctuary Securities, unrelated); also has CrossStream ATS (XSTM) and NFS (NFSF)"
+VGRD,Vanguard Marketing Corp,Vanguard,broker,7452,,verify
+SOFI,SoFi Securities,SoFi,broker,151717,N,Apex Clearing makes routing decisions (per SoFi 605/606 page); 606 contexts SOFI and SOFIUPDATED
+MSSB,Morgan Stanley Smith Barney (E*TRADE),E*TRADE,broker,149777,,files E*TRADE 606; 606 context MSWM
+WBUS,Webull Financial,Webull,broker,289063,,files are in the webl/ folder on public.s3.com
+APCC,Apex Clearing,Apex,clearing_firm,13071,Y,routes for SoFi and other introducing brokers; files in apex/ folder
+ALBS,Albert Securities,Albert,broker,,,no 606 in FINRA bulk data - likely introducing broker; check clearing firm
+ALTR,Altruist Financial,Altruist,broker,299274,,606 contexts ALTR / CNTXT-ALTR / ALTU (2026: broker name field is just 'ALTU')
+AVNU,Avenue Securities,Avenue,broker,,,no 606 in FINRA bulk data (Park Avenue Securities 46173 is a different firm)
+EDJO,Edward Jones,Edward Jones,broker,250,,606 context EDJO; folder also holds EDJF (small orders - fractional?)
+ETOR,eToro USA Securities,eToro,broker,,,no 606 in FINRA bulk data - likely introducing broker; check clearing firm
+FNET,Wells Fargo Advisors Financial Network,WF FiNet,broker,,,no 606 in FINRA bulk data - likely routed by Wells Fargo Clearing (WRET)
+PWJC,UBS Financial Services,UBS Wealth,broker,8174,,
+STSH,Stash Capital,Stash,broker,,,no 606 in FINRA bulk data - likely introducing broker; check clearing firm
+TPTG,Cash App Investing,Cash App,broker,144076,,606 context TPTG (from 2025Q4)
+TWTT,tastytrade,tastytrade,broker,277027,,606 context TWTT
+WLTH,Wealthfront Brokerage,Wealthfront,broker,153407,,CRD verified on BrokerCheck Oct 2026; 606 broker name field is just 'WLTH' (context WLTH); folder also holds WLTF
+WRET,Wells Fargo Clearing Services,Wells Fargo,broker,19616,,606 context WELS; 605 WELS is a separate small-order entity - not used
+ETMM,G1 Execution Services,G1,market_maker,,,
+HRTF,HRT Financial,HRT,market_maker,,,
+HRTS,HRT Financial (second entity),HRT (2),market_maker_other,,,in hrtf/ folder; likely single-dealer platform - verify; exclude from retail comparison
+SOHO,Two Sigma Securities,Two Sigma,market_maker,,,
+SOHW,Two Sigma Securities (second entity),Two Sigma (2),market_maker,,,in soho/ folder; verify which Two Sigma business this is
+CDRG,Citadel Securities,Citadel,market_maker,,,not on public.s3.com - download from citadelsecurities.com
+JNST,Jane Street Capital,Jane Street,market_maker,,,not on public.s3.com - download from janestreet.com
+NITE,Virtu Americas,Virtu,market_maker,,,not on public.s3.com - download from virtu.com
