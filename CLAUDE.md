@@ -138,7 +138,7 @@ No pandas by design: analysis is in SQL.
 6. Swap in 606 Q3 2026 when FINRA publishes it (~early Nov 2026): `fetch_finra_606.py --refresh 2026Q3`.
 7. ~~Market-maker 605s~~ Aug 2026 loaded (Citadel/Jane Street by hand, Virtu by URL). Each new month needs
    the same; a scraper works for Virtu + Jane Street, not Citadel (403).
-8. ~~GitHub Actions + Pages~~ Workflow written (Oct 2026). Needs the user to create the GitHub repo, push, and set
-   Settings -> Pages -> Source: GitHub Actions (no gh CLI / credentials on this machine).
+8. ~~GitHub Actions + Pages~~ Workflow written (Oct 2026). Repo: github.com/yens5757/order-flow-watch, site:
+   yens5757.github.io/order-flow-watch. Pages source must be set to GitHub Actions in repo settings (no gh CLI here).
 9. Splitting "other stocks" further: 605/606 summaries only split S&P 500 vs other. Execution quality could be
    split by stock/price via the 605 detailed reports (per-symbol .zip, skipped by `--summary-only`); payment cannot.

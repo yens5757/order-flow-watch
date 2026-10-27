@@ -8,7 +8,7 @@ An automated pipeline that joins two SEC disclosures, refreshed weekly and publi
 - **Rule 605**: how good the resulting fills were. Since August 2026 the amended rule requires
   large brokers to publish these reports too, which makes a broker-by-broker comparison possible.
 
-**Website:** _(link once deployed: `https://<your-github-name>.github.io/<repo>/`)_. It is a plain-language story for
+**Website:** [yens5757.github.io/order-flow-watch](https://yens5757.github.io/order-flow-watch/). It is a plain-language story for
 non-experts, plus an explorer with filters, a page per broker, market-maker comparisons, every Rule 605
 reporter, and the statistical evidence behind each claim.
 
