@@ -30,7 +30,7 @@ give their customers worse fills?
 | `fetch_605_directory.py` | FINRA's 605 directory -> `reporters_605.csv` (name + category per reporter code). finra.org rate-limits (429) hard: re-run fills gaps |
 | `fetch_mm_605.py` | Market makers' own 605s: Virtu (NITE) + Jane Street (JNST) by URL pattern. Citadel (CDRG) = manual only |
 | `build_site.py` | DuckDB -> `web/public/data/site.json`: everything the website shows, incl. same-stock gaps, routing-implied gaps and the evidence table (`stats.py`: Spearman, permutation p, bootstrap CI) |
-| `web/` | React 18 + TypeScript + Tailwind 3 (Vite 5). Hash routes: story `#/`, `#/explore`, `#/broker/<ID>`, `#/market-makers`, `#/firms`, `#/method`. Charts are hand-written SVG (`src/charts/`) using d3-scale/shape; colours are CSS variables in `src/index.css` (validated palette, light + dark) |
+| `web/` | React 18 + TypeScript + Tailwind 3 (Vite 5), dark by default. Hash routes: overview `#/`, `#/brokers` (old `#/explore` still works), `#/broker/<ID>`, `#/market-makers`, `#/firms`, `#/method`. Charts are Apache ECharts 5, tree-shaken (`src/charts/EChart.tsx` wrapper, `options.ts` builders, `kit.ts` shared styling); colours are CSS variables in `src/index.css` (validated palette, dark + light), read into charts by `src/lib/theme.tsx`. FINRA OTC chart drops the quarter still in progress |
 | `.github/workflows/weekly.yml` | Mondays 06:00 UTC + manual: fetch -> parse -> analyse -> `build_site.py` -> `npm run build` -> GitHub Pages. `data/raw` persists in the Actions cache (key = hash of the file list), never in git |
 
 Stack: Python, requests, BeautifulSoup, DuckDB (all storage + SQL analysis), matplotlib.

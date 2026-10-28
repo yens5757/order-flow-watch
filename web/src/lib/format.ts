@@ -22,3 +22,10 @@ export const strength = (r: number) => {
   const a = Math.abs(r);
   return a < 0.2 ? "very weak" : a < 0.4 ? "weak" : a < 0.6 ? "moderate" : a < 0.8 ? "strong" : "very strong";
 };
+/** Dollars and cents with a proper minus sign: −$0.10, $2.04. */
+export const usd2 = (v: number | null | undefined) => (v == null ? "–" : `${v < 0 ? "−" : ""}$${Math.abs(v).toFixed(2)}`);
+/** FINRA lists many firm names in capitals; show them in title case, keeping short suffixes like LLC. */
+export const titleCase = (s: string) =>
+  s === s.toUpperCase()
+    ? s.toLowerCase().replace(/\b([a-z])([a-z]*)/g, (w, a: string, b: string) => (/^(llc|lp|lllp|ats|usa|nyse|ubs|bny|rbc|bmo)$/.test(w) ? w.toUpperCase() : a.toUpperCase() + b))
+    : s;

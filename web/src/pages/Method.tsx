@@ -1,79 +1,112 @@
-import type { ReactNode } from "react";
-import { Badge, Card } from "../components/ui";
-import type { Data, Evidence } from "../lib/data";
-import { monthLong, quarterLong, signed } from "../lib/format";
+import { useMemo, useState } from "react";
+import { EChart } from "../charts/EChart";
+import { forest } from "../charts/options";
+import { Card, Icon, PageHeader, Segmented, Status } from "../components/ui";
+import type { Data, Evidence, Sp } from "../lib/data";
+import { monthLong, quarterLong } from "../lib/format";
+import { useTheme } from "../lib/theme";
 
-function verdict(e: Evidence): [string, "good" | "bad" | "neutral"] {
-  if (e.p >= 0.05) return ["Not significant", "neutral"];
-  return Math.sign(e.rho) === e.expect ? ["Supported", "good"] : ["Contradicted", "bad"];
-}
+const verdict = (e: Evidence) => (e.p >= 0.05 ? "neutral" : Math.sign(e.rho) === e.expect ? "good" : "bad") as "good" | "bad" | "neutral";
+const VERDICT = { good: "Supported", bad: "Contradicted", neutral: "Not significant" };
 
-function H({ children }: { children: ReactNode }) {
-  return <h3 className="mb-2 mt-6 text-[15px] font-semibold text-ink first:mt-0">{children}</h3>;
-}
+const STEPS = [
+  ["download", "Fetch", "Rule 605 reports from public.s3.com and the market makers' sites, FINRA 606 bulk files, FINRA OTC volume, SEC EDGAR"],
+  ["database", "Parse", "Hundreds of CSV, XML and pipe-delimited files into DuckDB, about 4M rows a month"],
+  ["flask", "Analyse", "SQL joins, same-stock comparisons, rank correlations, permutation tests, bootstrap intervals"],
+  ["globe", "Publish", "GitHub Actions rebuilds this site every Monday; raw data never leaves the cache"],
+] as const;
+
+const CAVEATS = [
+  ["Small sample", "About a dozen brokers report both payments and fills, so every test has low power. These are correlations, not causes."],
+  ["Timing", "Fills are monthly (Rule 605); payments are quarterly (Rule 606), so the latest payments can lag the fills by a quarter."],
+  ["Missing payments", "Albert, Avenue, eToro, Stash and WF FiNet file no 606 of their own. SoFi reports only its share, so its payment is understated."],
+  ["Share-weighting", "Rule 605 averages weight by shares, so big orders dominate. The same-stock comparison weights by dollars and matches stock × size."],
+  ["Options", "About 70% of payment for order flow comes from options, which Rule 605 doesn't cover at all."],
+  ["Citadel", "Citadel Securities blocks automated downloads; its report is added by hand when available."],
+] as const;
 
 export default function Method({ d }: { d: Data }) {
-  return (
-    <div className="mx-auto max-w-4xl space-y-4 px-4 pb-24 pt-8">
-      <div><h1 className="text-[28px] font-semibold tracking-tight text-ink">Method, evidence &amp; caveats</h1>
-        <p className="mt-1 text-[14.5px] text-ink2">How every number on this site is made, and how much weight each finding can bear.</p></div>
+  const { t } = useTheme();
+  const [sp, setSp] = useState<Sp>("Y");
+  const ev = d.evidence.filter((e) => e.sp === sp);
+  const color = (e: Evidence) => ({ good: t.good, bad: t.critical, neutral: t.muted })[verdict(e)];
+  const chart = useMemo(() => forest(t, ev.map((e) => ({
+    label: e.claim, rho: e.rho, lo: e.lo, hi: e.hi, color: color(e),
+    rows: [[null, "Rank correlation", e.rho.toFixed(2)], [null, "95% interval", `${e.lo.toFixed(2)} to ${e.hi.toFixed(2)}`], [null, "p-value", e.p < 0.001 ? "< 0.001" : e.p.toFixed(3)], [null, "Brokers", String(e.n)], [color(e), "Verdict", VERDICT[verdict(e)]]],
+  }))), [t, sp]); // eslint-disable-line react-hooks/exhaustive-deps
 
-      <Card title="The evidence, claim by claim" sub="Spearman rank correlation across brokers · two-sided permutation p-value · 95% bootstrap interval">
-        <div className="overflow-x-auto">
+  return (
+    <div className="rise">
+      <PageHeader eyebrow="Method" title="How it's measured"
+        sub={`Fills from ${monthLong(d.meta.month)} (Rule 605), payments from ${quarterLong(d.meta.quarter)} (Rule 606). Every claim on this site has a test behind it.`} />
+
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {STEPS.map(([icon, title, text], i) => (
+          <div key={title} className="relative rounded-2xl border border-line bg-surface p-5 shadow-card">
+            <div className="flex items-center gap-3">
+              <span className="grid h-9 w-9 place-items-center rounded-xl text-white" style={{ background: "var(--grad)" }}><Icon name={icon} size={18} /></span>
+              <span className="text-[12px] font-semibold text-muted">Step {i + 1}</span>
+            </div>
+            <h3 className="mt-3 font-display text-[18px] font-bold text-ink">{title}</h3>
+            <p className="mt-1 text-[13.5px] leading-relaxed text-ink2">{text}</p>
+          </div>
+        ))}
+      </section>
+
+      <Card className="mt-5" title="The evidence" sub="Each dot is a rank correlation across brokers; the line is its 95% bootstrap interval. Crossing zero means it could be chance."
+        right={<Segmented size="sm" value={sp} onChange={setSp} options={[["Y", "S&P 500"], ["N", "Other stocks"]]} />}>
+        <EChart option={chart} height={ev.length * 62 + 60} label="Forest plot of the evidence" />
+        <div className="mt-4 overflow-x-auto">
           <table className="w-full text-[13.5px]">
-            <thead><tr className="border-b border-line text-left text-[12px] text-ink2">
-              <th className="py-2 pr-3 font-semibold">Claim</th><th className="px-3 font-semibold">Stocks</th>
-              <th className="px-3 text-right font-semibold">Correlation</th><th className="px-3 text-right font-semibold">Likely range</th>
-              <th className="px-3 text-right font-semibold">p</th><th className="px-3 text-right font-semibold">Brokers</th><th className="pl-3 font-semibold">Verdict</th></tr></thead>
-            <tbody>
-              {d.evidence.map((e) => {
-                const [v, tone] = verdict(e);
-                return (
-                  <tr key={e.claim + e.sp} className="border-b border-grid last:border-0">
-                    <td className="min-w-[220px] py-2.5 pr-3 text-ink">{e.claim}</td><td className="whitespace-nowrap px-3 text-ink2">{e.sp === "Y" ? "S&P 500" : "Other"}</td>
-                    <td className="tnum px-3 text-right">{signed(e.rho, 2)}</td><td className="tnum whitespace-nowrap px-3 text-right text-ink2">{signed(e.lo, 2)} to {signed(e.hi, 2)}</td>
-                    <td className="tnum px-3 text-right">{e.p < 0.001 ? "<0.001" : e.p.toFixed(3)}</td><td className="tnum px-3 text-right">{e.n}</td>
-                    <td className="whitespace-nowrap pl-3"><Badge tone={tone}>{v}</Badge></td>
-                  </tr>
-                );
-              })}
-            </tbody>
+            <thead><tr className="border-b border-line text-left text-ink2">
+              <th className="py-2 pr-3 font-semibold">Claim</th><th className="px-3 py-2 text-right font-semibold">ρ</th>
+              <th className="px-3 py-2 text-right font-semibold">p</th><th className="px-3 py-2 text-right font-semibold">n</th><th className="py-2 pl-3 font-semibold">Verdict</th>
+            </tr></thead>
+            <tbody>{ev.map((e) => (
+              <tr key={e.claim} className="border-b border-line last:border-0">
+                <td className="py-2.5 pr-3 text-ink2">{e.claim}</td>
+                <td className="tnum px-3 py-2.5 text-right text-ink">{e.rho.toFixed(2)}</td>
+                <td className="tnum px-3 py-2.5 text-right text-ink">{e.p < 0.001 ? "<0.001" : e.p.toFixed(3)}</td>
+                <td className="tnum px-3 py-2.5 text-right text-ink">{e.n}</td>
+                <td className="py-2.5 pl-3"><Status kind={verdict(e)}>{VERDICT[verdict(e)]}</Status></td>
+              </tr>
+            ))}</tbody>
           </table>
         </div>
-        <p className="mt-3 text-[12.5px] leading-relaxed text-muted">With about a dozen brokers, a correlation needs to be around ±0.55 to reach p &lt; 0.05. "Not significant" means the data can't tell the effect apart from chance yet, not that there is no effect.</p>
       </Card>
 
-      <Card>
-        <div className="space-y-2 text-[14.5px] leading-relaxed text-ink2 [&_b]:font-semibold [&_b]:text-ink">
-          <H>The two core numbers</H>
-          <p><b>Customer pays</b> = effective spread ÷ quoted spread (Rule 605 "AvgEFQPct"). 100% = the customer paid the full quoted spread; 0% = filled at the midpoint; below 0% = better than the midpoint.</p>
-          <p><b>Broker is paid</b> = net payment from venues (Rule 606, cents per 100 shares), weighted by each venue's share of the broker's orders and averaged over the quarter,
-            then divided by the broker's average share price and quoted spread. Check: Robinhood's own 606 says it is paid 12.35% of the spread; this method gives 12.1–13.5%.</p>
-          <H>Comparing on the same stocks</H>
-          <p>The detailed Rule 605 files give results per stock, lot size (fractional, odd, round) and order size. For each such cell, a broker is compared with the dollar-weighted average of the
-            <b> other</b> brokers in the same cell; its score is the average gap, weighted by its own dollars. Only plain market orders under $200k, and cells with at least three other brokers, are used.
-            The <b>routing prediction</b> multiplies a broker's share of orders sent to each market maker by that market maker's own same-stock score.</p>
-          <H>Updates</H>
-          <p>An automated job runs <b>every week</b>: it downloads any new Rule 605 reports (monthly, published about a month after the month ends) and Rule 606 reports (quarterly, about a month after
-            the quarter), rebuilds the database and republishes this site. Current data: fills from <b>{monthLong(d.meta.month)}</b>, payments from <b>{quarterLong(d.meta.quarter)}</b>; built {d.meta.built}.</p>
-          <H>Caveats</H>
-          <ul className="list-disc space-y-1.5 pl-5">
-            <li><b>Small sample.</b> About a dozen brokers report both payments and fills; results are correlations, not causes.</li>
-            <li><b>Timing.</b> Monthly fills are compared with the latest quarterly payments, which can be a quarter older.</li>
-            <li><b>Share-weighting.</b> Rule 605 averages weight by shares, so a broker's "all orders" figure leans on its largest orders. The same-stock method avoids this.</li>
-            <li><b>Wealthfront</b> sends almost no market orders (its orders are limit orders), so it is left out of market-order comparisons where its sample is tiny.</li>
-            <li><b>Missing payments.</b> Albert, Avenue, eToro, Stash and Wells Fargo Advisors Financial Network file no 606 of their own. SoFi reports only its share; its clearing firm keeps the rest.</li>
-            <li><b>Citadel</b> blocks automated downloads, so its reports are added by hand; months without it compare five market makers, not six.</li>
-            <li><b>Options</b> make up most payment dollars, but Rule 605 covers only stocks.</li>
-          </ul>
-          <H>Sources</H>
-          <ul className="list-disc space-y-1.5 pl-5">
-            <li>SEC Rule 605 reports: public.s3.com/rule605, plus Citadel, Jane Street and Virtu's own websites; firm names from FINRA's Rule 605 directory.</li>
-            <li>SEC Rule 606 reports: FINRA bulk files (cdn.finra.org/606reportBulk), 2024 Q2 onwards.</li>
-            <li>FINRA OTC transparency data (weekly volume per firm); S&amp;P 500 membership (Wikipedia); Nasdaq Trader symbol directory; VIX (FRED).</li>
-            <li>Related research: Schwarz, Barber, Huang, Jorion &amp; Odean, "The 'Actual Retail Price' of Equity Trades", <i>Journal of Finance</i> (2025).</li>
-          </ul>
-        </div>
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <Card title="Key definitions">
+          <dl className="space-y-3 text-[13.5px] leading-relaxed">
+            {[
+              ["Customer pays (% of spread)", "Effective spread ÷ quoted spread, from Rule 605. 0% = filled at the midpoint, 100% = paid the full quoted spread."],
+              ["Broker is paid (% of spread)", "606 payment (¢ per 100 shares, weighted by where orders go) ÷ share price ÷ quoted spread. Checked against Robinhood's own stated 12.35%: this pipeline gets 12.1–13.5%."],
+              ["Same-stock gap", "A broker's cost minus every other broker's, on exactly the same stock × lot size × order size cells, weighted by dollars."],
+              ["Rank correlation (ρ)", "Spearman's ρ with average ranks for ties; p-values from 10,000 permutations, intervals from 3,000 bootstrap resamples."],
+            ].map(([k, v]) => (
+              <div key={k}><dt className="font-semibold text-ink">{k}</dt><dd className="text-ink2">{v}</dd></div>
+            ))}
+          </dl>
+        </Card>
+        <Card title="Caveats">
+          <div className="divide-y divide-[var(--border)]">
+            {CAVEATS.map(([k, v]) => (
+              <details key={k} className="group py-2.5">
+                <summary className="flex cursor-pointer list-none items-center justify-between text-[14px] font-medium text-ink">
+                  {k}<Icon name="right" size={16} className="text-muted transition-transform group-open:rotate-90" />
+                </summary>
+                <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink2">{v}</p>
+              </details>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      <Card className="mt-5" title="Related work">
+        <p className="text-[13.5px] leading-relaxed text-ink2">
+          Schwarz, Barber, Huang, Jorion &amp; Odean (2025), “The ‘Actual Retail Price’ of Equity Trades”, <i>Journal of Finance</i> 80(5).
+          Using 85,000 test trades they found payment for order flow did not explain differences in execution. The new mandatory disclosures point the same way.
+        </p>
       </Card>
     </div>
   );

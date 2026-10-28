@@ -1,23 +1,25 @@
 import { useEffect, useState } from "react";
-import { TooltipProvider } from "./components/Tooltip";
+import { Icon } from "./components/ui";
 import { loadData, type Data, type Filters } from "./lib/data";
 import { monthShort, quarterShort } from "./lib/format";
-import { useRoute, useTheme } from "./lib/hooks";
+import { useRoute } from "./lib/hooks";
+import { useTheme } from "./lib/theme";
 import AllFirms from "./pages/AllFirms";
-import Broker from "./pages/Broker";
-import Explore from "./pages/Explore";
+import BrokerProfile from "./pages/BrokerProfile";
+import Brokers from "./pages/Brokers";
 import MarketMakers from "./pages/MarketMakers";
 import Method from "./pages/Method";
-import Story from "./pages/Story";
+import Overview from "./pages/Overview";
 
-const NAV: [string, string][] = [["", "Story"], ["explore", "Brokers"], ["market-makers", "Market makers"], ["firms", "All firms"], ["method", "Method"]];
+const NAV: [string, string][] = [["", "Overview"], ["brokers", "Brokers"], ["market-makers", "Market makers"], ["firms", "All firms"], ["method", "Method"]];
+const REPO = "https://github.com/yens5757/order-flow-watch";
 
 export default function App() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<Filters | null>(null);
   const route = useRoute();
-  const theme = useTheme();
+  const { dark, toggle } = useTheme();
 
   useEffect(() => {
     loadData().then((d) => {
@@ -26,48 +28,66 @@ export default function App() {
     }).catch((e) => setError(String(e.message ?? e)));
   }, []);
   const set = (p: Partial<Filters>) => setFilters((f) => (f ? { ...f, ...p } : f));
-  const page = route[0] ?? "";
-  const active = page === "broker" ? "explore" : page;
+  const page = route[0] === "explore" ? "brokers" : route[0] ?? "";
+  const active = page === "broker" ? "brokers" : page;
 
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-page font-sans text-ink">
-        <header className="sticky top-0 z-40 border-b border-line bg-[color-mix(in_srgb,var(--page)_85%,transparent)] backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-            <a href="#/" className="flex shrink-0 items-center gap-2 font-semibold text-ink">
-              <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--s1)" />
-                <path d="M8 21l6-6 4 4 6-8" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              <span className="hidden sm:inline">Order Flow Watch</span>
-            </a>
-            <nav className="-mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto">
-              {NAV.map(([path, label]) => (
-                <a key={path} href={`#/${path}`} aria-current={active === path ? "page" : undefined}
-                  className={`whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[13.5px] font-medium ${active === path ? "bg-surface2 text-ink" : "text-ink2 hover:text-ink"}`}>
-                  {label}
-                </a>
-              ))}
-            </nav>
-            {data && <span className="hidden whitespace-nowrap text-[12px] text-muted md:inline" title={`Built ${data.meta.built}`}>
-              Data: {monthShort(data.meta.month)} · {quarterShort(data.meta.quarter)}</span>}
-            <button type="button" onClick={theme.toggle} aria-label="Toggle dark mode"
-              className="shrink-0 rounded-lg border border-line px-2.5 py-1.5 text-[13px] text-ink2 hover:text-ink">{theme.dark ? "☀" : "☾"}</button>
-          </div>
-        </header>
-        {error ? <div className="mx-auto max-w-xl px-4 py-24 text-center text-ink2">{error}</div>
-          : !data || !filters ? <div className="py-32 text-center text-muted">Loading the latest reports…</div>
-          : page === "explore" ? <Explore d={data} f={filters} set={set} />
-          : page === "broker" ? <Broker d={data} f={filters} set={set} id={route[1] ?? "HOOD"} />
+    <div className="min-h-screen overflow-x-clip bg-page font-sans text-ink">
+      <header className="sticky top-0 z-40 border-b border-line bg-[color-mix(in_srgb,var(--page)_82%,transparent)] backdrop-blur-md">
+        <div className="mx-auto flex h-[60px] max-w-7xl items-center gap-3 px-4 sm:h-16 sm:gap-6">
+          <a href="#/" className="flex shrink-0 items-center gap-2.5 font-display text-[16px] font-bold text-ink">
+            <span className="grid h-8 w-8 place-items-center rounded-[10px] text-white shadow-card" style={{ background: "var(--grad)" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 16l5-5 4 4 7-8" /></svg>
+            </span>
+            <span className="hidden sm:inline">Order Flow Watch</span>
+          </a>
+          <nav className="-mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1 [scrollbar-width:none] max-sm:[mask-image:linear-gradient(to_right,#000_85%,transparent)]" aria-label="Pages">
+            {NAV.map(([path, label]) => (
+              <a key={path} href={`#/${path}`} aria-current={active === path ? "page" : undefined}
+                className={`relative whitespace-nowrap rounded-lg px-3 py-2 text-[14px] font-medium transition-colors ${active === path ? "bg-surface2 text-ink" : "text-ink2 hover:bg-surface2/60 hover:text-ink"}`}>
+                {label}
+              </a>
+            ))}
+          </nav>
+          {data && (
+            <span className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 py-1 text-[12px] text-muted lg:inline-flex" title={`Built ${data.meta.built}`}>
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--good)]" />Fills {monthShort(data.meta.month)} · Payments {quarterShort(data.meta.quarter)}
+            </span>
+          )}
+          <a href={REPO} target="_blank" rel="noopener" aria-label="Source code on GitHub"
+            className="hidden h-9 w-9 shrink-0 place-items-center rounded-xl border border-line text-ink2 hover:border-accent hover:text-ink sm:grid"><Icon name="github" size={17} /></a>
+          <button type="button" onClick={toggle} aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-line text-ink2 hover:border-accent hover:text-ink">
+            <Icon name={dark ? "sun" : "moon"} size={17} />
+          </button>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-7xl px-4 pb-24">
+        {error ? <div className="mx-auto max-w-xl py-24 text-center text-ink2">{error}</div>
+          : !data || !filters ? (
+            <div className="grid place-items-center py-40 text-muted">
+              <span className="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-[var(--accent)]" />
+              <span className="mt-4 text-[13.5px]">Loading the latest reports…</span>
+            </div>
+          )
+          : page === "brokers" ? <Brokers d={data} f={filters} set={set} />
+          : page === "broker" ? <BrokerProfile key={route[1]} d={data} f={filters} set={set} id={route[1] ?? "HOOD"} />
           : page === "market-makers" ? <MarketMakers d={data} f={filters} set={set} />
           : page === "firms" ? <AllFirms d={data} f={filters} set={set} />
           : page === "method" ? <Method d={data} />
-          : <Story d={data} />}
-        <footer className="border-t border-line">
-          <div className="mx-auto max-w-6xl px-4 py-8 text-[12.5px] leading-relaxed text-muted">
-            Built from SEC Rule 605 and 606 disclosures, refreshed weekly. Not investment advice.
-            {data && <> Fills from {monthShort(data.meta.month)}, payments from {quarterShort(data.meta.quarter)}, built {data.meta.built}.</>}
-          </div>
-        </footer>
-      </div>
-    </TooltipProvider>
+          : <Overview d={data} />}
+      </main>
+
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-8 text-[13px] text-muted">
+          <span>Built from SEC Rule 605 and 606 disclosures, refreshed every Monday. Not investment advice.{data && <> Built {data.meta.built}.</>}</span>
+          <span className="flex items-center gap-4">
+            <a href="https://yens5757.github.io/" className="hover:text-ink">Made by Aiken Lee</a>
+            <a href={REPO} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 hover:text-ink"><Icon name="github" size={15} />Source</a>
+          </span>
+        </div>
+      </footer>
+    </div>
   );
 }
