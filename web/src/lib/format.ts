@@ -29,3 +29,5 @@ export const titleCase = (s: string) =>
   s === s.toUpperCase()
     ? s.toLowerCase().replace(/\b([a-z])([a-z]*)/g, (w, a: string, b: string) => (/^(llc|lp|lllp|ats|usa|nyse|ubs|bny|rbc|bmo)$/.test(w) ? w.toUpperCase() : a.toUpperCase() + b))
     : s;
+/** Axis tick for dollar values: −$0.50, $1.00. */
+export const usdTick = (v: number) => `${v < 0 ? "−" : ""}$${Math.abs(v).toFixed(2)}`;

@@ -88,7 +88,12 @@ export interface Metric {
   f: Firm; id: string; name: string;
   payPct: number | null; cph: number | null; cust: number | null;
   pi: number | null; aq: number | null; sz: number | null; px: number | null; t: number | null; qsBps: number | null;
+  /** $ the customer pays above the midpoint on a $10,000 trade */
   cost10k: number | null;
+  /** $ the broker is paid for routing a $10,000 order: cph is cents per 100 shares, so cph/1e4 per share × 1e4/price shares */
+  pay10k: number | null;
+  /** points of the spread vs other brokers on identical stock × size cells (market orders, all sizes) */
+  gap: number | null;
 }
 
 export function metric(d: Data, f: Firm, s: Filters): Metric {
@@ -104,6 +109,8 @@ export function metric(d: Data, f: Firm, s: Filters): Metric {
     f, id: f.id, name: nameOf(f), payPct, cph, cust,
     pi: pct(e?.pi), aq: pct(e?.aq), sz: e?.sz ?? null, px: e?.px ?? null, t: e?.t ?? null, qsBps,
     cost10k: cust != null && qsBps != null ? (cust / 100) * (qsBps / 2) : null,
+    pay10k: cph != null && base?.px ? cph / base.px : null,
+    gap: d.sameStock.brokers.find((g) => g.id === f.id && g.sp === s.sp && g.cells >= 100)?.gap ?? null,
   };
 }
 

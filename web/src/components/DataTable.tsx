@@ -11,10 +11,11 @@ export interface Col<R> {
   hint?: string;
 }
 
-export function DataTable<R>({ rows, cols, initial, onRow, search, file, maxHeight }: {
+export function DataTable<R>({ rows, cols, initial, onRow, search, file, maxHeight, highlight }: {
   rows: R[]; cols: Col<R>[]; initial?: { key: string; dir: 1 | -1 }; onRow?: (r: R) => void;
-  search?: (r: R) => string; file?: string; maxHeight?: number;
+  search?: (r: R) => string; file?: string; maxHeight?: number; highlight?: string[];
 }) {
+  const hl = (k: string) => (highlight?.includes(k) ? "bg-[var(--accent-soft)]" : "");
   const [sort, setSort] = useState(initial ?? { key: cols[0].key, dir: 1 as 1 | -1 });
   const [q, setQ] = useState("");
   const col = cols.find((c) => c.key === sort.key) ?? cols[0];
@@ -61,7 +62,7 @@ export function DataTable<R>({ rows, cols, initial, onRow, search, file, maxHeig
           <thead className="sticky top-0 z-10 bg-surface2">
             <tr>
               {cols.map((c) => (
-                <th key={c.key} scope="col" title={c.hint} className={`whitespace-nowrap border-b border-line px-3 py-2.5 font-semibold text-ink2 ${c.num ? "text-right" : "text-left"}`}>
+                <th key={c.key} scope="col" title={c.hint} className={`whitespace-nowrap border-b border-line px-3 py-2.5 font-semibold ${highlight?.includes(c.key) ? "text-accent" : "text-ink2"} ${c.num ? "text-right" : "text-left"}`}>
                   <button type="button" className="inline-flex items-center gap-1 hover:text-ink"
                     onClick={() => setSort((s) => ({ key: c.key, dir: s.key === c.key ? (-s.dir as 1 | -1) : c.num ? -1 : 1 }))}>
                     {c.label}
@@ -76,7 +77,7 @@ export function DataTable<R>({ rows, cols, initial, onRow, search, file, maxHeig
               <tr key={i} onClick={onRow ? () => onRow(r) : undefined}
                 className={`border-b border-line last:border-0 ${onRow ? "cursor-pointer hover:bg-surface2" : ""}`}>
                 {cols.map((c) => (
-                  <td key={c.key} className={`whitespace-nowrap px-3 py-2.5 ${c.num ? "tnum text-right text-ink" : "text-ink2"}`}>
+                  <td key={c.key} className={`whitespace-nowrap px-3 py-2.5 ${hl(c.key)} ${c.num ? "tnum text-right text-ink" : "text-ink2"}`}>
                     {c.render ? c.render(r) : (c.value(r) ?? "–")}
                   </td>
                 ))}

@@ -6,12 +6,12 @@ import { useRoute } from "./lib/hooks";
 import { useTheme } from "./lib/theme";
 import AllFirms from "./pages/AllFirms";
 import BrokerProfile from "./pages/BrokerProfile";
-import Brokers from "./pages/Brokers";
+import Explore from "./pages/Explore";
+import Home from "./pages/Home";
 import MarketMakers from "./pages/MarketMakers";
 import Method from "./pages/Method";
-import Overview from "./pages/Overview";
 
-const NAV: [string, string][] = [["", "Overview"], ["brokers", "Brokers"], ["market-makers", "Market makers"], ["firms", "All firms"], ["method", "Method"]];
+const NAV: [string, string][] = [["", "Home"], ["explore", "Explore"], ["market-makers", "Market makers"], ["method", "Method"]];
 const REPO = "https://github.com/yens5757/order-flow-watch";
 
 export default function App() {
@@ -28,8 +28,8 @@ export default function App() {
     }).catch((e) => setError(String(e.message ?? e)));
   }, []);
   const set = (p: Partial<Filters>) => setFilters((f) => (f ? { ...f, ...p } : f));
-  const page = route[0] === "explore" ? "brokers" : route[0] ?? "";
-  const active = page === "broker" ? "brokers" : page;
+  const page = route[0] === "brokers" ? "explore" : route[0] ?? ""; // old links to #/brokers still work
+  const active = page === "broker" || page === "firms" ? "explore" : page;
 
   return (
     <div className="min-h-screen overflow-x-clip bg-page font-sans text-ink">
@@ -71,12 +71,12 @@ export default function App() {
               <span className="mt-4 text-[13.5px]">Loading the latest reports…</span>
             </div>
           )
-          : page === "brokers" ? <Brokers d={data} f={filters} set={set} />
+          : page === "explore" ? <Explore d={data} />
           : page === "broker" ? <BrokerProfile key={route[1]} d={data} f={filters} set={set} id={route[1] ?? "HOOD"} />
           : page === "market-makers" ? <MarketMakers d={data} f={filters} set={set} />
           : page === "firms" ? <AllFirms d={data} f={filters} set={set} />
           : page === "method" ? <Method d={data} />
-          : <Overview d={data} />}
+          : <Home d={data} />}
       </main>
 
       <footer className="border-t border-line">

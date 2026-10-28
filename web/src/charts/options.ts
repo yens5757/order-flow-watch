@@ -11,8 +11,13 @@ const CLICK = "Click to open the broker profile";
 export interface Pt { id: string; name: string; x: number; y: number; dim?: boolean; rows?: Row[] }
 
 export function labeledScatter(t: Tokens, pts: Pt[], o: {
-  xName: string; yName: string; xFmt: (v: number) => string; yFmt: (v: number) => string; clickable?: boolean;
+  xName: string; yName: string; xFmt: (v: number) => string; yFmt: (v: number) => string; clickable?: boolean; medians?: [number, number];
 }): Option {
+  const medianLines = o.medians ? {
+    silent: true, symbol: "none", lineStyle: { color: t.baseline, type: "dashed", width: 1 },
+    label: { color: t.muted, fontSize: 11, formatter: "median" },
+    data: [{ xAxis: o.medians[0], label: { position: "end" } }, { yAxis: o.medians[1], label: { position: "end" } }],
+  } : undefined;
   return {
     ...base(t),
     grid: { left: 16, right: 76, top: 18, bottom: 44, containLabel: true },
@@ -32,6 +37,56 @@ export function labeledScatter(t: Tokens, pts: Pt[], o: {
       labelLayout: { hideOverlap: true },
       emphasis: { scale: 1.35, label: { color: t.ink, fontWeight: 600 } },
       cursor: o.clickable ? "pointer" : "default",
+      markLine: medianLines,
+    }],
+  };
+}
+
+/* ---------- ranked bars with a median line; one broker can be highlighted ---------- */
+export function ranked(t: Tokens, rows: { id: string; name: string; v: number; hl?: boolean; rows?: Row[] }[], o: {
+  fmt: (v: number) => string; axis: (v: number) => string; color: string; diverging?: boolean; median?: number | null; foot?: string;
+  /** colour each bar by which side of the median it falls (better / worse) instead of one colour */
+  tone?: "low-better" | "high-better";
+}): Option {
+  const anyHl = rows.some((r) => r.hl);
+  const vals = rows.map((r) => r.v);
+  const ext = Math.max(1e-9, ...vals.map(Math.abs)) * 1.35;
+  const lo = Math.min(0, ...vals);
+  // symmetric axis only for diverging measures; a few small negatives just get a little room on the left
+  const min = o.diverging ? -ext : lo < 0 ? lo * 1.2 : 0;
+  const fill = (r: { v: number }) => {
+    if (o.diverging) return r.v < 0 ? t.better : t.worse;
+    if (o.tone && o.median != null) return (o.tone === "low-better" ? r.v <= o.median : r.v >= o.median) ? t.better : t.worse;
+    return o.color;
+  };
+  return {
+    ...base(t),
+    grid: { left: 8, right: 16, top: o.median != null ? 26 : 8, bottom: 22, containLabel: true },
+    xAxis: valueAxis(t, {
+      min, max: ext, splitNumber: 4,
+      axisLabel: { color: t.muted, formatter: o.axis, hideOverlap: true, showMinLabel: min === 0, showMaxLabel: false },
+    }),
+    yAxis: catAxis(t, rows.map((r) => r.name), { inverse: true, axisLine: { show: false },
+      axisLabel: { color: t.ink2, fontSize: 12, rich: { hl: { color: t.ink, fontWeight: 700, fontSize: 12 } },
+        formatter: (v: string) => (rows.some((r) => r.hl && r.name === v) ? `{hl|${v}}` : v) } }),
+    tooltip: tooltip(t, { trigger: "item", formatter: (p: any) => tip(p.name, rows[p.dataIndex].rows ?? [[p.color, "Value", o.fmt(p.value)]], o.foot) }),
+    series: [{
+      type: "bar", barWidth: 13, barCategoryGap: "35%",
+      data: rows.map((r) => ({
+        value: r.v, id: r.id,
+        itemStyle: { color: fill(r), opacity: anyHl && !r.hl ? 0.5 : 1, borderRadius: hEnd(r.v),
+          borderColor: r.hl ? t.ink : "transparent", borderWidth: r.hl ? 1.5 : 0 },
+        // a small negative bar keeps its label on the right (over the empty zero side), clear of the broker's name
+        label: { position: o.diverging && r.v < 0 ? "left" : "right", color: r.hl ? t.ink : t.ink2, fontWeight: r.hl ? 700 : 400 },
+      })),
+      label: { show: true, fontSize: 11.5, formatter: (p: any) => o.fmt(p.value) },
+      emphasis: { itemStyle: { opacity: 1 } },
+      cursor: "pointer",
+      markLine: o.median != null ? {
+        silent: true, symbol: "none", lineStyle: { color: t.muted, type: "dashed", width: 1 },
+        label: { position: "start", color: t.muted, fontSize: 11, formatter: `median ${o.fmt(o.median)}` },
+        data: [{ xAxis: o.median }],
+      } : undefined,
     }],
   };
 }
@@ -81,57 +136,6 @@ export function hBars(t: Tokens, rows: { id: string; name: string; v: number; ro
       label: { show: true, position: "right", color: t.ink2, fontSize: 11.5, formatter: (p: any) => o.fmt(p.value) },
       cursor: o.clickable ? "pointer" : "default",
     }],
-  };
-}
-
-/* ---------- two measures per row, side by side ---------- */
-export function pairedBars(t: Tokens, rows: { id: string; name: string; a: number | null; b: number | null }[], o: {
-  aName: string; bName: string; fmt: (v: number) => string;
-}): Option {
-  const series = (name: string, color: string, k: "a" | "b") => ({
-    name, type: "bar", barWidth: 8, barGap: "45%", itemStyle: { color },
-    data: rows.map((r) => ({ value: r[k], id: r.id, itemStyle: { color, borderRadius: hEnd(r[k] ?? 0) } })),
-    emphasis: { focus: "series" },
-    cursor: "pointer",
-  });
-  return {
-    ...base(t),
-    legend: legend(t),
-    grid: { left: 8, right: 24, top: 34, bottom: 24, containLabel: true },
-    xAxis: valueAxis(t, { axisLabel: { color: t.muted, formatter: (v: number) => o.fmt(v) } }),
-    yAxis: catAxis(t, rows.map((r) => r.name), { inverse: true, axisLine: { show: false } }),
-    tooltip: tooltip(t, {
-      trigger: "axis", axisPointer: { type: "shadow", shadowStyle: { color: t.neutral, opacity: 0.25 } },
-      formatter: (ps: any[]) => tip(ps[0].name, ps.map((p) => [p.color, p.seriesName, p.value == null ? "not reported" : o.fmt(p.value)] as Row), CLICK),
-    }),
-    series: [series(o.aName, t.s[0], "a"), series(o.bName, t.s[1], "b")],
-  };
-}
-
-/* ---------- stacked horizontal bars (parts of a whole per row) ---------- */
-export function stackedBars(t: Tokens, rows: { id: string; name: string; parts: number[]; total?: number }[], parts: { name: string; color: string }[], o: {
-  fmt: (v: number) => string; foot?: string;
-}): Option {
-  return {
-    ...base(t),
-    legend: legend(t),
-    grid: { left: 8, right: 24, top: 34, bottom: 24, containLabel: true },
-    xAxis: valueAxis(t, { axisLabel: { color: t.muted, formatter: (v: number) => o.fmt(v) } }),
-    yAxis: catAxis(t, rows.map((r) => r.name), { inverse: true, axisLine: { show: false } }),
-    tooltip: tooltip(t, {
-      trigger: "axis", axisPointer: { type: "shadow", shadowStyle: { color: t.neutral, opacity: 0.25 } },
-      formatter: (ps: any[]) => {
-        const r = rows[ps[0].dataIndex];
-        return tip(r.name, [...ps.map((p) => [p.color, p.seriesName, o.fmt(p.value)] as Row), [null, "Customer pays in total", o.fmt(r.total ?? r.parts.reduce((a, b) => a + b, 0))]], o.foot);
-      },
-    }),
-    series: parts.map((p, i) => ({
-      name: p.name, type: "bar", stack: "all", barWidth: 14, itemStyle: { color: p.color },
-      data: rows.map((r) => ({ value: r.parts[i], id: r.id,
-        itemStyle: { color: p.color, borderColor: t.surface, borderWidth: 1, borderRadius: i === parts.length - 1 ? [0, 4, 4, 0] : 0 } })),
-      emphasis: { focus: "series" },
-      cursor: "pointer",
-    })),
   };
 }
 
