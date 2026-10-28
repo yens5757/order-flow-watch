@@ -96,7 +96,8 @@ export default function Explore({ d }: { d: Data }) {
       : a < 0.4
         ? <>At most a weak tendency: brokers with a higher <b>{V.noun}</b> have a slightly {way} <b>{M.noun}</b>, but with only {withV.length} brokers that could easily be chance.</>
         : <>Brokers with a higher <b>{V.noun}</b> tend to have a {way} <b>{M.noun}</b>.</>;
-    summary = <>{summary} <span className="text-muted">Rank correlation {rho.toFixed(2)} ({strength(rho)}) across {withV.length} brokers.</span></>;
+    const across = a >= 0.2 && a < 0.4 ? "" : ` across ${withV.length} brokers`; // the weak case already names the count
+    summary = <>{summary} <span className="text-muted">Rank correlation {rho.toFixed(2)} ({strength(rho)}){across}.</span></>;
   } else if (!V && best && worst) {
     summary = M.better
       ? <><b>{best.f.short}</b> does best ({M.fmt(M.get(best))}) and <b>{worst.f.short}</b> worst ({M.fmt(M.get(worst))}). The typical broker: {M.fmt(med)}.</>
@@ -129,17 +130,17 @@ export default function Explore({ d }: { d: Data }) {
         </div>
       </Group>
       <Group title="Compare with" info="Pick a second measure to see every broker as a dot: does one measure go with the other?">
-        <Select label="Compare with" value={s.vs} onChange={(vs) => set({ vs: vs as MetricKey | "" })}
+        <Select full label="Compare with" value={s.vs} onChange={(vs) => set({ vs: vs as MetricKey | "" })}
           options={[["", "Nothing (ranked list)"], ...METRIC_KEYS.filter((k) => k !== s.m).map((k) => [k, METRICS[k].label] as [string, string])]} />
       </Group>
       <Group title="Stocks"><Segmented size="sm" value={s.sp} onChange={(sp) => set({ sp })} options={[["Y", "S&P 500"], ["N", "Other stocks"]]} /></Group>
       <Group title="Order" info="Market orders fill right away at the best available price. Marketable limit orders set a price cap but can still fill immediately.">
         <div className="space-y-2.5">
           <Segmented size="sm" value={s.ot} onChange={(ot) => set({ ot })} options={[["M", "Market"], ["ML", "Marketable limit"]]} />
-          <Select label="Order size" value={s.b} onChange={(b) => set({ b })} options={BUCKETS} />
+          <Select full label="Order size" value={s.b} onChange={(b) => set({ b })} options={BUCKETS} />
         </div>
       </Group>
-      <Group title="Payments from"><Select label="Quarter" value={s.q} onChange={(q) => set({ q })} options={[...d.meta.quarters].reverse().map((q) => [q, quarterLong(q)])} /></Group>
+      <Group title="Payments from"><Select full label="Quarter" value={s.q} onChange={(q) => set({ q })} options={[...d.meta.quarters].reverse().map((q) => [q, quarterLong(q)])} /></Group>
       <Group title="Sort"><Segmented size="sm" value={s.sort} onChange={(sort) => set({ sort })} options={sortOpts} /></Group>
       <Group title={`Brokers (${shown.length} of ${pool.length})`}>
         <div className="mb-2.5 flex gap-3 text-[12.5px] font-semibold">

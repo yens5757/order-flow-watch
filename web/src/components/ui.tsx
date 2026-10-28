@@ -97,15 +97,16 @@ export function Segmented<T extends string | number>({ value, onChange, options,
   );
 }
 
-export function Select<T extends string | number>({ label, value, onChange, options }: {
-  label: string; value: T; onChange: (v: T) => void; options: [T, string][];
+/** `full`: fills its container with the visible label hidden (for panels that already title the control). */
+export function Select<T extends string | number>({ label, value, onChange, options, full }: {
+  label: string; value: T; onChange: (v: T) => void; options: [T, string][]; full?: boolean;
 }) {
   return (
-    <label className="inline-flex items-center gap-2 text-[12.5px] text-muted">
-      <span className="hidden sm:inline">{label}</span>
+    <label className={`items-center gap-2 text-[12.5px] text-muted ${full ? "flex w-full" : "inline-flex"}`}>
+      <span className={full ? "sr-only" : "hidden sm:inline"}>{label}</span>
       <select value={String(value)} aria-label={label}
         onChange={(e) => onChange((typeof value === "number" ? Number(e.target.value) : e.target.value) as T)}
-        className="rounded-xl border border-line bg-surface2 px-3 py-2 text-[13.5px] font-medium text-ink outline-none focus:border-accent">
+        className={`rounded-xl border border-line bg-surface2 px-3 py-2 text-[13.5px] font-medium text-ink outline-none focus:border-accent ${full ? "w-full min-w-0 text-ellipsis" : ""}`}>
         {options.map(([v, l]) => <option key={String(v)} value={String(v)}>{l}</option>)}
       </select>
     </label>

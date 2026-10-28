@@ -1,5 +1,7 @@
 # Payment for Order Flow vs Retail Execution Quality
 
+[![Order Flow Watch: is your broker getting you a good price?](docs/social-preview.png)](https://yens5757.github.io/order-flow-watch/)
+
 **Do retail brokers that are paid more for routing customer orders give their customers worse fills?**
 
 An automated pipeline that joins two SEC disclosures, refreshed weekly and published as a website:
@@ -8,9 +10,14 @@ An automated pipeline that joins two SEC disclosures, refreshed weekly and publi
 - **Rule 605**: how good the resulting fills were. Since August 2026 the amended rule requires
   large brokers to publish these reports too, which makes a broker-by-broker comparison possible.
 
-**Website:** [yens5757.github.io/order-flow-watch](https://yens5757.github.io/order-flow-watch/). It is a plain-language story for
-non-experts, plus an explorer with filters, a page per broker, market-maker comparisons, every Rule 605
-reporter, and the statistical evidence behind each claim.
+**Website:** [yens5757.github.io/order-flow-watch](https://yens5757.github.io/order-flow-watch/). Two layers:
+a plain-language home page (what a $10,000 trade costs at each broker, pick-your-broker report card) for
+non-experts, and an explorer where you choose the measure, compare two, filter, sort and share the view.
+Plus a page per broker, market-maker comparisons, every Rule 605 reporter, and the statistics behind each claim.
+
+| Home: the easy layer | Explore: the interactive layer |
+|---|---|
+| [![Home page](docs/screenshot-home.png)](https://yens5757.github.io/order-flow-watch/) | [![Explorer](docs/screenshot-explore.png)](https://yens5757.github.io/order-flow-watch/#/explore?m=cost10k&vs=pay10k) |
 
 ## Findings so far
 
@@ -30,8 +37,6 @@ August 2026 fills (Rule 605), April–June 2026 payments (Rule 606), 19 retail b
   tracked brokers grew from $0.6B to $1.3B a quarter in two years.
 
 Leans towards Schwarz et al. (2025): payment for order flow is not the main driver of execution quality.
-
-![Payment vs execution quality](docs/pfof_vs_execution.png)
 
 ## How it works
 
