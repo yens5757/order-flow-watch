@@ -41,6 +41,9 @@ export default function BrokerProfile({ d, f, set, id }: { d: Data; f: Filters; 
     ...head.map((v, i) => ({ name: v.venue, v: v.share, color: t.s[i], rows: [[t.s[i], "Share of orders", pct(v.share, 1)], [null, "Paid per 100 shares", cents(v.cph)]] as [string | null, string, string][] })),
     ...(tail.length ? [{ name: `Other (${tail.length})`, v: tail.reduce((a, v) => a + v.share, 0), color: t.context }] : []),
   ];
+  // some 606s list only their main venues (Futu Clearing: ~56%); show the rest rather than stretch the ring
+  const listed = venues.reduce((a, v) => a + v.share, 0);
+  if (venues.length && listed < 97) slices.push({ name: "Not itemised in the 606", v: 100 - listed, color: t.neutral });
   const routing = useMemo(() => donut(t, slices, (v) => `${v.toFixed(0)}%`), [t, firm, f]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // payments over time
@@ -85,7 +88,7 @@ export default function BrokerProfile({ d, f, set, id }: { d: Data; f: Filters; 
         <Kpi label="Same-stock gap" value={gap ? signed(gap.gap, 1) : "–"} tone={gap ? (gap.gap < 0 ? "good" : "bad") : undefined}
           sub={gap ? `points vs other brokers on identical trades` : "not enough detailed data"} />
         <Kpi label="Cost per $10k" value={usd2(r.cost10k)} sub="above the midpoint price" />
-        <Kpi label="Avg order" value={r.sz == null ? "–" : `${num(r.sz)} sh`} sub={r.pi != null ? `${pct(r.pi, 0)} price-improved` : undefined} />
+        <Kpi label="Avg order" value={r.sz == null ? "–" : `$${num(r.sz)}`} sub={r.pi != null ? `${pct(r.pi, 0)} price-improved` : undefined} />
       </section>
 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">

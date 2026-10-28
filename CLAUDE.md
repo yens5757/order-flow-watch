@@ -116,6 +116,15 @@ No pandas by design: analysis is in SQL.
   actual gap rho +0.02 (S&P) / -0.17 (other). Same market makers, very different prices per broker ->
   market makers price each broker's flow separately. Market makers on same stocks (S&P): Citadel -19pt,
   Two Sigma +18pt; other stocks: G1 -8pt, Citadel +7.5pt.
+- **Expanded to 24 brokers / 18 with payment + 8 market makers (28 Oct 2026):** added moomoo (FUTM), Public (TTSI),
+  Merrill (MLWM), Coinbase (CNBS, no 606), J.P. Morgan (JPBD); market makers Jump (JRET) and GTS (GTSM, #3 by
+  off-exchange volume, 10.6%). Payment vs cost now +0.30 (S&P, p=0.23) / **+0.50 (other, p=0.036)**, but with
+  avg share price held equal (partial rank corr., new evidence row) +0.06 (p=0.82) / +0.30 (p=0.25). Holding
+  avg order size equal does NOT remove it (other +0.49, p=0.05) - share price is the confound. Clientele vs
+  same-stock gap -0.67/-0.69 (p<=0.001); routing mix +0.04/+0.22. Jump's retail desk +32pt (S&P) vs other
+  market makers on identical trades, small volume ($1.9B). Robinhood Financial (CRD 165998) files its own 606
+  ($399M in 2026Q2) but routes everything through Robinhood Securities (287900, tracked): a subset, not extra
+  money - never add them up. MSSB's CRD 149777 is the MSWM 606 (already tracked).
 - Validation: Robinhood's 606 states it is paid 12.35% of the spread; the pipeline reproduces 12.1-13.5%.
 - Finding names for 605 reporter codes: FINRA's broker-dealer directory
   finra.org/filing-reporting/regulation-nms/sec-rule-605-reports/167516 (paginated, ?page=N).
@@ -142,3 +151,7 @@ No pandas by design: analysis is in SQL.
    yens5757.github.io/order-flow-watch. Pages source must be set to GitHub Actions in repo settings (no gh CLI here).
 9. Splitting "other stocks" further: 605/606 summaries only split S&P 500 vs other. Execution quality could be
    split by stock/price via the 605 detailed reports (per-symbol .zip, skipped by `--summary-only`); payment cannot.
+10. Still missing (file 606, but 605 not on public.s3.com - need per-firm fetchers like Virtu/Jane Street):
+   Interactive Brokers ($72M 2026Q2; 605 codes IBCO/IBFR/FRAC), TradeStation, Alpaca, Firstrade, Ally (TKNG),
+   Tradier, TradeUP. Citadel on the live site: its site deliberately blocks scripts - do not try to get around
+   that; options are a hand-downloaded file made available to CI privately, or committing derived results only.

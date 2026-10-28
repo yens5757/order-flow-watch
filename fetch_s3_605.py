@@ -49,9 +49,16 @@ TARGET_FIRMS = [
     "twtt",  # tastytrade
     "wlth",  # Wealthfront
     "wret",  # Wells Fargo Clearing Services
+    "futm",  # moomoo
+    "ttsi",  # Public.com
+    "mlwm",  # Merrill
+    "cnbs",  # Coinbase
+    "jpm",   # J.P. Morgan (JPBD)
     "etmm",  # G1 Execution
     "hrtf",  # HRT
     "soho",  # Two Sigma
+    "jleq",  # Jump Execution (JRET)
+    "gtsm",  # GTS Securities
 ]
 
 DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2})")

@@ -19,11 +19,18 @@ TPTG,Cash App Investing,Cash App,broker,144076,,606 context TPTG (from 2025Q4)
 TWTT,tastytrade,tastytrade,broker,277027,,606 context TWTT
 WLTH,Wealthfront Brokerage,Wealthfront,broker,153407,,CRD verified on BrokerCheck Oct 2026; 606 broker name field is just 'WLTH' (context WLTH); folder also holds WLTF
 WRET,Wells Fargo Clearing Services,Wells Fargo,broker,19616,,606 context WELS; 605 WELS is a separate small-order entity - not used
+FUTM,Moomoo Financial,moomoo,broker,298769,N,routes to affiliate Futu Clearing (CRD 298769) which is paid for the flow; moomoo's own 606 (CRD 283078 context CNTXT_FUTM) reports $0
+TTSI,Open to the Public Investing (Public.com),Public,broker,127818,N,relays orders to Apex Clearing; its 606 payments are what venues paid Apex for Public's orders (like SoFi)
+MLWM,"Merrill Lynch, Pierce, Fenner & Smith (Merrill Edge)",Merrill,broker,7691,,606 context MLCO_GWIM; routes most orders to affiliate BofA Securities and pays it (negative payment)
+CNBS,Coinbase Capital Markets,Coinbase,broker,,,no 606 in FINRA bulk data
+JPBD,J.P. Morgan Securities (Self-Directed Investing),J.P. Morgan,broker,79,,605 folder jpm/ (also JPMS/JPMX market-making entities - not used); 606 CRD 79 covers JPMS as a whole and reports no payment
 ETMM,G1 Execution Services,G1,market_maker,,,
 HRTF,HRT Financial,HRT,market_maker,,,
 HRTS,HRT Financial (second entity),HRT (2),market_maker_other,,,in hrtf/ folder; likely single-dealer platform - verify; exclude from retail comparison
 SOHO,Two Sigma Securities,Two Sigma,market_maker,,,
 SOHW,Two Sigma Securities (second entity),Two Sigma (2),market_maker,,,in soho/ folder; verify which Two Sigma business this is
+JRET,Jump Execution,Jump,market_maker,,,in jleq/ folder; JSDP there is Jump's single-dealer platform - not used
+GTSM,GTS Securities,GTS,market_maker,,,GTSZ in gtsz/ is its single-dealer platform - not used
 CDRG,Citadel Securities,Citadel,market_maker,,,not on public.s3.com - download from citadelsecurities.com
 JNST,Jane Street Capital,Jane Street,market_maker,,,not on public.s3.com - download from janestreet.com
 NITE,Virtu Americas,Virtu,market_maker,,,not on public.s3.com - download from virtu.com

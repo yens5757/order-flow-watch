@@ -28,7 +28,8 @@ MIN_PEERS = 3            # cells need at least this many OTHER firms
 EFQ_RANGE = (-5, 5)      # drop cells with absurd ratios (tiny or stale quoted spreads)
 
 MARKET_MAKERS = {"CDRG": "Citadel Securities", "NITE": "Virtu Americas", "JNST": "Jane Street",
-                 "ETMM": "G1 Execution", "HRTF": "HRT Financial", "SOHW": "Two Sigma Securities"}
+                 "ETMM": "G1 Execution", "HRTF": "HRT Financial", "SOHW": "Two Sigma Securities",
+                 "JRET": "Jump Execution", "GTSM": "GTS Securities"}
 
 
 def scores(con, month, ids):

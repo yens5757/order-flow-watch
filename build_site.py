@@ -169,15 +169,20 @@ def main():
     by_key = {(m["id"], m["sp"]): m for m in money}
 
     def add(claim, sp, pairs, expect):
-        """expect = the sign of rho that would support the claim (+1 or -1)."""
-        pairs = [(a, b) for a, b in pairs if a is not None and b is not None]
-        res = stats.test([a for a, _ in pairs], [b for _, b in pairs])
+        """expect = the sign of rho that would support the claim (+1 or -1).
+        pairs are (x, y) or (x, y, control): a third value makes it a partial correlation."""
+        pairs = [p for p in pairs if None not in p]
+        cols = list(zip(*pairs)) if pairs else [(), ()]
+        res = stats.test(list(cols[0]), list(cols[1]), list(cols[2]) if len(cols) > 2 else None)
         if res:
             evidence.append({"claim": claim, "sp": sp, "expect": expect, **res})
 
     for sp in "YN":
         same_b = {r["id"]: r for r in same["brokers"] if r["sp"] == sp and r["cells"] >= 100}
         add("Paid more → customers pay more of the spread", sp, [(m["pay"], m["cust"]) for m in money if m["sp"] == sp], 1)
+        # brokers paid most have customers in cheap, wide-spread stocks; hold share price equal
+        add("Paid more → customers pay more, at equal share price", sp,
+            [(m["pay"], m["cust"], base[(m["id"], sp)]["px"]) for m in money if m["sp"] == sp], 1)
         add("Paid more → worse prices on the same stocks", sp,
             [(by_key.get((k, sp), {}).get("pay"), r["gap"]) for k, r in same_b.items()], 1)
         add("Bigger typical order (clientele) → better prices on the same stocks", sp,

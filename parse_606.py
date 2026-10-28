@@ -54,7 +54,8 @@ VENUE_RULES = [
     (r"MEMX|MEMBERS EXCHANGE", "MEMX", None),
     (r"INVESTORS EXCHANGE|\bIEX\b", "IEX", None),
     (r"KNIGHT", "Virtu Americas", "NITE"),  # Knight Link is Virtu's (ex-Knight Capital)
-    (r"\bGTS", "GTS Securities", None),  # also "GTSM" (its MPID)
+    (r"\bGTS", "GTS Securities", "GTSM"),  # also "GTSM" (its MPID)
+    (r"\bJUMP\b", "Jump Execution", "JRET"),
     (r"STONEX", "StoneX Financial", None),
 ]
 

@@ -17,9 +17,9 @@ const STEPS = [
 ] as const;
 
 const CAVEATS = [
-  ["Small sample", "About a dozen brokers report both payments and fills, so every test has low power. These are correlations, not causes."],
+  ["Small sample", "Fewer than 20 brokers report both payments and fills, so every test has low power. These are correlations, not causes."],
   ["Timing", "Fills are monthly (Rule 605); payments are quarterly (Rule 606), so the latest payments can lag the fills by a quarter."],
-  ["Missing payments", "Albert, Avenue, eToro, Stash and WF FiNet file no 606 of their own. SoFi reports only its share, so its payment is understated."],
+  ["Missing payments", "Albert, Avenue, Coinbase, eToro, Stash and WF FiNet file no 606 of their own. SoFi reports only its share, so its payment is understated. moomoo's payment is its routing affiliate Futu Clearing's."],
   ["Share-weighting", "Rule 605 averages weight by shares, so big orders dominate. The same-stock comparison weights by dollars and matches stock × size."],
   ["Options", "About 70% of payment for order flow comes from options, which Rule 605 doesn't cover at all."],
   ["Citadel", "Citadel Securities blocks automated downloads; its report is added by hand when available."],
