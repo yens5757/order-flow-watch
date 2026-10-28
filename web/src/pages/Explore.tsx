@@ -89,9 +89,13 @@ export default function Explore({ d }: { d: Data }) {
   let summary: ReactNode = null;
   if (V && withV.length >= 4) {
     const rho = spearman(withV.map((r) => V.get(r)!), withV.map((r) => M.get(r)!)) ?? 0;
-    summary = Math.abs(rho) < 0.3
+    const a = Math.abs(rho), way = rho > 0 ? "higher" : "lower";
+    // wording follows the strength labels in format.ts, so the sentence never claims more than the number shows
+    summary = a < 0.2
       ? <>No clear pattern: a broker's <b>{V.noun}</b> tells you little about its <b>{M.noun}</b>.</>
-      : <>Brokers with a higher <b>{V.noun}</b> tend to have a {rho > 0 ? "higher" : "lower"} <b>{M.noun}</b>.</>;
+      : a < 0.4
+        ? <>At most a weak tendency: brokers with a higher <b>{V.noun}</b> have a slightly {way} <b>{M.noun}</b>, but with only {withV.length} brokers that could easily be chance.</>
+        : <>Brokers with a higher <b>{V.noun}</b> tend to have a {way} <b>{M.noun}</b>.</>;
     summary = <>{summary} <span className="text-muted">Rank correlation {rho.toFixed(2)} ({strength(rho)}) across {withV.length} brokers.</span></>;
   } else if (!V && best && worst) {
     summary = M.better
