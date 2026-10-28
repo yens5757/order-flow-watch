@@ -45,7 +45,7 @@ export function divergingBars(t: Tokens, rows: { id: string; name: string; v: nu
   return {
     ...base(t),
     grid: { left: 8, right: 12, top: 6, bottom: 24, containLabel: true },
-    xAxis: valueAxis(t, { min: -ext, max: ext, axisLabel: { color: t.muted, hideOverlap: true,
+    xAxis: valueAxis(t, { min: -ext, max: ext, axisLabel: { color: t.muted, hideOverlap: true, showMinLabel: false, showMaxLabel: false,
       formatter: (v: number) => (Math.abs(v) < 1e-9 ? "0" : `${sign(v)}${Math.abs(Math.round(v))}`) } }),
     yAxis: catAxis(t, rows.map((r) => r.name), { inverse: true, axisLine: { show: false } }),
     tooltip: tooltip(t, { trigger: "item", formatter: (p: any) => tip(p.name, [[p.color, "Gap", `${fmt(p.value)}${o.unit ?? ""}`], ...(rows[p.dataIndex].rows ?? [])], o.clickable ? CLICK : undefined) }),
