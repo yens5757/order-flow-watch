@@ -22,7 +22,7 @@ give their customers worse fills?
 | `parse_605_summary.py` | Loads 605 summary CSVs (`<ID><YYYYMM>.csv`) -> DuckDB `summary_605` |
 | `parse_606.py` | Loads 606 XML -> `routing_606`, `segment_606`, `files_606`. `--find <regex>` looks up a broker's CRD |
 | `fetch_context.py` | S&P 500 list (Wikipedia), Nasdaq symbol directory, VIX (FRED), FINRA OTC weekly volume per firm, SEC EDGAR company facts for listed brokers -> `data/raw/context/` |
-| `parse_605_detail.py` | Loads 605 *detailed* per-stock reports -> DuckDB `detail_605` (~4M rows/month) + `sp500_symbols`. Zips extracted once to `data/cache/605/` |
+| `parse_605_detail.py` | Loads 605 *detailed* per-stock reports -> DuckDB `detail_605` (~5M rows/month: 5.19M for Aug 2026, 41 reporters) + `sp500_symbols`. Zips extracted once to `data/cache/605/` |
 | `same_stock.py` | Broker and market-maker execution quality compared on the SAME stock x lot x size cells -> `reports/same_stock_*.csv` |
 | `compare_605.py` | Cross-firm 605 table -> `reports/compare_605_<month>.csv` |
 | `pfof_vs_execution.py` | Joins 606 payment with 605 quality per broker -> CSV + PNG chart in `reports/` |
@@ -68,8 +68,13 @@ No pandas by design: analysis is in SQL.
 - The summary CSV can NOT be exactly rebuilt from the detail: dollar-weighting MXXNN rows gets within
   0.01 for S&P 500 (HOOD 0.322 vs 0.316) but not for other stocks (0.446 vs 0.539). Unknown aggregation rule.
 - Market makers' new-format reports are not on S3: Citadel (site blocks scripts; downloaded by hand into
-  `data/raw/605/cdrg/`), Jane Street (`data/raw/605/jnst/`, by hand), Virtu (`NITE202608.zip` from
-  virtu-www.s3.dualstack.us-east-1.amazonaws.com/uploads/documents/). Their old-format history (2023-2026)
+  `data/raw/605/cdrg/`), Jane Street (`JNST<YYYYMM>.zip` from janestreet.com/static/execution-quality-reports/),
+  Virtu (`NITE<YYYYMM>.zip` from virtu-www.s3.dualstack.us-east-1.amazonaws.com/uploads/documents/). The last two
+  are fetched by `fetch_mm_605.py`.
+- Corrected reports keep the same file name: Two Sigma re-uploaded SOHW202608 on 27 Oct 2026 (zip 20.99 -> 21.26 MB;
+  its re-dated older files were identical), FINRA republished the 2025Q3 and 2026Q2 606 zips (Oct 2026). All three
+  fetchers re-download a file whose size on the server differs; `parse_605_detail.py` re-extracts a zip newer than
+  its cache. Neither change moved any result. Their old-format history (2023-2026)
   is on their sites too (TVIRTU<YYYYMM>.zip, janestreet.com/static/execution-quality-reports/<YYYYMM>_JNST.txt).
 - `fetch_s3_605.py --from-month 202608` (default) skips old-format files that firms re-uploaded after Aug 2026.
 - 606 XML: `rMonthly` -> `rSP500` / `rOtherStocks` / `rOptions` -> `rVenues/rVenue`.
@@ -144,9 +149,9 @@ No pandas by design: analysis is in SQL.
    firm's 606). Firstrade files 606 (CRD 16843) but has no 605 on public.s3.com. Wealthfront CRD 153407 verified.
    Order-size check done (see Findings). Open question: what else explains Cash App / Wealthfront?
    (fractional-share handling? which market makers they route to? - 606 venue mix could tell.)
-6. Swap in 606 Q3 2026 when FINRA publishes it (~early Nov 2026): `fetch_finra_606.py --refresh 2026Q3`.
-7. ~~Market-maker 605s~~ Aug 2026 loaded (Citadel/Jane Street by hand, Virtu by URL). Each new month needs
-   the same; a scraper works for Virtu + Jane Street, not Citadel (403).
+6. 606 Q3 2026 arrives ~early Nov 2026; the weekly run picks it up, and re-downloads any quarter FINRA republishes.
+7. ~~Market-maker 605s~~ Virtu + Jane Street are fetched every month automatically; only Citadel needs a hand
+   download (its site returns 403 to scripts).
 8. ~~GitHub Actions + Pages~~ Workflow written (Oct 2026). Repo: github.com/yens5757/order-flow-watch, site:
    yens5757.github.io/order-flow-watch. Pages source must be set to GitHub Actions in repo settings (no gh CLI here).
 9. Splitting "other stocks" further: 605/606 summaries only split S&P 500 vs other. Execution quality could be

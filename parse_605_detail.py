@@ -78,11 +78,11 @@ def detailed_files():
 
 
 def cached_txt(path, rid, month):
-    """Return a plain .txt path, extracting zips into the cache on first use."""
+    """Return a plain .txt path, extracting zips into the cache on first use (and again if the zip is replaced)."""
     if path.suffix == ".txt":
         return path
     out = CACHE / f"{rid}{month}.txt"
-    if not out.exists():
+    if not out.exists() or out.stat().st_mtime < path.stat().st_mtime:
         CACHE.mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(path) as z:
             name = next((n for n in z.namelist() if n.lower().endswith(".txt")), None)

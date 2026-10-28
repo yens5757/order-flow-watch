@@ -69,7 +69,6 @@ def main():
     brokers = {f["reporter_id"]: f for f in firms if f["firm_type"] == "broker"}
     crds = sorted({f["crd_606"] for f in firms if f["crd_606"]})
     crd_list = ", ".join(f"'{c}'" for c in crds)
-    ids = ", ".join(f"'{f['reporter_id']}'" for f in firms)
     directory = {r["reporter_id"]: r for r in read_csv(REPORTERS)}
     month = con.execute("SELECT max(report_month) FROM summary_605").fetchall()[0][0]
     quarter = con.execute("SELECT max(quarter) FROM routing_606").fetchall()[0][0]

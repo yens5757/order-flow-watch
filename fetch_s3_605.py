@@ -10,12 +10,15 @@ Usage:
 
 Raw files are saved untouched under data/raw/605/<firm>/.
 Keep data/raw/ out of any public repo (some firms forbid redistribution).
+Firms sometimes upload a corrected report under the same name (Two Sigma, Oct 2026): a file the
+listing shows as changed since our download, and whose size differs, is downloaded again.
 """
 
 import argparse
+import os
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -74,7 +77,7 @@ retry = Retry(
     read=5,
     backoff_factor=2,
     status_forcelist=[429, 500, 502, 503, 504],
-    allowed_methods=["GET"],
+    allowed_methods=["GET", "HEAD"],
 )
 session.mount("https://", HTTPAdapter(max_retries=retry))
 session.mount("http://", HTTPAdapter(max_retries=retry))
@@ -100,6 +103,28 @@ def list_dir(url):
     return entries
 
 
+def republished(url, path, modified):
+    """True if the firm has uploaded a different file under this name since we downloaded it."""
+    if modified is None:
+        return False
+    # The listing is in New York time; +5h makes it an upper bound in UTC
+    downloaded = datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).replace(tzinfo=None)
+    if modified + timedelta(hours=5) <= downloaded:
+        return False
+    time.sleep(DELAY)
+    try:
+        r = session.head(url, timeout=60)
+    except requests.RequestException:
+        return False  # can't tell; check again next run
+    size = r.headers.get("Content-Length")
+    if not r.ok or size is None:
+        return False
+    if int(size) == path.stat().st_size:
+        os.utime(path)  # re-dated but identical: mark it checked so it isn't asked about again
+        return False
+    return True
+
+
 def crawl(url, dest, since, summary_only=False, from_month=None):
     for name, full, is_dir, modified in list_dir(url):
         if is_dir:
@@ -114,10 +139,10 @@ def crawl(url, dest, since, summary_only=False, from_month=None):
         if from_month and (not m or m.group(1) < from_month):
             continue
         target = dest / name
-        if target.exists():
-            continue  # never re-download or overwrite raw files
+        if target.exists() and not republished(full, target, modified):
+            continue
         target.parent.mkdir(parents=True, exist_ok=True)
-        print(f"  downloading {full}")
+        print(f"  {'corrected, downloading again' if target.exists() else 'downloading'} {full}")
         time.sleep(DELAY)
         tmp = target.with_suffix(target.suffix + ".part")
         try:

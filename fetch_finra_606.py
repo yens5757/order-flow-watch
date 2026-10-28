@@ -7,7 +7,10 @@ URL pattern: https://cdn.finra.org/606reportBulk/<YYYY>/606_NMS_<YYYY>_Q<N>.zip
 Usage:
     pip install requests
     python fetch_finra_606.py                 # 2024 Q2 -> latest available
-    python fetch_finra_606.py --refresh 2026Q3  # re-download a quarter FINRA has republished
+    python fetch_finra_606.py --refresh 2026Q3  # force a re-download of a quarter
+
+FINRA republishes a quarter's zip as late and amended reports arrive; a zip whose size on the
+server differs from the local copy is downloaded again and re-unpacked.
 
 Saves:
     data/raw/606/zips/606_NMS_<YYYY>_Q<N>.zip   (untouched originals)
@@ -15,6 +18,7 @@ Saves:
 """
 
 import argparse
+import shutil
 import time
 import zipfile
 from datetime import date
@@ -32,7 +36,7 @@ DELAY = 2.0
 session = requests.Session()
 session.headers["User-Agent"] = "Mozilla/5.0 (rule606-research; personal academic project)"
 retry = Retry(total=5, backoff_factor=2, status_forcelist=[429, 500, 502, 503, 504],
-              allowed_methods=["GET"])
+              allowed_methods=["GET", "HEAD"])
 session.mount("https://", HTTPAdapter(max_retries=retry))
 
 
@@ -63,6 +67,17 @@ def safe_extract(zip_path, dest):
         return len(z.infolist())
 
 
+def republished(url, path):
+    """True if the server's copy has a different size from the local one."""
+    time.sleep(DELAY)
+    try:
+        r = session.head(url, timeout=60)
+    except requests.RequestException:
+        return False  # can't tell; keep the local copy and check again next run
+    size = r.headers.get("Content-Length")
+    return r.ok and size is not None and int(size) != path.stat().st_size
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--refresh", nargs="*", default=[], help="quarters to re-download, e.g. 2026Q2")
@@ -75,10 +90,10 @@ def main():
     for y, q in quarters():
         label = f"{y}Q{q}"
         zpath = zips / f"606_NMS_{y}_Q{q}.zip"
-        if zpath.exists() and label not in refresh:
+        url = URL.format(y=y, q=q)
+        if zpath.exists() and label not in refresh and not republished(url, zpath):
             print(f"{label}: already downloaded")
         else:
-            url = URL.format(y=y, q=q)
             time.sleep(DELAY)
             try:
                 r = session.get(url, timeout=600)
@@ -92,6 +107,7 @@ def main():
             tmp = zpath.with_suffix(".part")
             tmp.write_bytes(r.content)
             tmp.replace(zpath)
+            shutil.rmtree(RAW / label, ignore_errors=True)  # drop files the new zip no longer has
             print(f"{label}: downloaded {len(r.content) / 1e6:.1f} MB")
 
         if zpath.exists():

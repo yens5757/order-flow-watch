@@ -41,7 +41,16 @@ and 8 market makers (Citadel, Virtu, GTS, G1, Jane Street, HRT, Two Sigma, Jump)
 - **Most of the money is in options** (~70% of payments), which Rule 605 doesn't cover. Payments to the
   tracked brokers grew from $0.6B to $1.4B a quarter in two years.
 
-Leans towards Schwarz et al. (2025): payment for order flow is not the main driver of execution quality.
+## Conclusion
+
+Brokers that are paid more for their customers' orders don't give measurably worse prices. They look worse at
+first only because their customers trade cheap, wide-spread stocks; compared on similarly priced stocks, the link
+disappears. Brokers still differ a lot on identical trades, and the size of their customers' orders explains that
+far better than payment does.
+
+This agrees with [Schwarz, Barber, Huang, Jorion & Odean (2025)](https://papers.ssrn.com/abstract=4189239), who
+placed 85,000 test trades and reached the same answer. They also found that the disclosure rules of the time
+couldn't show this. The broker-level Rule 605 reports required since August 2026 can.
 
 ## How it works
 

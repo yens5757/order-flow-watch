@@ -11,7 +11,7 @@ const VERDICT = { good: "Supported", bad: "Contradicted", neutral: "Not signific
 
 const STEPS = [
   ["download", "Fetch", "Rule 605 reports from public.s3.com and the market makers' sites, FINRA 606 bulk files, FINRA OTC volume, SEC EDGAR"],
-  ["database", "Parse", "Hundreds of CSV, XML and pipe-delimited files into DuckDB, about 4M rows a month"],
+  ["database", "Parse", "Hundreds of CSV, XML and pipe-delimited files into DuckDB, about 5M rows a month"],
   ["flask", "Analyse", "SQL joins, same-stock comparisons, rank correlations, permutation tests, bootstrap intervals"],
   ["globe", "Publish", "GitHub Actions rebuilds this site every Monday; raw data never leaves the cache"],
 ] as const;
