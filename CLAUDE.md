@@ -59,6 +59,10 @@ No pandas by design: analysis is in SQL.
 
 ## Format notes (learned the hard way)
 - 605 summary: 36 rows per firm-month = Sp500 Y/N x OrderType M/ML x OrderSize bucket.
+  Interactive Brokers (IBBD) quotes every header field and orders the columns differently (Sp500, OrderType, OrderSize):
+  `parse_605_summary.py` reads the header with the csv module and compares column sets, not order. Its files are a hand
+  download (interactivebrokers.com > Regulatory Reports > Rule 605 > View Report (IBKR, IBBD)) renamed `IBBD<YYYYMM>.csv/.zip`
+  into `data/raw/605/ibbd/`; the zip's inner file is `IBBD.<YYYYMM>.txt` (the detail parser takes the first .txt member).
   Buckets: 0 (<$250), 250, 1000, 5000, 10000, 20000, 50000 (<$200k), 200000 (>=$200k).
   Bucket `199999` = "all orders under $200k" (checked: for all 97 firms its values sit inside
   the range of the smaller buckets). Metrics are **share-weighted**, so the 199999 row is dominated

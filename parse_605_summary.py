@@ -12,6 +12,7 @@ The table is rebuilt from the raw files on every run, so it is always
 consistent with what is on disk. Raw files are never modified.
 """
 
+import csv
 import re
 from datetime import datetime
 from pathlib import Path
@@ -63,8 +64,9 @@ def find_summary_files():
 
 
 def read_header(path):
-    with open(path, encoding="utf-8-sig") as f:
-        return [c.strip() for c in f.readline().split(",")]
+    """Column names of the first row; quotes stripped (Interactive Brokers quotes every field)."""
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        return [c.strip() for c in next(csv.reader(f))]
 
 
 def main():
@@ -83,7 +85,7 @@ def main():
     loaded, log = [], []
     for path, folder_firm, file_id, month in find_summary_files():
         header = read_header(path)
-        if header != EXPECTED:
+        if sorted(header) != sorted(EXPECTED):  # same columns in any order: the load below selects by name
             missing = [c for c in EXPECTED if c not in header]
             extra = [c for c in header if c not in EXPECTED]
             msg = f"header mismatch (missing={missing}, extra={extra})"
