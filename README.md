@@ -117,8 +117,8 @@ a `confidence` grade and notes. A blank cell means the figure could not be confi
 (several pricing pages cannot be read by scripts), and the site shows it as missing rather than guessing; `NA`
 means the broker has no such product (Stash, Cash App and Wealthfront offer no options), shown as "not offered".
 Margin rates are the standard $25,000-tier rate, never a new-account offer or a paid tier.
-To update: edit the row from the broker's published schedule, set `checked_on` to that day and run
-`python build_site.py`. Fees change without notice; re-check the file every quarter.
+To update: `python update_fees.py` lists what is still blank and the page to open; `python update_fees.py <ID>` asks
+for each cell of that broker's row and stamps `checked_on`; then run `python build_site.py`. Fees change without notice; re-check the file every quarter.
 
 ## Deploy (GitHub Pages, weekly refresh)
 
