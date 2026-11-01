@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./components/ui";
 import { loadData, type Data, type Filters } from "./lib/data";
-import { monthShort, quarterShort } from "./lib/format";
+import { dayLong, monthShort, quarterShort } from "./lib/format";
 import { useRoute } from "./lib/hooks";
 import { useTheme } from "./lib/theme";
 import AllFirms from "./pages/AllFirms";
@@ -13,23 +13,31 @@ import Home from "./pages/Home";
 import MarketMakers from "./pages/MarketMakers";
 import Method from "./pages/Method";
 
-const NAV: [string, string][] = [["", "Home"], ["compare", "Compare"], ["calculator", "Calculator"], ["explore", "Brokers"], ["market-makers", "Market makers"], ["method", "Method"]];
+// "How we measure" (#/method) stays a page but lives in the footer and in card links, not in the nav
+const NAV: [string, string][] = [["", "Home"], ["compare", "Compare"], ["calculator", "Calculator"], ["explore", "Brokers"], ["market-makers", "Trading firms"]];
 const DEFAULT_PAIR = ["HOOD", "FIBS"]; // #/compare with no brokers named
 
 /** <title> and meta description per page, so search results and shared links say what the page is about. */
 function describe(page: string, route: string[], short: (id: string) => string): string {
   switch (page) {
-    case "explore": return "Compare every US broker's fills, fees and payments";
-    case "broker": return `${short(route[1] || "HOOD")} execution quality and fees: what a $10,000 trade really costs`;
-    case "compare": return `${short(route[1] || DEFAULT_PAIR[0])} vs ${short(route[2] || DEFAULT_PAIR[1])}: fills, fees and what you'd pay`;
+    case "explore": return "Compare US brokers: the prices they get you, their fees and what they are paid";
+    case "broker": return `${short(route[1] || "HOOD")} prices and fees: what a $10,000 trade really costs`;
+    case "compare": return `${short(route[1] || DEFAULT_PAIR[0])} vs ${short(route[2] || DEFAULT_PAIR[1])}: prices, fees and what you'd pay`;
     case "calculator": return "Brokerage cost calculator: what your broker costs you per year";
-    case "market-makers": return "Market makers compared on identical trades";
-    case "method": return "How Order Flow Watch measures brokers";
-    case "firms": return "Every firm that files a Rule 605 execution quality report";
+    case "market-makers": return "Which trading firms handle retail orders, and how good their prices are";
+    case "method": return "How we measure brokers";
+    case "firms": return "Every firm that publishes a monthly price report (SEC Rule 605)";
     default: return "Order Flow Watch: which broker gets you the best price on a trade?";
   }
 }
 const REPO = "https://github.com/yens5757/order-flow-watch";
+/** Fades on the nav scroller's edges that hide more links (phones); the chevron buttons sit inside the faded part. */
+const FADE = {
+  left: "[mask-image:linear-gradient(to_right,transparent,#000_18%)]",
+  right: "[mask-image:linear-gradient(to_right,#000_82%,transparent)]",
+  both: "[mask-image:linear-gradient(to_right,transparent,#000_18%,#000_82%,transparent)]",
+};
+const CHEVRON = "absolute top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg border border-line bg-page text-ink2 shadow-card hover:border-accent hover:text-ink";
 
 export default function App() {
   const [data, setData] = useState<Data | null>(null);
@@ -46,7 +54,7 @@ export default function App() {
   }, []);
   const set = (p: Partial<Filters>) => setFilters((f) => (f ? { ...f, ...p } : f));
   const page = route[0] === "brokers" ? "explore" : route[0] ?? ""; // old links to #/brokers still work
-  const active = page === "broker" || page === "firms" ? "explore" : page;
+  const active = page === "broker" || page === "firms" ? "explore" : page; // "method" is not in the nav, so nothing is highlighted there
 
   useEffect(() => {
     const text = describe(page, route, (id) => data?.byId[id]?.short ?? id);
@@ -54,14 +62,18 @@ export default function App() {
     document.querySelector('meta[name="description"]')?.setAttribute("content", text);
   }, [page, route, data]);
 
-  // on phones the nav is a scroller on its own row: the current page's link is scrolled into view, and a chevron
-  // shows while there are more links to the right (the fade alone looked like a rendering glitch)
+  // on phones the nav is a scroller on its own row: the current page's link is scrolled into view, and each edge with
+  // more links past it gets a fade and a chevron (a fade alone looked like a rendering glitch; a bare cut-off word at
+  // the left edge looked like one too)
   const nav = useRef<HTMLElement>(null);
-  const [more, setMore] = useState(false);
+  const [edges, setEdges] = useState({ left: false, right: false });
   useEffect(() => {
     const el = nav.current;
     if (!el) return;
-    const check = () => setMore(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+    const check = () => {
+      const left = el.scrollLeft > 2, right = el.scrollLeft < el.scrollWidth - el.clientWidth - 2;
+      setEdges((e) => (e.left === left && e.right === right ? e : { left, right }));
+    };
     check();
     el.addEventListener("scroll", check, { passive: true });
     const ro = new ResizeObserver(check);
@@ -73,6 +85,7 @@ export default function App() {
     nav.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ inline: "center", block: "nearest" });
   }, [active]);
   const BTN = "grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-line text-ink2 hover:border-accent hover:text-ink";
+  const mask = edges.left && edges.right ? FADE.both : edges.left ? FADE.left : edges.right ? FADE.right : "";
 
   return (
     <div className="min-h-screen overflow-x-clip bg-page font-sans text-ink">
@@ -87,7 +100,7 @@ export default function App() {
           </a>
           <div className="relative min-w-0 flex-1 max-sm:order-last max-sm:-mx-4 max-sm:basis-[calc(100%+2rem)]">
             <nav ref={nav} aria-label="Pages"
-              className={`flex h-10 items-center gap-1 overflow-x-auto px-4 [scrollbar-width:none] after:block after:w-10 after:shrink-0 sm:-mx-1 sm:h-auto sm:px-1 sm:after:hidden ${more ? "[mask-image:linear-gradient(to_right,#000_82%,transparent)]" : ""}`}>
+              className={`flex h-10 items-center gap-1 overflow-x-auto px-4 [scrollbar-width:none] after:block after:w-10 after:shrink-0 sm:-mx-1 sm:h-auto sm:px-1 sm:after:hidden ${mask}`}>
               {NAV.map(([path, label]) => (
                 <a key={path} href={`#/${path}`} aria-current={active === path ? "page" : undefined}
                   className={`relative whitespace-nowrap rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors ${active === path ? "bg-surface2 text-ink" : "text-ink2 hover:bg-surface2/60 hover:text-ink"}`}>
@@ -95,24 +108,27 @@ export default function App() {
                 </a>
               ))}
             </nav>
-            {more && (
+            {edges.left && (
+              <button type="button" aria-label="Previous pages" onClick={() => nav.current?.scrollBy({ left: -160, behavior: "smooth" })}
+                className={`${CHEVRON} left-2 sm:-left-3`}>
+                <Icon name="left" size={16} />
+              </button>
+            )}
+            {edges.right && (
               <button type="button" aria-label="More pages" onClick={() => nav.current?.scrollBy({ left: 160, behavior: "smooth" })}
-                className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg border border-line bg-page text-ink2 shadow-card hover:border-accent hover:text-ink sm:-right-3">
+                className={`${CHEVRON} right-2 sm:-right-3`}>
                 <Icon name="right" size={16} />
               </button>
             )}
           </div>
           {data && (
-            <span className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 py-1 text-[12px] text-muted lg:inline-flex" title={`Built ${data.meta.built}`}>
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--good)]" />Fills {monthShort(data.meta.month)} · Payments {quarterShort(data.meta.quarter)}
+            <span className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-3 py-1 text-[12px] text-muted lg:inline-flex" title={`Data updated ${dayLong(data.meta.built.slice(0, 10))}`}>
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--good)]" />Prices {monthShort(data.meta.month)} · Payments {quarterShort(data.meta.quarter)}
             </span>
           )}
-          <span className="flex items-center gap-2 max-sm:ml-auto">
-            <a href={REPO} target="_blank" rel="noopener" aria-label="Source code on GitHub" className={BTN}><Icon name="github" size={17} /></a>
-            <button type="button" onClick={toggle} aria-label={dark ? "Switch to light mode" : "Switch to dark mode"} className={BTN}>
-              <Icon name={dark ? "sun" : "moon"} size={17} />
-            </button>
-          </span>
+          <button type="button" onClick={toggle} aria-label={dark ? "Switch to light mode" : "Switch to dark mode"} className={`${BTN} max-sm:ml-auto`}>
+            <Icon name={dark ? "sun" : "moon"} size={17} />
+          </button>
         </div>
       </header>
 
@@ -137,10 +153,11 @@ export default function App() {
 
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-8 text-[13px] text-muted">
-          <span>Built from SEC Rule 605 and 606 disclosures, refreshed every Monday. Not investment advice.{data && <> Built {data.meta.built}.</>}</span>
-          <span className="flex items-center gap-4">
-            <a href="https://yens5757.github.io/" className="hover:text-ink">Made by Aiken Lee</a>
+          <span>From the price and payment reports US brokers must publish by law (SEC Rules 605 and 606). Updated weekly{data && <>, last on {dayLong(data.meta.built.slice(0, 10))}</>}. Not investment advice.</span>
+          <span className="flex flex-wrap items-center gap-4">
+            <a href="#/method" className="hover:text-ink">How we measure</a>
             <a href={REPO} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 hover:text-ink"><Icon name="github" size={15} />Source</a>
+            <a href="https://yens5757.github.io/" className="hover:text-ink">Made by Aiken Lee</a>
           </span>
         </div>
       </footer>

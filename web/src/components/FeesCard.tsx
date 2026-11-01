@@ -19,14 +19,14 @@ export function FeesCard({ d, id }: { d: Data; id: string }) {
   const short = firm?.short ?? id;
   const fee: Fee | undefined = d.fees[id];
   const checkedIso = d.meta.feesChecked ?? fee?.checked;
-  const checked = checkedIso ? dayLong(checkedIso) : "(date not recorded)";
+  const when = checkedIso ? `checked ${dayLong(checkedIso)}` : "check date unknown";
   // [label, formatted value or null when not verified, one-line gloss]; a product the broker doesn't have says so
   const na = (k: Fee["notOffered"][number]) => (fee?.notOffered.includes(k) ? "Not offered" : null);
   const rows: [string, string | null, string][] = fee ? [
     ["Commission per stock trade", fee.commission == null ? na("commission") : money(fee.commission),
-      "Charged on each online stock or ETF trade. Nearly every broker charges $0, so the cost hides in the fill."],
+      "Charged on each online stock or ETF trade. Nearly every broker charges $0, so the cost hides in the price you get."],
     ["Options, per contract", fee.optionsFee == null ? na("optionsFee") : money(fee.optionsFee),
-      "To open an options trade, on top of any per-trade commission. Rule 605 does not cover options, so this is a fee fact only, not fill quality."],
+      "To open an options trade, on top of any per-trade commission. The official price reports don't cover options, so this is the fee only; the prices options orders get aren't reported."],
     ["Margin interest rate", fee.marginRate == null ? na("marginRate") : pct(fee.marginRate, 2),
       "Yearly interest on money borrowed against your account, at about a $25,000 balance: the standard rate, not a new-account or promotional one."],
     ["Interest on idle cash", fee.cashYield == null ? na("cashYield") : pct(fee.cashYield, 2),
@@ -42,11 +42,11 @@ export function FeesCard({ d, id }: { d: Data; id: string }) {
   const body = !fee ? (
     <Empty><span className="px-6">{firm?.type === "clearing_firm"
       ? `${short} is a clearing firm that settles trades for other brokers, not an account you open yourself, so there is no retail fee schedule.`
-      : `Fees are not collected for ${short} yet.`}</span></Empty>
+      : `We haven't checked ${short}'s fees yet.`}</span></Empty>
   ) : !fee.retail ? (
-    <Empty><span className="px-6">{short} is not a self-directed broker: accounts come with an advisor and a fee schedule of their own, so there is no public price list to compare.</span></Empty>
+    <Empty><span className="px-6">{short} doesn't offer an account you manage yourself: its accounts come with an advisor and a fee schedule of their own, so there is no public price list to compare.</span></Empty>
   ) : known === 0 ? (
-    <Empty><span className="px-6">No fee could be confirmed on {short}'s own pages yet. Most US brokers charge $0 per stock trade; what differs is the fill.</span></Empty>
+    <Empty><span className="px-6">No fee could be confirmed on {short}'s own pages yet. Most US brokers charge $0 per stock trade; what differs is the price you get.</span></Empty>
   ) : (
     <ul className="divide-y divide-line">
       {rows.map(([name, value, gloss]) => (
@@ -63,7 +63,7 @@ export function FeesCard({ d, id }: { d: Data; id: string }) {
 
   const foot = fee && fee.retail ? (
     <>
-      {known > 0 ? <>From {short}'s published fee schedule, checked {checked}.</> : <>Checked {checked}.</>}
+      {known > 0 ? <>From {short}'s own price list, {when}.</> : <>Fees {when}.</>}
       {sources.length > 0 && <> Sources: {sources.map((u, i) => (
         <span key={u}>{i > 0 && ", "}<a href={u} target="_blank" rel="noopener" className="text-accent hover:underline">{label(u)}</a></span>
       ))}.</>}
@@ -72,7 +72,7 @@ export function FeesCard({ d, id }: { d: Data; id: string }) {
   ) : undefined;
 
   return (
-    <Card title={`What ${short} charges`} sub="Published fees for a standard self-directed account"
+    <Card title={`What ${short} charges`} sub="Published fees for a standard account you manage yourself"
       right={<a href="#/explore?m=commission" className="-my-2.5 inline-flex items-center gap-1.5 py-2.5 text-[13px] font-semibold text-accent">Every broker's fees<Icon name="arrow" size={14} /></a>}
       foot={foot}>
       {body}

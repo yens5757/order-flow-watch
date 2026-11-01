@@ -29,12 +29,12 @@ export interface MetricDef {
 export const METRICS: Record<MetricKey, MetricDef> = {
   cost10k: {
     label: "Extra cost per $10,000 traded", noun: "extra cost per $10,000 traded", short: "Extra cost / $10k",
-    desc: `Dollars paid above ${FAIR_PRICE} for every $10,000 of market orders, averaged over all order sizes under $200,000. Lower is better.`,
+    desc: `Dollars paid above ${FAIR_PRICE} for every $10,000 of market orders, averaged over all order sizes under $200,000 (a broker's largest orders weigh most). Lower is better.`,
     better: "low", source: "measured", get: (r) => r.cost10k, fmt: usd2, axis: usdTick, slot: 1,
   },
   cust: {
     label: "Customer pays, as a share of the spread", noun: "share of the spread its customers pay", short: "Customer pays (% spread)",
-    desc: "0% means filled at the fair price, 100% means paying the full gap between buy and sell quotes. Lower is better.",
+    desc: "0% means you got the fair price, 100% means paying the full gap between buy and sell quotes. Lower is better.",
     better: "low", source: "measured", get: (r) => r.cust, fmt: (v) => pct(v, 1), axis: (v) => `${v}%`, slot: 1,
   },
   pay10k: {
@@ -55,24 +55,24 @@ export const METRICS: Record<MetricKey, MetricDef> = {
   // no "better" direction: Webull price-improves 94% of orders yet its customers still pay about half the spread
   pi: {
     label: "Orders that beat the quoted price", noun: "share of orders beating the quoted price", short: "Price-improved",
-    desc: "Share of orders filled at least slightly better than quoted. Brokers advertise it, but it says little about how much you save, so it is context, not a score.",
+    desc: "Share of orders that got a price at least slightly better than quoted. Brokers advertise it, but it says little about how much you save, so it is context, not a score.",
     better: null, source: "measured", get: (r) => r.pi, fmt: (v) => pct(v, 0), axis: (v) => `${v}%`, slot: 2,
   },
   sz: {
     label: "Typical order size", noun: "typical order size", short: "Avg order ($)",
-    desc: "Average dollars per order (the 605 summary reports order size in dollars). Brokers whose customers trade bigger tend to get better prices.",
+    desc: "Average dollars per order. Brokers whose customers place bigger orders tend to get better prices.",
     better: null, source: "measured", get: (r) => r.sz, fmt: (v) => (v == null ? "–" : `$${num(v)}`), axis: (v) => `$${num(v)}`, slot: 6,
   },
   speed: {
-    label: "Average execution speed", noun: "average execution speed", short: "Exec speed",
-    desc: "Average time from receiving a market order to filling it. Faster is not better here: in this data, brokers whose fills took longer got better prices.",
+    label: "Average execution speed", noun: "average execution speed", short: "Time to fill",
+    desc: "Average time from receiving a market order to completing it. Faster is not better here: in this data, brokers whose orders took longer got better prices.",
     better: null, source: "measured", get: (r) => r.speedMs, fmt: ms, axis: (v) => ms(v), slot: 3,
   },
   // the fee measures come from fees.csv, checked by hand on each broker's own pages; brokers without a verified fact are left out.
   // Their colour slots match the calculator's stack (PARTS in lib/cost.ts), where the set was checked for colour-blind safety.
   commission: {
     label: "Commission per stock trade", noun: "commission per stock trade", short: "Stock commission",
-    desc: "Dollars charged per online stock or ETF trade. Nearly every broker charges $0, so the real cost is in the fill. Lower is better.",
+    desc: "Dollars charged per online stock or ETF trade. Nearly every broker charges $0, so the real cost is in the price you get. Lower is better.",
     better: "low", source: "published", get: (r) => r.commission, fmt: usd2, axis: usdTick, slot: 2,
   },
   optionsFee: {

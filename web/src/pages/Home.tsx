@@ -6,7 +6,7 @@ import { ranked } from "../charts/options";
 import Estimator from "../components/Estimator";
 import { Card, ChartTable, Icon, Segmented, Select } from "../components/ui";
 import { brokerRows, nameOf, type Data, type Fee, type Metric, type Sp } from "../lib/data";
-import { dollars, pct, quarterLong, usd2, usdTick } from "../lib/format";
+import { dayLong, dollars, pct, quarterLong, usd2, usdTick } from "../lib/format";
 import { go } from "../lib/hooks";
 import { median } from "../lib/stats";
 import { METRICS } from "../lib/metrics";
@@ -82,10 +82,10 @@ export default function Home({ d }: { d: Data }) {
   const cheapest = rows[0], priciest = rows[rows.length - 1];
   const chart = useMemo(() => ranked(t, rows.map((r) => ({
     id: r.id, name: r.f.short, v: r.cost10k!, hl: r.id === me?.id,
-    rows: [[t.s[1], METRICS.cost10k.short, usd2(r.cost10k)], [t.s[0], METRICS.pay10k.short, r.pay10k == null ? "not reported" : usd2(r.pay10k)]],
+    rows: [[t.s[1], METRICS.cost10k.short, usd2(r.cost10k)], [t.s[0], METRICS.pay10k.short, r.pay10k == null ? "no report of its own" : usd2(r.pay10k)]],
   })), { fmt: (v) => usd2(v), axis: usdTick, color: t.s[1], median: med, tone: "low-better", foot: "Click to see this broker above" }), [t, rows, me?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const payLine = !me ? "" : me.pay10k == null ? "Doesn't publish what it is paid for customer orders."
+  const payLine = !me ? "" : me.pay10k == null ? "Files no payment report of its own (another firm routes its orders)."
     : me.pay10k > 0.005 ? `Gets about ${usd2(me.pay10k)} from trading firms for sending them that order.`
     : me.pay10k < -0.005 ? `Pays its trading firm about ${usd2(-me.pay10k)} to handle that order.`
     : "Isn't paid for sending customer orders.";
@@ -100,8 +100,11 @@ export default function Home({ d }: { d: Data }) {
   const optionsLine = fee?.optionsFee == null ? null
     : fee.optionsFee > 0 ? `Charges ${usd2(fee.optionsFee)} per options contract.` : "Charges nothing per options contract.";
   const tone = me && me.cost10k! <= med ? "text-better" : "text-worse";
-  /** "pay $0.84 above the fair price" or, for a negative cost, "get $0.10 better than the fair price" */
-  const vsFair = (v: number | null | undefined) => (v != null && v < 0 ? <>get {usd2(-v)} better than the fair price</> : <>pay {usd2(v)} above the fair price</>);
+  /** "pay $0.84 above the fair price" or, for a negative cost, "get $0.10 better than the fair price"; `gloss` explains the term at its first mention */
+  const vsFair = (v: number | null | undefined, gloss = false) => {
+    const fair = gloss ? <>the fair price (the midpoint between the best buy and sell quotes at the time)</> : <>the fair price</>;
+    return v != null && v < 0 ? <>get {usd2(-v)} better than {fair}</> : <>pay {usd2(v)} above {fair}</>;
+  };
   const scale = Math.max(0.01, ...rows.map((r) => r.cost10k!));
   const compare = me ? [
     ["Cheapest", cheapest], ["Typical broker", null], [me.f.short, me], ["Priciest", priciest],
@@ -114,7 +117,7 @@ export default function Home({ d }: { d: Data }) {
   const gaps = hero.filter((r) => r.gap != null).sort((a, b) => a.gap! - b.gap!);
   // the payment test for other stocks passes on its own (ρ 0.50, p 0.04) but not once share price is held equal: the stat says both
   const test = (sp: Sp, equal: boolean) => d.evidence.find((e) => e.sp === sp && /^Paid more → customers pay more/.test(e.claim) && /equal share price/.test(e.claim) === equal);
-  const rawN = test("N", false), eqN = test("N", true);
+  const rawY = test("Y", false), rawN = test("N", false), eqN = test("N", true);
   const paidHurts = !!rawN && rawN.p < 0.05 && rawN.rho > 0 && !(eqN && eqN.p < 0.05);
 
   return (
@@ -123,8 +126,8 @@ export default function Home({ d }: { d: Data }) {
       <section className="relative pb-12 pt-14 text-center sm:pt-24">
         <div className="glow !inset-y-0 !left-1/2 !right-auto w-screen -translate-x-1/2" aria-hidden="true" />
         <div className="relative mx-auto max-w-3xl">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 px-3 py-1 text-[12.5px] font-medium text-ink2">
-            <span className="h-2 w-2 rounded-full bg-[var(--good)]" />Updated every week from official SEC filings
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 px-3 py-1 text-[12.5px] font-medium text-ink2" title={`Data updated ${dayLong(d.meta.built.slice(0, 10))}`}>
+            <span className="h-2 w-2 rounded-full bg-[var(--good)]" />Updated weekly from the reports brokers must publish
           </div>
           <h1 className="font-display text-[40px] font-extrabold leading-[1.05] tracking-tight text-ink sm:text-[60px]">
             Is your broker getting you a <span className="grad-text">good price?</span>
@@ -150,21 +153,25 @@ export default function Home({ d }: { d: Data }) {
       {/* ---------- three numbers ---------- */}
       <section className="grid grid-cols-1 gap-5 md:grid-cols-3">
         <Stat icon="scale" label="Price gap between brokers" value={hero.length ? usd2(hero[hero.length - 1].cost10k! - hero[0].cost10k!) : "–"}>
-          For every $10,000 of market orders, {hero[0]?.f.short} customers {vsFair(hero[0]?.cost10k)}; {hero[hero.length - 1]?.f.short} customers {vsFair(hero[hero.length - 1]?.cost10k)}.
+          For every $10,000 of market orders in big-company (S&P 500) stocks, {hero[0]?.f.short} customers {vsFair(hero[0]?.cost10k, true)}; {hero[hero.length - 1]?.f.short} customers {vsFair(hero[hero.length - 1]?.cost10k)}.
+          All order sizes under $200,000 are averaged, so large orders weigh most.
         </Stat>
         <Stat icon="coins" label="Paid to brokers for orders" value={dollars(paid)}>
           Trading firms paid the brokers we track this much in {quarterLong(lastQ)}. {optPct}% of it was for options trades.
         </Stat>
         <Stat icon="users" label="Does getting paid hurt you?" value={paidHurts ? "Not by itself" : "Not clearly"}>
           {paidHurts
-            ? <>Paid-more brokers do give worse fills in smaller stocks, but the gap vanishes once the share price of what their customers trade is held equal. Which broker you use matters more.</>
-            : <>Brokers that are paid more don't reliably give worse prices. Which broker you use matters more.</>}
+            ? <>Brokers that are paid more do get slightly worse prices on stocks outside the S&P 500, but that comes down to the cheaper shares their customers tend to trade, not the payment. Which broker you use matters more.</>
+            : rawY
+              ? <>Across the {rawY.n} brokers that report both, being paid more doesn't reliably go with worse prices. Which broker you use matters more than whether it's paid.</>
+              : <>Brokers that are paid more don't reliably give worse prices. Which broker you use matters more than whether it's paid.</>}
         </Stat>
       </section>
 
       {/* ---------- your broker ---------- */}
       <section ref={card} tabIndex={-1} className="scroll-mt-24 pt-14 outline-none">
-        <Heading title="How does your broker do?" sub="Pick a broker. Everything is per $10,000 of market orders, averaged over all order sizes under $200,000."
+        <Heading title="How does your broker do?"
+          sub={<>Pick a broker. Everything is per $10,000 of market orders, averaged over all order sizes under $200,000. The average is weighted by shares, so a broker's largest orders count most; for your own trade size, use <a href={`#/calculator?b=${pick}`} className="font-semibold text-accent">the calculator</a>.</>}
           right={
             <div className="flex flex-wrap items-center gap-3">
               <Segmented size="sm" label="Stocks" value={sp} onChange={setSp} options={STOCKS} />
@@ -221,11 +228,11 @@ export default function Home({ d }: { d: Data }) {
         )}
 
         <Card className="mt-5" title="What each broker costs per $10,000 traded"
-          sub={`Extra paid above the fair price · ${sp === "Y" ? "big-company (S&P 500)" : "other"} stocks · market orders of every size · tap a bar to check that broker`}>
+          sub={`Extra paid above the fair price · ${sp === "Y" ? "big-company (S&P 500)" : "other"} stocks · market orders under $200,000, averaged · tap a bar to check that broker`}>
           <EChart option={chart} height={rows.length * 27 + 40} label="Extra cost per $10,000 traded at each broker"
             onClick={(p) => { if (p.data?.id) { choose(p.data.id); toPicker(); } }} />
           <ChartTable head={["Broker", METRICS.cost10k.short, METRICS.pay10k.short]}
-            rows={rows.map((r) => [r.f.short, usd2(r.cost10k), r.pay10k == null ? "not reported" : usd2(r.pay10k)])} />
+            rows={rows.map((r) => [r.f.short, usd2(r.cost10k), r.pay10k == null ? "no report of its own" : usd2(r.pay10k)])} />
           <a href={`#/explore?m=cost10k&vs=pay10k${sp === "N" ? "&sp=N" : ""}`} className={`mt-2 ${LINK}`}>Explore these numbers with filters<Icon name="arrow" size={15} /></a>
         </Card>
       </section>
@@ -239,7 +246,7 @@ export default function Home({ d }: { d: Data }) {
 
       {/* ---------- popular comparisons ---------- */}
       <section className="pt-14">
-        <Card title="Popular comparisons" sub="Two brokers side by side: fills, fees and what you'd pay"
+        <Card title="Popular comparisons" sub="Two brokers side by side: prices, fees and what you'd pay"
           right={<a href="#/compare" className={LINK}>Pick any two<Icon name="arrow" size={15} /></a>}>
           <div className="flex flex-wrap gap-2.5">
             {PAIRS.map(([a, b]) => (
@@ -257,7 +264,7 @@ export default function Home({ d }: { d: Data }) {
         <h2 className="font-display text-[28px] font-extrabold tracking-tight text-ink sm:text-[32px]">What we found</h2>
         <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3">
           {[
-            ["coins", "Getting paid isn't the main problem",
+            ["coins", "Getting paid doesn't predict the price",
               unpaidPricey.length
                 ? <>{topPaid.map((r) => r.f.short).join(" and ")} are paid the most for orders, yet {unpaidPricey.map((r) => r.f.short).join(" and ")}, which {unpaidPricey.length > 1 ? "aren't" : "isn't"} paid at all, {unpaidPricey.length > 1 ? "cost" : "costs"} customers more.</>
                 : <>{topPaid.map((r) => r.f.short).join(" and ")} are paid the most for orders, but how much a broker is paid only weakly predicts what its customers pay.</>,
@@ -267,7 +274,7 @@ export default function Home({ d }: { d: Data }) {
               "explore?m=gap", "See every broker"],
             ["layers", "Most of the money is in options",
               <>{optPct}% of the {dollars(paid)} paid to brokers in {quarterLong(lastQ)} was for options trades, which these price reports don't cover at all.</>,
-              "method", "What the data can't show"],
+              "method", "See how we measure"],
           ].map(([icon, title, text, href, cta]) => (
             <Card key={title as string} className="flex flex-col">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--accent-soft)] text-accent"><Icon name={icon as string} size={20} /></span>

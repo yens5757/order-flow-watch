@@ -32,8 +32,8 @@ interface Group { title: string; sub?: string; rows: Row[] }
 const winner = (better: Better, av: number | null, bv: number | null): "a" | "b" | null =>
   better == null || av == null || bv == null || av === bv ? null : (better === "low" ? av < bv : av > bv) ? "a" : "b";
 
-/** "a fill $0.10 better than the fair price" or "$0.95 above the fair price" */
-const fair = (v: number) => (v < 0 ? `a fill ${usd2(-v)} better than the fair price` : `${usd2(v)} above the fair price`);
+/** "a price $0.10 better than the fair price" or "$0.95 above the fair price" */
+const fair = (v: number) => (v < 0 ? `a price ${usd2(-v)} better than the fair price` : `${usd2(v)} above the fair price`);
 
 /** The short answer, generated from the numbers: who is cheaper on a $10,000 trade, by how much, and whether fees change it. */
 function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm; rA: Metric; rB: Metric; feeA?: Fee; feeB?: Fee }) {
@@ -45,7 +45,7 @@ function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm
   const diff = rA.cost10k != null && rB.cost10k != null ? rA.cost10k - rB.cost10k : null; // > 0: B is cheaper
   let cheap: Firm | null = null;
   if (diff == null) {
-    price.push(<>{rA.cost10k == null ? A.short : B.short} has no Rule 605 fill data for {monthLong(f.month)}, so the two can't be compared on price yet.</>);
+    price.push(<>{rA.cost10k == null ? A.short : B.short} hasn't published its {monthLong(f.month)} price report yet, so the two can't be compared on price.</>);
   } else if (Math.abs(diff) < 0.05) {
     price.push(<>Per $10,000 of {order}s in {stocks}, {A.short} and {B.short} customers pay about the same: {fair(rA.cost10k!)} and {fair(rB.cost10k!)}.</>);
   } else {
@@ -62,15 +62,15 @@ function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm
       const same = g > 0 ? B : A;
       price.push(cheap == null || same.id === cheap.id
         ? <> That holds on identical trades too: on the exact same stocks and order sizes, {same.short} gets the better price.</>
-        : <> On the exact same stocks and order sizes, though, {same.short} comes out ahead, so part of the headline difference is what each broker's customers trade rather than how well they are filled.</>);
+        : <> On the exact same stocks and order sizes, though, {same.short} comes out ahead, so part of the headline difference is what each broker's customers trade rather than the prices they get.</>);
     }
   }
 
   // 3. what the broker is paid
   const pa = rA.pay10k, pb = rB.pay10k;
   const paid = (F: Firm, v: number | null) =>
-    v == null ? `${F.short} doesn't publish what it is paid for orders`
-      : v > 0.005 ? `${F.short} is paid about ${usd2(v)} per $10,000 order by the trading firms that fill it`
+    v == null ? `${F.short} files no payment report of its own (another firm routes its orders)`
+      : v > 0.005 ? `${F.short} is paid about ${usd2(v)} per $10,000 order by the trading firms its orders go to`
       : v < -0.005 ? `${F.short} pays its trading firm about ${usd2(-v)} per $10,000 order`
       : `${F.short} isn't paid for sending orders`;
   if (pa != null && pb != null && pa > 0.005 && pb > 0.005) {
@@ -84,23 +84,23 @@ function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm
   if (ca != null && cb != null) {
     if (ca === cb) {
       money.push(ca === 0
-        ? <> Neither charges a commission on stock trades, so the price of the fill is the whole cost of a trade.</>
+        ? <> Neither charges a commission on stock trades, so the price you get is the whole cost of a trade.</>
         : <> Both charge {usd2(ca)} commission per stock trade, so that doesn't separate them.</>);
     } else {
       const hi = ca > cb ? A : B, lo = ca > cb ? B : A, gap = Math.abs(ca - cb);
-      money.push(<> Fees change the picture: {hi.short} charges {usd2(Math.max(ca, cb))} commission per stock trade and {lo.short} {usd2(Math.min(ca, cb))}, a difference that {diff != null && gap > Math.abs(diff) ? "outweighs" : "is smaller than"} the fill difference per $10,000 traded.</>);
+      money.push(<> Fees change the picture: {hi.short} charges {usd2(Math.max(ca, cb))} commission per stock trade and {lo.short} {usd2(Math.min(ca, cb))}, a difference that {diff != null && gap > Math.abs(diff) ? "outweighs" : "is smaller than"} the price difference per $10,000 traded.</>);
     }
   } else {
     const unknown = [ca == null ? A.short : null, cb == null ? B.short : null].filter(Boolean).join(" and ");
-    money.push(<> We haven't verified {unknown}'s stock commission yet, so fees could still change the picture.</>);
+    money.push(<> We haven't confirmed {unknown}'s stock commission yet, so fees could still change the picture.</>);
   }
   const oa = feeA?.optionsFee ?? null, ob = feeB?.optionsFee ?? null;
   if (oa != null && ob != null && oa !== ob) {
-    money.push(<> For options, {oa < ob ? A.short : B.short} charges less ({usd2(Math.min(oa, ob))} against {usd2(Math.max(oa, ob))} per contract); these reports don't measure options fills at all.</>);
+    money.push(<> For options, {oa < ob ? A.short : B.short} charges less ({usd2(Math.min(oa, ob))} against {usd2(Math.max(oa, ob))} per contract); the official price reports don't cover options at all.</>);
   }
 
   return (
-    <Card title="The short answer" sub={`${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot]} orders · averaged over all order sizes under $200,000`}>
+    <Card title="The short answer" sub={`${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot]} orders · averaged over all order sizes under $200,000 (large orders weigh most; see cost by order size below)`}>
       <p className="text-[15.5px] leading-relaxed text-ink2">{price}</p>
       <p className="mt-3 text-[15.5px] leading-relaxed text-ink2">{money}</p>
       <p className="mt-3 text-[13.5px] leading-relaxed text-muted">
@@ -125,15 +125,17 @@ export default function Compare({ d, f, set, a, b }: { d: Data; f: Filters; set:
   // ---------- the side-by-side table ----------
   const fill = (k: MetricKey, fmt = METRICS[k].fmt, na?: Row["na"]): Row =>
     ({ key: k, label: METRICS[k].label, info: METRICS[k].desc, better: METRICS[k].better, av: METRICS[k].get(rA), bv: METRICS[k].get(rB), fmt, na });
-  // a fee is "not offered" when the broker has no such product at all (no options trading), "not available" when nobody has checked it
-  const feeNa = (k: "optionsFee"): [string, string] => [feeA, feeB].map((x) => (x?.notOffered.includes(k) ? "not offered" : "not available")) as [string, string];
+  // a fee is "not offered" when the broker has no such product at all (no options trading), "not confirmed" when nobody has checked it
+  const feeNa = (k: "optionsFee"): [string, string] => [feeA, feeB].map((x) => (x?.notOffered.includes(k) ? "not offered" : "not confirmed")) as [string, string];
   const checked = [...new Set([feeA, feeB].filter((x): x is Fee => !!x).map((x) => x.checked))];
   const crd = (F: Firm) => d.fees[F.id]?.crd ?? F.crd ?? null; // the account's broker-dealer first; the 606 CRD can be a routing affiliate
   const brokerCheck = (F: Firm) => {
     const c = crd(F);
     return c
-      ? <a href={`https://brokercheck.finra.org/firm/summary/${c}`} target="_blank" rel="noopener" className="inline-flex items-center gap-1 whitespace-nowrap font-semibold text-accent hover:underline">CRD {c}<Icon name="ext" size={12} /></a>
-      : <span className="text-muted">not on file</span>;
+      ? <a href={`https://brokercheck.finra.org/firm/summary/${c}`} target="_blank" rel="noopener" className="inline-flex items-center gap-1 whitespace-nowrap font-semibold text-accent hover:underline">
+          {/* the full label does not fit two abreast on a phone: the two links ran into one another */}
+          <span className="sm:hidden">BrokerCheck</span><span className="hidden sm:inline">BrokerCheck record</span><Icon name="ext" size={12} /></a>
+      : <span className="text-muted">not found yet</span>;
   };
   const sipc = (F: Firm) => {
     const v = d.fees[F.id]?.sipc;
@@ -142,7 +144,7 @@ export default function Compare({ d, f, set, a, b }: { d: Data; f: Filters; set:
   const yesNo = (v: boolean) => <Status kind={v ? "good" : "neutral"}>{v ? "Yes" : "No"}</Status>;
   const groups: Group[] = [
     {
-      title: "Fills", sub: `${monthLong(f.month)} · ${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot]} orders`,
+      title: "Prices you get", sub: `${monthLong(f.month)} · ${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot]} orders`,
       rows: [
         fill("cost10k"),
         fill("cust"),
@@ -156,25 +158,23 @@ export default function Compare({ d, f, set, a, b }: { d: Data; f: Filters; set:
     {
       title: "Fees", sub: checked.length ? `checked ${checked.map((c) => dayLong(c)).join(" and ")} on the brokers' own pages` : "not checked yet",
       rows: [
-        fill("commission", undefined, "not available"),
+        fill("commission", undefined, "not confirmed"),
         fill("optionsFee", undefined, feeNa("optionsFee")),
-        fill("marginRate", undefined, "not available"),
-        fill("cashYield", undefined, "not available"),
+        fill("marginRate", undefined, "not confirmed"),
+        fill("cashYield", undefined, "not confirmed"),
         { key: "transferOut", label: "Fee to move your account elsewhere", info: "Dollars charged for a full transfer of your account to another broker. Lower is better.",
-          better: "low", av: rA.transferOut, bv: rB.transferOut, fmt: usd2, na: "not available" },
+          better: "low", av: rA.transferOut, bv: rB.transferOut, fmt: usd2, na: "not confirmed" },
       ],
     },
     {
       title: "Is it registered?", sub: "regulator records, not an endorsement",
       rows: [
         { key: "crd", label: "FINRA record", a: brokerCheck(A), b: brokerCheck(B),
-          info: "Every US broker has a number (CRD) in FINRA's BrokerCheck, which lists its licences, history and any disciplinary actions. The link opens its record." },
+          info: "FINRA's BrokerCheck lists every US broker's licences, history and any disciplinary actions. The link opens this broker's record." },
         { key: "sipc", label: "SIPC member", a: sipc(A), b: sipc(B),
           info: "SIPC protection returns your securities and cash (up to $500,000) if the broker itself fails. It does not cover investment losses." },
-        { key: "606", label: "Publishes what it is paid for orders", a: yesNo(files606(d, A.crd)), b: yesNo(files606(d, B.crd)),
-          info: "A Rule 606 report shows where a broker sends orders and what it is paid for them. Brokers that hand all their orders to another firm may not file one." },
-        { key: "605", label: "Rule 605 code", a: <span className="font-mono text-[13px]">{A.id}</span>, b: <span className="font-mono text-[13px]">{B.id}</span>,
-          info: "The code the broker files its monthly execution quality report under. The fills above come from that report." },
+        { key: "606", label: "Reports what it is paid for orders", a: yesNo(files606(d, A.crd)), b: yesNo(files606(d, B.crd)),
+          info: "A Rule 606 report shows where a broker sends orders and what it is paid for them. A broker that hands all its orders to another firm files no report of its own." },
       ],
     },
   ];
@@ -203,7 +203,7 @@ export default function Compare({ d, f, set, a, b }: { d: Data; f: Filters; set:
     </th>
   );
   // phone layout: the table becomes blocks and each row a two-column grid, the label spanning both columns
-  const ROW = "max-sm:grid max-sm:grid-cols-2";
+  const ROW = "max-sm:grid max-sm:grid-cols-2 max-sm:gap-x-3";
 
   // ---------- cost by order size: both brokers across the 605 size buckets ----------
   const bySize = [A, B].map((F, i) => ({
@@ -222,7 +222,7 @@ export default function Compare({ d, f, set, a, b }: { d: Data; f: Filters; set:
   return (
     <div className="rise">
       <PageHeader eyebrow="Compare" title={`${A.short} vs ${B.short}`}
-        sub="Two brokers side by side: what a trade really costs, what each is paid for your order, its fees and whether it's registered. All from the reports brokers must publish by law."
+        sub="Two brokers side by side: what a trade really costs, what each is paid for your order, its fees and whether it's registered. Prices and payments come from the reports brokers must publish by law; fees from each broker's own price list; registration from FINRA and SIPC."
         right={
           <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 sm:w-auto sm:grid-cols-[190px_auto_190px]">
             <Select label="First broker" value={A.id} onChange={(v) => go(`compare/${v}/${B.id}`)} options={opts} full />
@@ -246,8 +246,9 @@ export default function Compare({ d, f, set, a, b }: { d: Data; f: Filters; set:
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1.1fr_1fr]">
         <Card title="Side by side" sub="Tap a broker's name for its full report"
           foot={<>A tick marks the better value where there is a clear better direction; measures with no tick (speed, payment, order size, price-improved) are context, not a score.
-            Registration facts are not an endorsement: a registered broker can still give poor fills.
-            Fills: Rule 605 report for {monthLong(f.month)}, all orders under $200,000. Payment: Rule 606 report for {quarterLong(f.quarter)}.</>}>
+            Registration facts are not an endorsement: a registered broker can still get you poor prices.
+            Prices: each broker's {monthLong(f.month)} report (SEC Rule 605), all orders under $200,000. Payment: its {quarterLong(f.quarter)} report (SEC Rule 606).
+            {" "}<a href="#/method" className="font-semibold text-accent hover:underline">How we measure</a></>}>
           <table className="w-full border-collapse max-sm:block">
             <caption className="sr-only">{A.short} and {B.short} side by side</caption>
             <thead className="max-sm:block">
@@ -280,15 +281,15 @@ export default function Compare({ d, f, set, a, b }: { d: Data; f: Filters; set:
 
         <div className="flex flex-col gap-5">
           <Card title="Cost by order size" sub={`${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot]} orders · from the smallest orders to the largest`}
-            right={<Segmented size="sm" label="Unit" value={unit} onChange={setUnit} options={[["usd", "$ on $10,000"], ["pct", "% of spread"]]} />}
-            foot="Most people's trades sit in the first three or four buckets. Orders of $200,000 and over are a different market: every broker's fills are far worse there.">
+            right={<Segmented size="sm" label="Unit" value={unit} onChange={setUnit} options={[["usd", "$ on $10,000"], ["pct", "% of the buy–sell gap"]]} />}
+            foot="Most people's trades are under $10,000. Orders of $200,000 and over are a different market: every broker gets far worse prices there.">
             {hasSize ? (
               <>
                 <EChart option={sizeChart} height={300} label={`Cost by order size, ${A.short} vs ${B.short}`} />
                 <ChartTable head={["Order size", A.short, B.short]}
                   rows={SIZE_STEPS.map((bk, i) => [SIZE_SHORT[bk], ...bySize.map((sr) => (sr.values[i] == null ? "–" : unit === "usd" ? usd2(sr.values[i]) : `${sr.values[i]!.toFixed(0)}%`))])} />
               </>
-            ) : <Empty>No fill data for these two brokers under the current filters.</Empty>}
+            ) : <Empty>No price data for these two brokers with these filters.</Empty>}
           </Card>
 
           <div className="relative overflow-hidden rounded-2xl p-6 text-white shadow-card sm:p-7" style={{ background: "var(--grad)" }}>

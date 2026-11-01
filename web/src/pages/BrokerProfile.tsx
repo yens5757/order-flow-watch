@@ -6,7 +6,7 @@ import { FilterBar } from "../components/Filters";
 import { TrustCard } from "../components/TrustCard";
 import { Card, Empty, Icon, Kpi, Select } from "../components/ui";
 import { brokerRows, execKey, files606, metric, nameOf, SIZE_STEPS, SP_LABEL, type Data, type Filters } from "../lib/data";
-import { cents, dollars, ms, num, pct, quarterLong, quarterShort, signed, usd2 } from "../lib/format";
+import { cents, dollars, monthLong, ms, num, pct, quarterLong, quarterShort, signed, usd2 } from "../lib/format";
 import { go } from "../lib/hooks";
 import { median } from "../lib/stats";
 import { METRICS } from "../lib/metrics";
@@ -51,7 +51,7 @@ export default function BrokerProfile({ d, f, set, id }: { d: Data; f: Filters; 
   ];
   // some 606s list only their main venues (Futu Clearing: ~56%); show the rest rather than stretch the ring
   const listed = venues.reduce((a, v) => a + v.share, 0);
-  if (venues.length && listed < 97) slices.push({ name: "Not itemised in the 606", v: 100 - listed, color: t.neutral });
+  if (venues.length && listed < 97) slices.push({ name: "Not broken down in its report", v: 100 - listed, color: t.neutral });
   const routing = useMemo(() => donut(t, slices, (v) => `${v.toFixed(0)}%`), [t, firm, f]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // payments over time
@@ -74,8 +74,8 @@ export default function BrokerProfile({ d, f, set, id }: { d: Data; f: Filters; 
     { fmt: (v) => `${v.toFixed(0)}%`, color: t.s[1] }), [t, firm, f]); // eslint-disable-line react-hooks/exhaustive-deps
   const fract = lots.find((l) => l.lot === "FRACT")?.efq, round = lots.find((l) => l.lot === "ROUND")?.efq;
   const lotNote = fract != null && round != null
-    ? `Fractional-share orders are often filled differently from whole shares: here ${firm.short}'s fractional orders pay ${pct(fract, 0)} of the spread against ${pct(round, 0)} for round lots.`
-    : "Fractional-share orders are often filled differently from whole shares; compare the bars.";
+    ? `Fractional-share orders often get a different price from whole shares: here ${firm.short}'s fractional orders pay ${pct(fract, 0)} of the spread against ${pct(round, 0)} for round lots.`
+    : "Fractional-share orders often get a different price from whole shares; compare the bars.";
 
   return (
     <div className="rise">
@@ -84,7 +84,7 @@ export default function BrokerProfile({ d, f, set, id }: { d: Data; f: Filters; 
           <a href="#/brokers" className="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink2 hover:text-ink"><Icon name="back" size={15} />All brokers</a>
           <h1 className="mt-2 font-display text-[34px] font-extrabold tracking-tight text-ink sm:text-[40px]">{firm.name}</h1>
           <div className="mt-2 flex flex-wrap gap-2 text-[12px]">
-            {[firm.type === "clearing_firm" ? "Clearing firm" : "Retail broker", `Publishes Rule 605 fill reports as ${firm.id}`, has606 ? `Rule 606 payment report filed under CRD ${firm.crd}` : "No Rule 606 payment report of its own"].map((s) => (
+            {[firm.type === "clearing_firm" ? "Clearing firm" : "Retail broker", `Monthly price report: ${monthLong(f.month)}`, has606 ? "Reports what it is paid for orders" : "Files no payment report of its own"].map((s) => (
               <span key={s} className="rounded-full border border-line bg-surface px-2.5 py-1 text-ink2">{s}</span>
             ))}
           </div>
@@ -109,31 +109,43 @@ export default function BrokerProfile({ d, f, set, id }: { d: Data; f: Filters; 
       </p>
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
         <Kpi label={METRICS.cust.short} info={METRICS.cust.desc} value={pct(r.cust, 0)} sub={rank ? `of the spread · #${rank} lowest of ${all.length} by share of the spread` : "of the spread"} />
-        <Kpi label={METRICS.payPct.short} info={METRICS.payPct.desc} value={pct(r.payPct, 1)} sub={r.cph != null ? `${cents(r.cph)} per 100 shares routed` : "no 606 payment data"} />
+        <Kpi label={METRICS.payPct.short} info={METRICS.payPct.desc} value={pct(r.payPct, 1)} sub={r.cph != null ? `${cents(r.cph)} per 100 shares it sends on` : has606 ? "not in its payment report this quarter" : "files no payment report of its own"} />
         <Kpi label={METRICS.gap.short} info={METRICS.gap.desc} value={gap ? signed(gap.gap, 1) : "–"} tone={gap ? (gap.gap < 0 ? "good" : "bad") : undefined}
           sub={gap ? `points of the spread vs other brokers on identical trades` : "not enough detailed data"} />
         <Kpi label={METRICS.cost10k.short} info={METRICS.cost10k.desc} value={usd2(r.cost10k)} sub="above the fair price, per $10,000 traded" />
         <Kpi label={METRICS.sz.short} info={METRICS.sz.desc} value={r.sz == null ? "–" : `$${num(r.sz)}`} sub={r.pi != null ? `${pct(r.pi, 0)} of orders beat the quoted price` : undefined} />
-        <Kpi label={METRICS.speed.short} info={METRICS.speed.desc} value={time(r.t)} sub={r.t != null && medSpeed != null ? `order to fill · median broker ${time(medSpeed)}` : "no timing data"} />
+        <Kpi label={METRICS.speed.short} info={METRICS.speed.desc} value={time(r.t)} sub={r.t != null && medSpeed != null ? `from order to completed trade · typical broker ${time(medSpeed)}` : "no timing data"} />
       </section>
 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card title="Cost by order size" sub={`${SP_LABEL[f.sp]} · ${firm.short} against every other broker`}>
           <EChart option={sizeChart} height={300} label="Customer cost by order size" />
         </Card>
-        <Card title="Where its orders go" sub={`Share of orders by market maker · ${quarterLong(f.quarter)}`}>
-          {slices.length ? <EChart option={routing} height={300} label="Routing by market maker" /> : <Empty>No 606 routing report for this broker and quarter.</Empty>}
+        <Card title="Where its orders go" sub={`Share of orders by trading firm · ${quarterLong(f.quarter)}`}>
+          {slices.length ? <EChart option={routing} height={300} label="Routing by trading firm" /> : (
+            <Empty><span className="px-6">{has606
+              ? `${firm.short} doesn't report where its orders went this quarter.`
+              : `${firm.short} files no payment report of its own (another firm routes its orders).`}</span></Empty>
+          )}
         </Card>
         <FeesCard d={d} id={firm.id} />
         <TrustCard d={d} firm={firm} />
-        <Card title="Payment rate over time" sub="Cents the broker is paid per 100 shares routed, averaged over the market makers it uses by their share of its orders">
-          {hist.some((v) => v != null) ? <EChart option={histChart} height={280} label="Payment rate per quarter" /> : <Empty>No 606 payment data.</Empty>}
+        <Card title="Payment rate over time" sub="Cents the broker is paid per 100 shares it sends on, averaged across the trading firms it uses">
+          {hist.some((v) => v != null) ? <EChart option={histChart} height={280} label="Payment rate per quarter" /> : (
+            <Empty><span className="px-6">{has606
+              ? `${firm.short}'s payment reports show no rate for these orders.`
+              : `${firm.short} files no payment report of its own (another firm routes its orders).`}</span></Empty>
+          )}
         </Card>
-        <Card title="Payments received, by segment" sub="Dollars per quarter from 606 reports">
-          {usdTotal > 0 ? <EChart option={usdChart} height={280} label="Payments received per quarter" /> : <Empty>No dollar amounts reported.</Empty>}
+        <Card title="What it was paid, by type of trade" sub="Dollars per quarter, from its payment reports (SEC Rule 606)">
+          {usdTotal > 0 ? <EChart option={usdChart} height={280} label="Payments received per quarter" /> : (
+            <Empty><span className="px-6">{has606
+              ? `${firm.short}'s payment reports give no dollar amounts.`
+              : `${firm.short} files no payment report of its own (another firm routes its orders).`}</span></Empty>
+          )}
         </Card>
         {lots.length > 0 && (
-          <Card className="lg:col-span-2" title="Fractional, odd and round lots" sub={`${SP_LABEL[f.sp]} · share of the spread the customer pays, by order lot`}
+          <Card className="lg:col-span-2" title="Fractional shares vs whole shares" sub={`${SP_LABEL[f.sp]} · share of the spread the customer pays, by lot type`}
             info={lotNote}>
             <EChart option={lotChart} height={lots.length * 40 + 20} label="Customer cost by lot type" />
           </Card>

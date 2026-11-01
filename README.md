@@ -13,7 +13,8 @@ An automated pipeline that joins two SEC disclosures, refreshed weekly and publi
 **Website:** [yens5757.github.io/order-flow-watch](https://yens5757.github.io/order-flow-watch/). Two layers:
 a plain-language home page (what a $10,000 trade costs at each broker, pick-your-broker report card) for
 non-experts, and an explorer where you choose the measure, compare two, filter, sort and share the view.
-The menu is Home, Compare, Calculator, Brokers, Market makers, Method:
+The menu is Home, Compare, Calculator, Brokers, Trading firms; a "How we measure" page (`#/method`) is linked from the
+footer and from the calculator and compare pages:
 
 - **Compare** (`#/compare/<A>/<B>`, opens as Robinhood vs Fidelity): two brokers side by side on fills, fees and
   what they are paid for the order flow.
@@ -37,25 +38,25 @@ outside Rule 605, so the site compares options fees but not options fills.
 
 ## Findings so far
 
-August 2026 fills (Rule 605), April–June 2026 payments (Rule 606), 24 retail brokers (18 also report payments)
+September 2026 fills (Rule 605), April–June 2026 payments (Rule 606), 25 retail brokers (19 also report payments)
 and 8 market makers (Citadel, Virtu, GTS, G1, Jane Street, HRT, Two Sigma, Jump):
 
 - **Payment predicts worse prices only through what customers trade.** Rank correlation between the share of
-  the spread a broker is paid and the share its customers pay: +0.30 (S&P 500, p = 0.23) and +0.50 (other
-  stocks, p = 0.04). Holding the share price customers trade equal, neither survives (+0.06 / +0.30, p = 0.82 / 0.25):
+  the spread a broker is paid and the share its customers pay: +0.40 (S&P 500, p = 0.09) and +0.55 (other
+  stocks, p = 0.02). Holding the share price customers trade equal, neither survives (+0.18 / +0.37, p = 0.48 / 0.14):
   the brokers paid most have customers in cheap, wide-spread stocks. An early 8-broker version showed ~0.87;
   that was small-sample luck.
 - **Broker differences are real on identical stocks.** Comparing brokers on the same stock × lot size × order
-  size (detailed 605 reports): Fidelity's customers pay 16 points of the spread less than peers; Cash App's,
-  moomoo's and eToro's about 45 points more.
+  size (detailed 605 reports): Fidelity's customers pay 15 points of the spread less than peers; Cash App's,
+  eToro's, moomoo's and Coinbase's about 45 points more, and Interactive Brokers' 25 points more.
 - **Routing doesn't explain it.** A broker's mix of market makers predicts almost none of its same-stock
-  gap (+0.04). The same market makers fill different brokers' customers at very different prices.
+  gap (+0.02). The same market makers fill different brokers' customers at very different prices.
 - **Clientele does.** Brokers whose customers make bigger trades get better prices on the same stocks
-  (−0.67 / −0.69, p ≤ 0.001).
-- **Market makers differ too.** On identical S&P 500 trades Citadel fills 20 points of the spread better than
+  (−0.65 / −0.68, p ≤ 0.001).
+- **Market makers differ too.** On identical S&P 500 trades Citadel fills 23 points of the spread better than
   the other market makers; Jump's retail desk 32 points worse.
 - **Most of the money is in options** (~70% of payments), which Rule 605 doesn't cover. Payments to the
-  tracked brokers grew from $0.6B to $1.4B a quarter in two years.
+  tracked brokers grew from $0.6B to $1.5B a quarter in two years.
 
 ## Conclusion
 
@@ -132,14 +133,14 @@ raw reports are not (they stay in the Actions cache).
 
 ## Limitations
 
-- **Sample:** 18 brokers report both payments and fills. Correlations, not causes.
+- **Sample:** 19 brokers report both payments and fills. Correlations, not causes.
 - **Timing:** monthly fills are compared with the latest quarterly payments, which can lag by a quarter.
 - **Missing payments:** Albert, Avenue, Coinbase, eToro, Stash and WF Advisors Financial Network file no 606
   of their own. SoFi reports only its share of the payment, so its figure is understated. moomoo's own 606
   shows no payment; its routing affiliate Futu Clearing's is used instead.
 - **Share-weighting:** Rule 605 averages weight by shares; the same-stock comparison avoids this.
-- **Citadel** blocks automated downloads, so its reports must be added by hand into `data/raw/605/cdrg/`;
-  the weekly job compares the other market makers without it.
+- **Citadel and Interactive Brokers** block automated downloads, so their reports are added by hand into
+  `data/raw/605/cdrg/` and `data/raw/605/ibbd/`; the weekly job runs without them.
 - **Fees** are hand-collected from published schedules (last checked 2026-11-01), not from a regulatory filing,
   and blank where a broker's own pages could not be read.
 

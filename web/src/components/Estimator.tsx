@@ -18,7 +18,7 @@ const BROKER = "broker"; // localStorage: the visitor's broker, the same key the
 
 /** Yearly dollars: cents under $10 ($3.40), whole dollars with commas from there (−$1,250). */
 export const perYear = (v: number) => (Math.abs(v) < 10 ? usd2(v) : `${v < 0 ? "−" : ""}$${num(Math.abs(v), 0)}`);
-/** "cost about $12" or, when the fills beat the fair price, "leave you about $3 ahead" */
+/** "cost about $12" or, when the prices beat the fair price, "leave you about $3 ahead" */
 const phrase = (v: number) => (v < -0.005 ? `leave you about ${perYear(-v)} ahead` : `cost about ${perYear(v)}`);
 /** "a", "a and b", "a, b and c" */
 const list = (xs: string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
@@ -50,7 +50,7 @@ function stackedBars(t: Tokens, rows: CostLine[], hl: string | undefined): Optio
   const labelOn = (r: CostLine) => { const k = edge(r, r.total < 0 ? -1 : 1); return k < 0 ? PARTS.length - 1 : k; };
   const hlName = rows.find((r) => r.id === hl)?.short;
   const value = (r: CostLine, p: (typeof PARTS)[number]) => (r[p.key] !== 0 ? perYear(r[p.key]) : p.facts.some((f) => r.missing.includes(f)) ? "not available" : "$0");
-  // a few small negatives (fills better than the fair price) get a little room on the left, not a whole tick
+  // a few small negatives (prices better than the fair price) get a little room on the left, not a whole tick
   const lo = Math.min(0, ...rows.map((r) => PARTS.reduce((a, p) => a + Math.min(0, r[p.key]), 0)));
   const min = lo < 0 ? lo * 1.25 : 0;
   return {
@@ -141,7 +141,7 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
 
   const checked = d.meta.feesChecked ? `checked ${dayLong(d.meta.feesChecked)}` : "not yet checked";
   const foot = (
-    <>Fills: the spread paid on market orders of your size, from SEC Rule 605 reports for {monthLong(d.meta.month)}. Fees: each broker's published fee schedule, {checked}.
+    <>Prices: how far from the fair price each broker's customers' market orders were filled, for orders of your size, from the official SEC Rule 605 reports for {monthLong(d.meta.month)}. Fees: each broker's own price list, {checked}.
       {" "}Estimates, not advice: fees change, and your own trades will differ.</>
   );
   const brokerPick = <Select label="Your broker" value={me?.id ?? ""} onChange={choose} options={[...lines].sort((a, b) => a.short.localeCompare(b.short)).map((l) => [l.id, l.short])} />;
@@ -165,7 +165,7 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
 
   if (compact) {
     return (
-      <Card title="Your yearly estimate" sub="Fills plus fees. Change the numbers to match how you trade." right={brokerPick} foot={foot}>
+      <Card title="Your yearly estimate" sub="Trade prices plus fees. Change the numbers to match how you trade." right={brokerPick} foot={foot}>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{mainInputs}</div>
         {shown.length ? (
           <>
@@ -177,7 +177,7 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
               <a href="#/calculator" className="-my-2.5 inline-flex items-center gap-1.5 py-2.5 font-semibold text-accent transition-all hover:gap-2.5">All {lines.length} brokers, options, cash and margin<Icon name="arrow" size={15} /></a>
             </div>
           </>
-        ) : <Empty>No broker has fill data for this trade size yet.</Empty>}
+        ) : <Empty>No broker has price data for this trade size yet.</Empty>}
       </Card>
     );
   }
@@ -225,12 +225,12 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
             {incomplete > 0 && <p className="text-[12.5px] text-muted">* fees not available for part of the estimate: the bar shows only what could be worked out, and these brokers are listed after the complete ones.</p>}
             {nobody.length > 0 && <p className="mt-1 text-[12.5px] text-muted">Not verified for any broker yet: {nobody.join(", ")}. That part is left out everywhere, so it doesn't change the order.</p>}
           </>
-        ) : <Empty>No broker has fill data for this trade size yet.</Empty>}
+        ) : <Empty>No broker has price data for this trade size yet.</Empty>}
       </Card>
 
       {lines.length > 0 && (
         <Card title="The breakdown" sub="Dollars per year, by source. Click a heading to sort; click a row to make that broker yours.">
-          <DataTable rows={lines} cols={cols} initial={{ key: "rank", dir: 1 }} search={(r) => r.name + " " + r.short} file="yearly_cost.csv" onRow={(r) => choose(r.id)} />
+          <DataTable rows={lines} cols={cols} initial={{ key: "rank", dir: 1 }} search={(r) => r.name + " " + r.short} file="yearly-cost-by-broker.csv" onRow={(r) => choose(r.id)} />
         </Card>
       )}
     </div>

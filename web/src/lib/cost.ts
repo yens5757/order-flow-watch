@@ -1,4 +1,4 @@
-// Yearly cost of trading at each broker from a visitor's own habits: the spread paid on fills, commissions,
+// Yearly cost of trading at each broker from a visitor's own habits: the spread paid on trade prices, commissions,
 // options fees, interest lost on idle cash and margin interest. The calculator page and the home-page estimator both use it.
 import { metric, SIZE_STEPS, type Data, type Sp } from "./data";
 
@@ -23,7 +23,7 @@ export type PartKey = "spread" | "commissions" | "optionsFees" | "cashDrag" | "m
  *  Slots follow metrics.ts where the stack stays colourblind-safe (validated in both modes): options takes slot 6 (purple)
  *  because red fails next to every warm neighbour, and margin slot 3 (gold) so the legend doesn't carry two greens. */
 export const PARTS: { key: PartKey; label: string; slot: number; facts: string[] }[] = [
-  { key: "spread", label: "Fills", slot: 1, facts: ["S&P 500 fills", "other-stock fills"] },
+  { key: "spread", label: "Trade prices", slot: 1, facts: ["S&P 500 prices", "other-stock prices"] },
   { key: "commissions", label: "Commissions", slot: 2, facts: ["commission"] },
   { key: "optionsFees", label: "Options fees", slot: 6, facts: ["options fee", "options (not offered)"] },
   { key: "cashDrag", label: "Idle cash", slot: 4, facts: ["cash yield"] },
@@ -59,7 +59,7 @@ export function annualCost(d: Data, inp: CostInputs): CostLine[] {
   for (const f of d.brokers) {
     const missing: string[] = [];
     // $ paid above the fair price per $ traded in one stock group; the all-sizes row stands in when a sub-$200k bucket has no
-    // data, never for $200k+ orders (a different market: fills there are far worse, so the small-order average would flatter)
+    // data, never for $200k+ orders (a different market: prices there are far worse, so the small-order average would flatter)
     const perDollar = (sp: Sp): number | null => {
       for (const bucket of b < 200000 ? [b, 199999] : [b]) {
         const c = metric(d, f, { ...base, sp, b: bucket }).cost10k;
@@ -71,7 +71,7 @@ export function annualCost(d: Data, inp: CostInputs): CostLine[] {
     for (const sp of ["Y", "N"] as Sp[]) {
       if (weight[sp] === 0) continue;
       const c = perDollar(sp);
-      if (c == null) { missing.push(sp === "Y" ? "S&P 500 fills" : "other-stock fills"); continue; }
+      if (c == null) { missing.push(sp === "Y" ? "S&P 500 prices" : "other-stock prices"); continue; }
       known = true;
       spread += trades * size * c * weight[sp];
     }

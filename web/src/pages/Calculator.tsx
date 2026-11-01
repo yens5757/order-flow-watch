@@ -78,7 +78,7 @@ export default function Calculator({ d }: { d: Data }) {
   return (
     <div className="rise">
       <PageHeader eyebrow="Calculator" title="What does your broker cost you per year?"
-        sub="Tell us how you trade and see the yearly cost at every broker: the price of the fills, commissions, options fees, idle cash and margin."
+        sub="Tell us how you trade and see the yearly cost at every broker: trade prices, commissions, options fees, idle cash and margin."
         right={
           <button type="button" onClick={copy} className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-[14px] font-semibold text-ink hover:border-accent">
             <Icon name={copied ? "check" : "ext"} size={16} />{copied ? "Link copied" : "Copy link"}
@@ -89,9 +89,9 @@ export default function Calculator({ d }: { d: Data }) {
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card title="How this is calculated" sub="Five parts, added up">
           <ul className="space-y-3 text-[14px] leading-relaxed text-ink2">
-            <Line label="Fills">
+            <Line label="Trade prices">
               Every broker must report, by law, how far from the fair price its customers' market orders were filled (SEC Rule 605; we use {monthLong(d.meta.month)}).
-              We take that share of the spread for orders of your size, apply it to half the typical quoted spread, and multiply by what you trade in a year.
+              We take that share of the spread (the gap between the buy and sell price) for orders of your size, apply it to half the typical gap, and multiply by what you trade in a year.
               Big-company (S&P 500) and other stocks are worked out separately and blended by your mix.
             </Line>
             <Line label="Commissions">Trades per year × the broker's commission per stock trade.</Line>
@@ -113,14 +113,14 @@ export default function Calculator({ d }: { d: Data }) {
 
         <Card title="What this leaves out" sub="Real costs the data can't see">
           <ul className="space-y-3 text-[14px] leading-relaxed text-ink2">
-            <Line label="Options fills">Rule 605 covers stocks only. Options are most of what brokers are paid for, but how well those orders are filled is not reported.</Line>
+            <Line label="Options prices">Rule 605 covers stocks only. Options are most of what brokers are paid for, but how well those orders are filled is not reported.</Line>
             <Line label="Limit orders">Only market orders are counted. A limit order that waits for your price is a different trade, and its quality is measured differently.</Line>
             <Line label="Taxes">Account type, holding period and tax-loss harvesting can matter far more than any number here.</Line>
             <Line label="Promotions">Sign-up bonuses, free stock, transfer bonuses and temporary fee waivers are not counted; neither are higher-tier memberships with better rates.</Line>
             <Line label="Everything else">Fund expense ratios, currency conversion, inactivity and account fees, and what a broker's app or research is worth to you.</Line>
           </ul>
           <p className="mt-4 text-[13px] leading-relaxed text-muted">
-            These are estimates, not advice. The fill numbers are one month of each broker's own report; fees change without notice.
+            These are estimates, not advice. The price numbers are one month of each broker's own report; fees change without notice.
             See <a href="#/method" className="font-semibold text-accent">how we measure</a> for the full method.
           </p>
         </Card>

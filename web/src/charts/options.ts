@@ -285,26 +285,41 @@ export function heatmap(t: Tokens, rows: string[], cols: string[], cells: [numbe
 }
 
 /* ---------- strip plot: one dot per firm, grouped in rows ---------- */
-export function strip(t: Tokens, groups: string[], pts: { id: string; name: string; g: number; x: number; hl: boolean; rows: Row[] }[], o: { xName: string; fmt: (v: number) => string }): Option {
+export function strip(t: Tokens, groups: string[], pts: { id: string; name: string; g: number; x: number; hl: boolean; rows: Row[] }[], o: {
+  xName: string; fmt: (v: number) => string;
+  /** phone width: shorter row names and axis title, so the plot keeps most of the width */
+  narrow?: { groups: string[]; xName: string };
+}): Option {
   // deterministic jitter so dots in the same row don't sit on one line
   const jitter = (s: string) => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return ((h % 1000) / 1000) * 0.5 - 0.25; };
   // a category axis carries the row names; the dots sit on a hidden value axis with the same rows, so they can be jittered
   return {
-    ...base(t),
-    grid: { left: 8, right: 24, top: 10, bottom: 40, containLabel: true },
-    xAxis: valueAxis(t, { name: o.xName, nameLocation: "middle", nameGap: 28, axisLabel: { color: t.muted, formatter: o.fmt } }),
-    yAxis: [
-      catAxis(t, groups, { inverse: true, axisLine: { show: false }, splitLine: { show: true, lineStyle: { color: t.grid } } }),
-      valueAxis(t, { show: false, min: -0.5, max: groups.length - 0.5, inverse: true }),
-    ],
-    tooltip: tooltip(t, { trigger: "item", formatter: (p: any) => tip(p.data.name, p.data.rows, p.data.hl ? CLICK : undefined) }),
-    series: [{
-      type: "scatter", yAxisIndex: 1,
-      data: pts.map((p) => ({ value: [p.x, p.g + jitter(p.id)], name: p.name, id: p.id, hl: p.hl, rows: p.rows,
-        symbolSize: p.hl ? 12 : 8, itemStyle: { color: p.hl ? t.s[0] : t.context, opacity: p.hl ? 1 : 0.85 } })),
-      itemStyle: { borderColor: t.surface, borderWidth: 1.5 },
-      emphasis: { scale: 1.5 },
-    }],
+    baseOption: {
+      ...base(t),
+      grid: { left: 8, right: 24, top: 10, bottom: 40, containLabel: true },
+      // the axis starts at the lowest value rounded down to a ten (never above -10, so the unlabelled edge tick is never
+      // the 0% one) instead of at the next tick down, which left a quarter of the plot empty when a firm sits just below 0
+      xAxis: valueAxis(t, { name: o.xName, nameLocation: "middle", nameGap: 28, min: (v: { min: number }) => Math.min(-10, Math.floor(v.min / 10) * 10),
+        axisLabel: { color: t.muted, formatter: o.fmt, hideOverlap: true, showMinLabel: false } }),
+      yAxis: [
+        catAxis(t, groups, { id: "rows", inverse: true, axisLine: { show: false }, splitLine: { show: true, lineStyle: { color: t.grid } } }),
+        valueAxis(t, { id: "dots", show: false, min: -0.5, max: groups.length - 0.5, inverse: true }),
+      ],
+      tooltip: tooltip(t, { trigger: "item", formatter: (p: any) => tip(p.data.name, p.data.rows, p.data.hl ? CLICK : undefined) }),
+      series: [{
+        type: "scatter", yAxisIndex: 1,
+        data: pts.map((p) => ({ value: [p.x, p.g + jitter(p.id)], name: p.name, id: p.id, hl: p.hl, rows: p.rows,
+          symbolSize: p.hl ? 12 : 8, itemStyle: { color: p.hl ? t.s[0] : t.context, opacity: p.hl ? 1 : 0.85 } })),
+        itemStyle: { borderColor: t.surface, borderWidth: 1.5 },
+        emphasis: { scale: 1.5 },
+      }],
+    },
+    // phone width: the long row names took half the width and the tick labels ran together, so the rows get their
+    // short names, the ticks go every 50 points and the title is short enough to stay inside the card
+    media: o.narrow ? [{ query: { maxWidth: 480 }, option: {
+      yAxis: [{ id: "rows", data: o.narrow.groups, axisLabel: { fontSize: 11, lineHeight: 14 } }],
+      xAxis: { name: o.narrow.xName, minInterval: 50 }, // minInterval, not interval: a set interval counts from the axis minimum, not from 0
+    } }] : [],
   };
 }
 

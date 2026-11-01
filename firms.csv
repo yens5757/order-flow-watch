@@ -34,3 +34,4 @@ GTSM,GTS Securities,GTS,market_maker,,,GTSZ in gtsz/ is its single-dealer platfo
 CDRG,Citadel Securities,Citadel,market_maker,,,not on public.s3.com - download from citadelsecurities.com
 JNST,Jane Street Capital,Jane Street,market_maker,,,not on public.s3.com - download from janestreet.com
 NITE,Virtu Americas,Virtu,market_maker,,,not on public.s3.com - download from virtu.com
+IBBD,Interactive Brokers LLC,IBKR,broker,36418,,"605 not on public.s3.com: hand download from interactivebrokers.com > Regulatory Reports > Rule 605 > View Report (IBKR, IBBD), files renamed IBBD<YYYYMM>.csv/.zip into data/raw/605/ibbd/. 606 filed under CRD 36418 (Interactive Brokers LLC, BrokerCheck)"
