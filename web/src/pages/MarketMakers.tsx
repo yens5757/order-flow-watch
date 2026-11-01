@@ -87,7 +87,7 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
       </div>
 
       <Card className="mt-5" title="Who sends orders where" sub={`${SP_LABEL[f.sp]} · ${quarterLong(f.quarter)} · ${metric === "share" ? "share of each broker's orders" : "payment per 100 shares"} · click a broker for its profile`}
-        right={<Segmented size="sm" value={metric} onChange={setMetric} options={[["share", "Share of orders"], ["pay", "Payment rate"]]} />}
+        right={<Segmented size="sm" label="Heatmap shows" value={metric} onChange={setMetric} options={[["share", "Share of orders"], ["pay", "Payment rate"]]} />}
         foot={metric === "pay" ? <>Most brokers are paid the same rate by every market maker (Schwab {cents(10)}, SoFi {cents(18)}); only Robinhood and Webull vary by venue.</> : undefined}>
         {brs.length ? <EChart option={heat} height={brs.length * 34 + 160} label="Routing matrix of brokers and market makers"
           onClick={(p) => { const y = p.data?.value?.[1]; if (y != null && brs[y]) go(`broker/${brs[y].id}`); }} /> : <Empty>No routing reports for this quarter.</Empty>}

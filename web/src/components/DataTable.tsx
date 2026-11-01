@@ -1,5 +1,5 @@
 // Sortable table with optional search, CSV download and clickable rows. Every chart has one of these as its table view.
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./ui";
 
 export interface Col<R> {
@@ -9,6 +9,10 @@ export interface Col<R> {
   render?: (r: R) => ReactNode;
   num?: boolean;
   hint?: string;
+  /** stays in view while the table scrolls sideways (the broker's name) */
+  pin?: boolean;
+  /** lets long cells wrap instead of widening the table */
+  wrap?: boolean;
 }
 
 export function DataTable<R>({ rows, cols, initial, onRow, search, file, maxHeight, highlight }: {
@@ -29,6 +33,20 @@ export function DataTable<R>({ rows, cols, initial, onRow, search, file, maxHeig
     });
   }, [rows, q, search, col, sort.dir]);
 
+  // a shadow on the right edge while there is more table to the right, so nobody misses that it scrolls sideways
+  const box = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const check = () => setMore(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => { el.removeEventListener("scroll", check); ro.disconnect(); };
+  }, [shown, cols]);
+
   const csv = () => {
     const cell = (v: unknown) => (v == null ? "" : /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
     const text = [cols.map((c) => cell(c.label)).join(","), ...shown.map((r) => cols.map((c) => cell(c.value(r))).join(","))].join("\n");
@@ -37,6 +55,12 @@ export function DataTable<R>({ rows, cols, initial, onRow, search, file, maxHeig
     a.download = file ?? "table.csv";
     a.click();
     URL.revokeObjectURL(a.href);
+  };
+  // rows that open something are keyboard rows too: Enter or Space does what a click does
+  const rowKeys = (e: KeyboardEvent<HTMLTableRowElement>, r: R) => {
+    if (!onRow || (e.key !== "Enter" && e.key !== " ")) return;
+    e.preventDefault();
+    onRow(r);
   };
 
   return (
@@ -57,34 +81,39 @@ export function DataTable<R>({ rows, cols, initial, onRow, search, file, maxHeig
           )}
         </div>
       )}
-      <div className="overflow-auto rounded-xl border border-line" style={{ maxHeight }}>
-        <table className="w-full border-collapse text-[13.5px]">
-          <thead className="sticky top-0 z-10 bg-surface2">
-            <tr>
-              {cols.map((c) => (
-                <th key={c.key} scope="col" title={c.hint} className={`whitespace-nowrap border-b border-line px-3 py-2.5 font-semibold ${highlight?.includes(c.key) ? "text-accent" : "text-ink2"} ${c.num ? "text-right" : "text-left"}`}>
-                  <button type="button" className="inline-flex items-center gap-1 hover:text-ink"
-                    onClick={() => setSort((s) => ({ key: c.key, dir: s.key === c.key ? (-s.dir as 1 | -1) : c.num ? -1 : 1 }))}>
-                    {c.label}
-                    <span className={`text-[10px] ${sort.key === c.key ? "text-accent" : "text-transparent"}`}>{sort.dir === 1 ? "▲" : "▼"}</span>
-                  </button>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {shown.map((r, i) => (
-              <tr key={i} onClick={onRow ? () => onRow(r) : undefined}
-                className={`border-b border-line last:border-0 ${onRow ? "cursor-pointer hover:bg-surface2" : ""}`}>
+      <div className="relative">
+        <div ref={box} className="overflow-auto rounded-xl border border-line" style={{ maxHeight }}>
+          <table className="w-full border-collapse text-[13.5px]">
+            <thead className="sticky top-0 z-10 bg-surface2">
+              <tr>
                 {cols.map((c) => (
-                  <td key={c.key} className={`whitespace-nowrap px-3 py-2.5 ${hl(c.key)} ${c.num ? "tnum text-right text-ink" : "text-ink2"}`}>
-                    {c.render ? c.render(r) : (c.value(r) ?? "–")}
-                  </td>
+                  <th key={c.key} scope="col" title={c.hint} aria-sort={sort.key === c.key ? (sort.dir === 1 ? "ascending" : "descending") : undefined}
+                    className={`whitespace-nowrap border-b border-line px-3 py-2.5 font-semibold ${highlight?.includes(c.key) ? "text-accent" : "text-ink2"} ${c.num ? "text-right" : "text-left"} ${c.pin ? "sticky left-0 z-20 bg-surface2" : ""}`}>
+                    <button type="button" className="inline-flex min-h-6 items-center gap-1 hover:text-ink"
+                      onClick={() => setSort((s) => ({ key: c.key, dir: s.key === c.key ? (-s.dir as 1 | -1) : c.num ? -1 : 1 }))}>
+                      {c.label}
+                      <span aria-hidden="true" className={`text-[10px] ${sort.key === c.key ? "text-accent" : "text-transparent"}`}>{sort.dir === 1 ? "▲" : "▼"}</span>
+                    </button>
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {shown.map((r, i) => (
+                <tr key={i} onClick={onRow ? () => onRow(r) : undefined} tabIndex={onRow ? 0 : undefined} onKeyDown={(e) => rowKeys(e, r)}
+                  className={`group border-b border-line last:border-0 ${onRow ? "cursor-pointer hover:bg-surface2 focus:outline-none focus-visible:bg-surface2 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent" : ""}`}>
+                  {cols.map((c) => (
+                    <td key={c.key} className={`px-3 py-2.5 ${c.wrap ? "" : "whitespace-nowrap"} ${hl(c.key)} ${c.num ? "tnum text-right text-ink" : "text-ink2"} ${c.pin ? `sticky left-0 z-[1] bg-surface ${onRow ? "group-hover:bg-surface2 group-focus-visible:bg-surface2" : ""}` : ""}`}>
+                      {c.render ? c.render(r) : (c.value(r) ?? "–")}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div aria-hidden="true" className={`pointer-events-none absolute inset-y-0 right-0 w-12 rounded-r-xl transition-opacity ${more ? "opacity-100" : "opacity-0"}`}
+          style={{ background: "linear-gradient(to right, transparent, color-mix(in srgb, var(--surface) 92%, transparent))" }} />
       </div>
     </div>
   );

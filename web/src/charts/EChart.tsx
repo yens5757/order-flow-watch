@@ -35,7 +35,14 @@ export function EChart({ option, height = 320, label, onClick }: {
     return () => { ro.disconnect(); c.dispose(); chart.current = null; };
   }, []);
 
-  useEffect(() => { chart.current?.setOption(option, { notMerge: true }); }, [option]);
+  // ECharts' aria component rewrites the container's aria-label with a generated description (ten data points per series at
+  // most) on every setOption, so the hand-written label goes in as that description and wins. Builders with media rules
+  // keep their option under baseOption, where the aria setting has to go too.
+  useEffect(() => {
+    const aria = { enabled: true, label: { description: label } };
+    const o = option.baseOption ? { ...option, baseOption: { ...(option.baseOption as object), aria } } : { ...option, aria };
+    chart.current?.setOption(o, { notMerge: true });
+  }, [option, label]);
 
   return <div ref={el} role="img" aria-label={label} style={{ height }} className="w-full" />;
 }

@@ -141,14 +141,14 @@ export function hBars(t: Tokens, rows: { id: string; name: string; v: number; ro
 
 /* ---------- lines over time (optionally stacked areas), labelled at the end ---------- */
 export function lines(t: Tokens, cats: string[], series: { name: string; values: (number | null)[]; color: string; dashed?: boolean }[], o: {
-  fmt: (v: number) => string; area?: boolean; stack?: boolean; endLabels?: boolean; total?: boolean; min?: number;
+  fmt: (v: number) => string; area?: boolean; stack?: boolean; endLabels?: boolean; total?: boolean; min?: number; max?: number;
 }): Option {
   return {
     ...base(t),
     legend: legend(t),
     grid: { left: 8, right: o.endLabels ? 96 : 20, top: 38, bottom: 8, containLabel: true },
     xAxis: catAxis(t, cats, { boundaryGap: false, axisLabel: { color: t.muted, fontSize: 11.5 } }),
-    yAxis: valueAxis(t, { min: o.min, axisLabel: { color: t.muted, formatter: (v: number) => o.fmt(v) } }),
+    yAxis: valueAxis(t, { min: o.min, max: o.max, axisLabel: { color: t.muted, formatter: (v: number) => o.fmt(v) } }),
     tooltip: tooltip(t, {
       trigger: "axis", axisPointer: { type: "line", lineStyle: { color: t.baseline } },
       formatter: (ps: any[]) => {
@@ -204,19 +204,27 @@ export function bandLine(t: Tokens, cats: string[], d: { v: (number | null)[]; m
 /* ---------- donut ---------- */
 export function donut(t: Tokens, slices: { name: string; v: number; color: string; rows?: Row[] }[], fmt: (v: number) => string): Option {
   return {
-    ...base(t),
-    tooltip: tooltip(t, { trigger: "item", formatter: (p: any) => tip(p.name, slices[p.dataIndex].rows ?? [[p.color, "Share", fmt(p.value)]]) }),
-    legend: legend(t, { orient: "vertical", top: "middle", left: "58%", itemGap: 10, formatter: (n: string) => {
-      const s = slices.find((x) => x.name === n);
-      return s ? `${n}  ${fmt(s.v)}` : n;
-    } }),
-    series: [{
-      type: "pie", radius: ["52%", "78%"], center: ["28%", "50%"], padAngle: 1.5,
-      itemStyle: { borderColor: t.surface, borderWidth: 2, borderRadius: 4 },
-      label: { show: false },
-      emphasis: { scale: true, scaleSize: 6 },
-      data: slices.map((s) => ({ name: s.name, value: s.v, itemStyle: { color: s.color } })),
-    }],
+    baseOption: {
+      ...base(t),
+      tooltip: tooltip(t, { trigger: "item", formatter: (p: any) => tip(p.name, slices[p.dataIndex].rows ?? [[p.color, "Share", fmt(p.value)]]) }),
+      legend: legend(t, { type: "plain", orient: "vertical", top: "middle", left: "58%", itemGap: 10, formatter: (n: string) => {
+        const s = slices.find((x) => x.name === n);
+        return s ? `${n}  ${fmt(s.v)}` : n;
+      } }),
+      series: [{
+        type: "pie", radius: ["52%", "78%"], center: ["28%", "50%"], padAngle: 1.5,
+        itemStyle: { borderColor: t.surface, borderWidth: 2, borderRadius: 4 },
+        label: { show: false },
+        emphasis: { scale: true, scaleSize: 6 },
+        data: slices.map((s) => ({ name: s.name, value: s.v, itemStyle: { color: s.color } })),
+      }],
+    },
+    // phone width: a legend beside the ring gets clipped, so it wraps underneath and the ring is centred. The legend is
+    // "plain" (not "scroll") in the base option: a media rule may move a component but not change its type, or it starts over with defaults
+    media: [{ query: { maxWidth: 480 }, option: {
+      legend: { orient: "horizontal", top: "bottom", left: "center", itemGap: 12 },
+      series: [{ center: ["50%", "40%"], radius: ["40%", "60%"] }],
+    } }],
   };
 }
 
@@ -248,22 +256,31 @@ export function heatmap(t: Tokens, rows: string[], cols: string[], cells: [numbe
   const max = Math.max(1, ...vals);
   const ink = (v: number) => (v > max * 0.55 ? (t.dark ? "#0b0e14" : "#ffffff") : t.ink2);
   return {
-    ...base(t),
-    grid: { left: 8, right: 8, top: 8, bottom: 44, containLabel: true },
-    xAxis: catAxis(t, cols, { position: "top", splitArea: { show: false }, axisLine: { show: false },
-      axisLabel: { color: t.ink2, fontSize: 11.5, rotate: 30, interval: 0, width: 100, overflow: "truncate" } }),
-    yAxis: catAxis(t, rows, { inverse: true, axisLine: { show: false } }),
-    visualMap: { min: 0, max, calculable: false, orient: "horizontal", left: "center", bottom: 0, itemWidth: 12, itemHeight: 160,
-      text: [o.fmt(max), "0"], textStyle: { color: t.muted, fontSize: 11 }, inRange: { color: t.seq }, dimension: 2 },
-    tooltip: tooltip(t, { trigger: "item", formatter: (p: any) => tip(rows[p.data.value[1]], [[null, cols[p.data.value[0]], p.data.value[2] == null ? "–" : o.fmt(p.data.value[2])]], o.rowIds ? CLICK : undefined) }),
-    series: [{
-      type: "heatmap",
-      data: cells.filter((c) => c[2] != null).map((c) => ({ value: c, label: { show: true, color: ink(c[2]!), textBorderWidth: 0 } })),
-      itemStyle: { borderColor: t.surface, borderWidth: 2, borderRadius: 4 },
-      label: { show: true, fontSize: 10.5, formatter: (p: any) => (p.data.value[2] >= max * 0.02 ? o.fmt(p.data.value[2]) : "") },
-      emphasis: { itemStyle: { borderColor: t.ink, borderWidth: 1 } },
-      cursor: o.rowIds ? "pointer" : "default",
-    }],
+    baseOption: {
+      ...base(t),
+      grid: { left: 8, right: 8, top: 8, bottom: 44, containLabel: true },
+      xAxis: catAxis(t, cols, { position: "top", splitArea: { show: false }, axisLine: { show: false },
+        axisLabel: { color: t.ink2, fontSize: 11.5, rotate: 30, interval: 0, width: 100, overflow: "truncate" } }),
+      yAxis: catAxis(t, rows, { inverse: true, axisLine: { show: false } }),
+      visualMap: { min: 0, max, calculable: false, orient: "horizontal", left: "center", bottom: 0, itemWidth: 12, itemHeight: 160,
+        text: [o.fmt(max), "0"], textStyle: { color: t.muted, fontSize: 11 }, inRange: { color: t.seq }, dimension: 2 },
+      tooltip: tooltip(t, { trigger: "item", formatter: (p: any) => tip(rows[p.data.value[1]], [[null, cols[p.data.value[0]], p.data.value[2] == null ? "–" : o.fmt(p.data.value[2])]], o.rowIds ? CLICK : undefined) }),
+      series: [{
+        type: "heatmap",
+        // the per-cell label carries only its colour, so the series-level `show` (off on phones) decides whether it is drawn
+        data: cells.filter((c) => c[2] != null).map((c) => ({ value: c, label: { color: ink(c[2]!), textBorderWidth: 0 } })),
+        itemStyle: { borderColor: t.surface, borderWidth: 2, borderRadius: 4 },
+        label: { show: true, fontSize: 10.5, formatter: (p: any) => (p.data.value[2] >= max * 0.02 ? o.fmt(p.data.value[2]) : "") },
+        emphasis: { itemStyle: { borderColor: t.ink, borderWidth: 1 } },
+        cursor: o.rowIds ? "pointer" : "default",
+      }],
+    },
+    // phone width: ten columns share ~300px, so the headers stand upright instead of piling onto each other and the
+    // in-cell numbers (which would run together and clip) move to the tooltip; the colour still reads
+    media: [{ query: { maxWidth: 520 }, option: {
+      xAxis: { axisLabel: { rotate: 90, fontSize: 10, width: 84 } },
+      series: [{ label: { show: false } }],
+    } }],
   };
 }
 
@@ -294,6 +311,7 @@ export function strip(t: Tokens, groups: string[], pts: { id: string; name: stri
 /* ---------- forest plot: estimate with 95% interval per claim ---------- */
 export function forest(t: Tokens, items: { label: string; rho: number; lo: number; hi: number; color: string; rows: Row[] }[]): Option {
   return {
+    baseOption: {
     ...base(t),
     grid: { left: 8, right: 24, top: 10, bottom: 36, containLabel: true },
     xAxis: valueAxis(t, { min: -1, max: 1, name: "Rank correlation (−1 to +1) with 95% interval", nameLocation: "middle", nameGap: 26 }),
@@ -317,5 +335,11 @@ export function forest(t: Tokens, items: { label: string; rho: number; lo: numbe
         markLine: { silent: true, symbol: "none", label: { show: false }, lineStyle: { color: t.baseline, type: "dashed" }, data: [{ xAxis: 0 }] },
       },
     ],
+    },
+    // phone width: 250px labels would leave the plot a sliver, so they wrap narrower and the axis keeps fewer ticks
+    media: [{ query: { maxWidth: 560 }, option: {
+      yAxis: { axisLabel: { width: 118, fontSize: 11, lineHeight: 13 } },
+      xAxis: { splitNumber: 2, name: "Rank correlation, 95% interval", nameGap: 22 },
+    } }],
   };
 }

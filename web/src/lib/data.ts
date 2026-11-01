@@ -19,9 +19,25 @@ export interface Lot { id: string; sp: Sp; lot: "FRACT" | "ODD" | "ROUND"; efq: 
 export interface Tier { id: string; kind: "ETF" | "Stock"; tier: 0 | 1 | 2 | 3; efq: number; dollars: number }
 export interface OrderMix { id: string; orders: number; market: number | null; fractional: number | null }
 export interface Otc { q: string; firm: string; share: number }
+/** One broker's fee facts from fees.csv, checked by hand on its own pages; null = not published there or not verified.
+ *  commission $ per stock trade, optionsFee $ per contract, marginRate % a year on $25k, cashYield % APY on idle cash, transferOut $ for a full transfer. */
+export type FeeKey = "commission" | "optionsFee" | "marginRate" | "cashYield" | "transferOut";
+export interface Fee {
+  id: string; retail: boolean;
+  commission: number | null; optionsFee: number | null; marginRate: number | null; cashYield: number | null; transferOut: number | null;
+  /** fee facts that are null because the broker has no such product (Stash, Cash App and Wealthfront: no options trading), not because nobody checked */
+  notOffered: FeeKey[];
+  crd: string | null; sipc: boolean | null; sources: string[]; checked: string; confidence: "high" | "medium" | "low"; notes: string;
+}
 
 interface Raw {
-  meta: { built: string; month: string; detailMonth: string; months: string[]; quarter: string; quarters: string[]; vix: Record<string, number> };
+  meta: {
+    built: string; month: string; detailMonth: string; months: string[]; quarter: string; quarters: string[]; vix: Record<string, number>;
+    /** unit of the 605 time fields (t): "ms" */
+    timeUnit: string;
+    /** date the fee facts were last checked (fees.csv), null if the file is empty */
+    feesChecked: string | null;
+  };
   firms: Firm[];
   marketMakers: { id: string; name: string }[];
   reporters: Record<string, { name: string; cat: string }>;
@@ -38,15 +54,18 @@ interface Raw {
   tiers: Tier[];
   orderMix: OrderMix[];
   otc: Otc[];
+  fees: Fee[];
 }
 
-export interface Data extends Omit<Raw, "exec" | "pay" | "usd" | "venues"> {
+export interface Data extends Omit<Raw, "exec" | "pay" | "usd" | "venues" | "fees"> {
   exec: Map<string, ExecRow>;
   pay: Map<string, Record<Ot, number | null>>;
   usd: Usd[];
   venues: Venue[];
   byId: Record<string, Firm>;
   brokers: Firm[];
+  /** by reporter id; brokers without a fees.csv row are absent */
+  fees: Record<string, Fee>;
 }
 
 export async function loadData(): Promise<Data> {
@@ -66,6 +85,7 @@ export async function loadData(): Promise<Data> {
     venues: raw.venues.map(([crd, q, sp, venue, mkt, ml, mc, mlc]) => ({ crd, q, sp, venue, share: { M: mkt, ML: ml }, cph: { M: mc, ML: mlc } })),
     byId: Object.fromEntries(raw.firms.map((f) => [f.id, f])),
     brokers: raw.firms.filter((f) => f.type === "broker"),
+    fees: Object.fromEntries(raw.fees.map((x) => [x.id, x])),
   };
 }
 
@@ -94,6 +114,10 @@ export interface Metric {
   pay10k: number | null;
   /** points of the spread vs other brokers on identical stock × size cells (market orders, all sizes) */
   gap: number | null;
+  /** average time to fill in milliseconds (meta.timeUnit); the same value as t */
+  speedMs: number | null;
+  /** from fees.csv (see Fee): null when the broker has no row or the fact is not verified */
+  commission: number | null; optionsFee: number | null; marginRate: number | null; cashYield: number | null; transferOut: number | null;
 }
 
 export function metric(d: Data, f: Firm, s: Filters): Metric {
@@ -105,12 +129,16 @@ export function metric(d: Data, f: Firm, s: Filters): Metric {
   const pct = (v: number | null | undefined) => (v == null ? null : v * 100);
   const qsBps = base?.qs != null ? base.qs * 1e4 : null;
   const cust = pct(e?.efq);
+  const fee: Fee | undefined = d.fees[f.id];
   return {
     f, id: f.id, name: nameOf(f), payPct, cph, cust,
     pi: pct(e?.pi), aq: pct(e?.aq), sz: e?.sz ?? null, px: e?.px ?? null, t: e?.t ?? null, qsBps,
     cost10k: cust != null && qsBps != null ? (cust / 100) * (qsBps / 2) : null,
     pay10k: cph != null && base?.px ? cph / base.px : null,
     gap: d.sameStock.brokers.find((g) => g.id === f.id && g.sp === s.sp && g.cells >= 100)?.gap ?? null,
+    speedMs: e?.t ?? null,
+    commission: fee?.commission ?? null, optionsFee: fee?.optionsFee ?? null, marginRate: fee?.marginRate ?? null,
+    cashYield: fee?.cashYield ?? null, transferOut: fee?.transferOut ?? null,
   };
 }
 
@@ -120,3 +148,8 @@ export function brokerRows(d: Data, s: Filters): Metric[] {
     .map((f) => metric(d, f, s))
     .filter((r) => r.cust != null);
 }
+
+/** A 606 is on file when any quarter has routing, payment-rate or dollar rows under this CRD. A CRD alone proves nothing:
+ *  five brokers (Albert, Avenue, eToro, WF FiNet, Coinbase) have one from fees.csv but file no 606 of their own. */
+export const files606 = (d: Data, crd: string | null) =>
+  crd != null && (d.venues.some((v) => v.crd === crd) || d.usd.some((u) => u.crd === crd) || [...d.pay.keys()].some((k) => k.startsWith(`${crd}|`)));

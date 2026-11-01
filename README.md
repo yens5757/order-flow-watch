@@ -13,7 +13,23 @@ An automated pipeline that joins two SEC disclosures, refreshed weekly and publi
 **Website:** [yens5757.github.io/order-flow-watch](https://yens5757.github.io/order-flow-watch/). Two layers:
 a plain-language home page (what a $10,000 trade costs at each broker, pick-your-broker report card) for
 non-experts, and an explorer where you choose the measure, compare two, filter, sort and share the view.
-Plus a page per broker, market-maker comparisons, every Rule 605 reporter, and the statistics behind each claim.
+The menu is Home, Compare, Calculator, Brokers, Market makers, Method:
+
+- **Compare** (`#/compare/<A>/<B>`, opens as Robinhood vs Fidelity): two brokers side by side on fills, fees and
+  what they are paid for the order flow.
+- **Calculator** (`#/calculator`): the annual-cost estimator. Enter how you trade (trades per year, typical order
+  size, share in S&P 500 stocks, options contracts, idle cash, margin borrowed) and it ranks every broker by what
+  that would cost you per year, split into spread paid on fills, commissions, options fees, interest lost on idle
+  cash and margin interest, and says which parts a broker has no published figure for. A compact version sits
+  on the home page.
+- **Broker pages** (`#/broker/<ID>`): the report card plus a fees card (stock commission, options fee per contract,
+  margin rate, interest on idle cash, transfer-out fee) and a trust card (FINRA BrokerCheck link by CRD, SIPC
+  membership).
+- **Execution speed**: average execution time from Rule 605, in milliseconds, as a measure in the explorer
+  (`#/explore?m=speed`) next to the fee measures.
+
+Plus market-maker comparisons, every Rule 605 reporter, and the statistics behind each claim. Options trading is
+outside Rule 605, so the site compares options fees but not options fills.
 
 | Home: the easy layer | Explore: the interactive layer |
 |---|---|
@@ -92,6 +108,18 @@ npm run dev                                         # http://localhost:5173
 
 Raw reports are downloaded into `data/` and are never committed.
 
+## Fees
+
+Fees are not in the SEC reports. `fees.csv` holds them by hand, one row per broker: stock commission, options fee
+per contract, margin rate at $25,000, interest on idle cash, full transfer-out fee, CRD and SIPC membership, with
+the `source_urls` they came from, a `checked_on` date (2026-11-01; the site shows the latest as "fees checked"),
+a `confidence` grade and notes. A blank cell means the figure could not be confirmed on the broker's own pages
+(several pricing pages cannot be read by scripts), and the site shows it as missing rather than guessing; `NA`
+means the broker has no such product (Stash, Cash App and Wealthfront offer no options), shown as "not offered".
+Margin rates are the standard $25,000-tier rate, never a new-account offer or a paid tier.
+To update: edit the row from the broker's published schedule, set `checked_on` to that day and run
+`python build_site.py`. Fees change without notice; re-check the file every quarter.
+
 ## Deploy (GitHub Pages, weekly refresh)
 
 1. Create an empty repository on GitHub and push this folder to it (`git remote add origin <url>`, `git push -u origin main`).
@@ -112,6 +140,8 @@ raw reports are not (they stay in the Actions cache).
 - **Share-weighting:** Rule 605 averages weight by shares; the same-stock comparison avoids this.
 - **Citadel** blocks automated downloads, so its reports must be added by hand into `data/raw/605/cdrg/`;
   the weekly job compares the other market makers without it.
+- **Fees** are hand-collected from published schedules (last checked 2026-11-01), not from a regulatory filing,
+  and blank where a broker's own pages could not be read.
 
 ## Related work
 

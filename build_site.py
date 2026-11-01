@@ -5,7 +5,7 @@ Usage:
     python build_site.py        # after the parse_* scripts, pfof_vs_execution.py and same_stock.py
     cd web && npm run build     # -> web/dist/ (static site)
 
-Reads : data/pfof.duckdb, firms.csv, reporters_605.csv, data/raw/context/ (symbols, VIX, FINRA OTC)
+Reads : data/pfof.duckdb, firms.csv, fees.csv, reporters_605.csv, data/raw/context/ (symbols, VIX, FINRA OTC)
 Writes: web/public/data/site.json
 
 Only derived, aggregated numbers go into the file - no raw report files.
@@ -25,11 +25,13 @@ from parse_606 import canonical_venue
 
 DB = Path("data/pfof.duckdb")
 FIRMS = Path("firms.csv")
+FEES = Path("fees.csv")  # broker fee facts, checked by hand against each broker's own pages
 REPORTERS = Path("reporters_605.csv")
 CONTEXT = Path("data/raw/context")
 OUT = Path("web/public/data/site.json")
 
 SEG = {"SP500": "Y", "OtherStocks": "N"}
+TIME_UNIT = "ms"  # the 605 time fields (avg_execution_time) are milliseconds; the site reads it from meta.timeUnit
 EFQ_RANGE = same_stock.EFQ_RANGE
 
 
@@ -48,6 +50,25 @@ def rows(con, sql):
 
 def rnd(v, n=4):
     return None if v is None else round(v, n)
+
+
+def fee_rows():
+    """fees.csv -> one dict per broker, blanks as None (Y/N flags as bools, source_urls as a list).
+    A fee cell of "NA" means the product is not offered at all (Stash, Cash App and Wealthfront have no options trading):
+    the value is still None, and the key is listed in notOffered so the site can say "not offered" instead of "not checked"."""
+    yn = {"Y": True, "N": False}
+    cols = (("commission", "commission_stock"), ("optionsFee", "options_per_contract"), ("marginRate", "margin_rate_25k"),
+            ("cashYield", "cash_yield"), ("transferOut", "transfer_out_full"))
+
+    def num(v):
+        return float(v) if v not in (None, "", "NA") else None
+
+    return [{"id": r["reporter_id"], "retail": r["retail_self_directed"] == "Y",
+             **{k: num(r[c]) for k, c in cols}, "notOffered": [k for k, c in cols if r[c] == "NA"],
+             "crd": r["crd"] or None, "sipc": yn.get(r["sipc"]),
+             "sources": [u for u in r["source_urls"].split() if u.startswith("http")],
+             "checked": r["checked_on"], "confidence": r["confidence"], "notes": r["notes"]}
+            for r in read_csv(FEES)]
 
 
 def etf_symbols():
@@ -70,6 +91,8 @@ def main():
     crds = sorted({f["crd_606"] for f in firms if f["crd_606"]})
     crd_list = ", ".join(f"'{c}'" for c in crds)
     directory = {r["reporter_id"]: r for r in read_csv(REPORTERS)}
+    fees = fee_rows()
+    fee_crd = {f["id"]: f["crd"] for f in fees if f["crd"]}  # fills a CRD firms.csv lacks (brokers with no 606 of their own)
     month = con.execute("SELECT max(report_month) FROM summary_605").fetchall()[0][0]
     quarter = con.execute("SELECT max(quarter) FROM routing_606").fetchall()[0][0]
     detail_month = con.execute("SELECT max(report_month) FROM detail_605").fetchall()[0][0]
@@ -237,12 +260,14 @@ def main():
                 pass
 
     data = {
-        "meta": {"built": date.today().isoformat(), "month": month, "detailMonth": detail_month,
+        "meta": {"built": date.today().isoformat(), "month": month, "detailMonth": detail_month, "timeUnit": TIME_UNIT,
+                 "feesChecked": max((f["checked"] for f in fees), default=None),
                  "months": sorted({r["m"] for r in exec_rows}), "quarter": quarter,
                  "quarters": sorted({p["quarter"] for p in pay}),
                  "vix": {m: round(sum(v) / len(v), 1) for m, v in sorted(vix.items()) if m >= "2024-04"}},
         "firms": [{"id": f["reporter_id"], "name": f["name"], "short": f["short_name"], "type": f["firm_type"],
-                   "crd": f["crd_606"] or None} for f in firms],
+                   "crd": f["crd_606"] or fee_crd.get(f["reporter_id"])} for f in firms],
+        "fees": fees,
         "marketMakers": [{"id": k, "name": v} for k, v in same_stock.MARKET_MAKERS.items()],
         "reporters": reporters,
         "execCols": exec_cols, "exec": exec_out,
@@ -255,7 +280,7 @@ def main():
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
-    print(f"{len(exec_out)} 605 rows, {len(evidence)} tests, {len(implied)} routing checks -> {OUT} "
+    print(f"{len(exec_out)} 605 rows, {len(evidence)} tests, {len(implied)} routing checks, {len(fees)} fee rows -> {OUT} "
           f"({OUT.stat().st_size / 1024:.0f} KB)")
 
 

@@ -29,5 +29,12 @@ export const titleCase = (s: string) =>
   s === s.toUpperCase()
     ? s.toLowerCase().replace(/\b([a-z])([a-z]*)/g, (w, a: string, b: string) => (/^(llc|lp|lllp|ats|usa|nyse|ubs|bny|rbc|bmo)$/.test(w) ? w.toUpperCase() : a.toUpperCase() + b))
     : s;
+/** Execution time: "158 ms" under a second, "1.4 s" from there. The 605 time fields are milliseconds (meta.timeUnit). */
+export const ms = (v: number | null | undefined) => (v == null ? "–" : v < 1000 ? `${Math.round(v)} ms` : `${(v / 1000).toFixed(1)} s`);
+/** A checked-on date: "2026-11-01" -> "Nov 1, 2026" ("November 1, 2026" with month "long"), parsed as a local date so it never slips a day west of UTC. */
+export const dayLong = (iso: string, month: "short" | "long" = "short") => {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", { day: "numeric", month, year: "numeric" });
+};
 /** Axis tick for dollar values: −$0.50, $1.00. */
 export const usdTick = (v: number) => `${v < 0 ? "−" : ""}$${Math.abs(v).toFixed(2)}`;

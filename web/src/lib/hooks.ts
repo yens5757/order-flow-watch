@@ -6,7 +6,12 @@ const parts = () => (location.hash.replace(/^#\/?/, "").split("?")[0] || "").spl
 export function useRoute() {
   const [route, setRoute] = useState(parts);
   useEffect(() => {
-    const on = () => { setRoute(parts()); window.scrollTo({ top: 0 }); };
+    const on = () => {
+      setRoute(parts());
+      window.scrollTo({ top: 0 });
+      // a new page for a screen reader too: focus lands on <main>, not wherever it was on the old page
+      (document.querySelector("main") as HTMLElement | null)?.focus({ preventScroll: true });
+    };
     addEventListener("hashchange", on);
     return () => removeEventListener("hashchange", on);
   }, []);

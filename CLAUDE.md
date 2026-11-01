@@ -29,8 +29,9 @@ give their customers worse fills?
 | `by_order_size.py` | Rank correlation payment vs spread paid within each 605 order-size bucket (reads the CSV above) |
 | `fetch_605_directory.py` | FINRA's 605 directory -> `reporters_605.csv` (name + category per reporter code). finra.org rate-limits (429) hard: re-run fills gaps |
 | `fetch_mm_605.py` | Market makers' own 605s: Virtu (NITE) + Jane Street (JNST) by URL pattern. Citadel (CDRG) = manual only |
-| `build_site.py` | DuckDB -> `web/public/data/site.json`: everything the website shows, incl. same-stock gaps, routing-implied gaps and the evidence table (`stats.py`: Spearman, permutation p, bootstrap CI) |
-| `web/` | React 18 + TypeScript + Tailwind 3 (Vite 5), dark by default. Two layers: `#/` Home is plain-language (dollars on a $10,000 trade, broker picker, one ranked chart); `#/explore` is the interactive explorer (measure, compare-with, filters, sort, broker chips), its state in the hash query (`#/explore?m=cost10k&vs=pay10k&sp=N`) so views are linkable. Measures are defined once in `src/lib/metrics.ts`. Also `#/broker/<ID>`, `#/market-makers`, `#/firms`, `#/method`; old `#/brokers` links open the explorer. Charts are Apache ECharts 5, tree-shaken (`src/charts/EChart.tsx` wrapper, `options.ts` builders, `kit.ts` shared styling); colours are CSS variables in `src/index.css` (validated palette, dark + light), read into charts by `src/lib/theme.tsx`. FINRA OTC chart drops the quarter still in progress |
+| `build_site.py` | DuckDB + `fees.csv` -> `web/public/data/site.json`: everything the website shows, incl. same-stock gaps, routing-implied gaps, the evidence table (`stats.py`: Spearman, permutation p, bootstrap CI), `fees[]` (one object per fees.csv row: commission, optionsFee, marginRate, cashYield, transferOut, crd, sipc, sources, checked, confidence, notes), `meta.feesChecked` (latest `checked_on`, null if the file is empty) and `meta.timeUnit` (= `TIME_UNIT = "ms"`, the ONE place the 605 time unit is declared). `firms[].crd` falls back to the fees CRD when firms.csv has none (ALBS, AVNU, ETOR, FNET, CNBS), so a CRD no longer implies a 606 filing: test that via payment data, not `firm.crd` |
+| `fees.csv` | Hand-maintained, not a script: broker fee + trust facts (`commission_stock`, `options_per_contract`, `margin_rate_25k`, `cash_yield`, `transfer_out_full`, `crd`, `sipc`, `source_urls` space-joined, `checked_on`, `confidence` high/medium/low, `notes`), one row per retail broker in firms.csv (24; none for Apex or market makers). Blank = not confirmed on the broker's own pages (Schwab/SoFi/Coinbase block scripts, E*TRADE times out); `NA` = the product is not offered at all (STSH/TPTG/WLTH options) and lands in `fees[].notOffered` so the site says "not offered", not "not available". `retail_self_directed` = offers a self-directed online account to retail customers of any residency (Avenue: Brazil-resident only, still Y). Margin = the standard $25k-tier rate, never a new-account or paid-tier rate (tastytrade 10.50 not the 6.75 offer; Webull's 8.74 is Premium). Checked 2026-11-01: `cash_yield` null for all; margin FIBS/TWTT/WRET/FUTM/TTSI. To update: edit, bump `checked_on`, re-run `build_site.py` |
+| `web/` | React 18 + TypeScript + Tailwind 3 (Vite 5), dark by default. Nav: Home, Compare, Calculator, Brokers (= explorer), Market makers, Method. Two layers: `#/` Home is plain-language (dollars on a $10,000 trade, broker picker, one ranked chart); `#/explore` is the interactive explorer (measure, compare-with, filters, sort, broker chips), its state in the hash query (`#/explore?m=cost10k&vs=pay10k&sp=N`) so views are linkable. Measures are defined once in `src/lib/metrics.ts` and every page names them through `METRICS[k].label/.short` (one noun each: "Customer pays", "Extra cost per $10,000 traded", "Broker is paid", "Same-trade gap"; `pi` has no better direction) (`MetricKey`: cost10k, cust, pay10k, payPct, gap, pi, sz, speed, commission, optionsFee, marginRate, cashYield; `speed` = 605 avg execution time via `Metric.speedMs`, the fee keys read `Data.fees[id]` (absent for brokers without a row); `cashYield` is all-null so far and shows the empty state; colour slots `t.s[0..7]`, commission shares slot 2 with pi). Also `#/compare/<A>/<B>` (two brokers side by side, default HOOD vs FIBS, `pages/Compare.tsx`), `#/calculator` (annual-cost estimator: `lib/cost.ts` `annualCost(d, CostInputs{trades,size,spMix,options,idleCash,margin})` -> `CostLine[]` {spread, commissions, optionsFees, cashDrag, marginInterest, missing[]}, UI in `components/Estimator.tsx`, `compact` for the home page), `#/broker/<ID>` (with `FeesCard` + `TrustCard`: BrokerCheck link brokercheck.finra.org/firm/summary/<crd>, SIPC), `#/market-makers`, `#/firms`, `#/method`; old `#/brokers` links open the explorer. `App.tsx` `describe()` sets `document.title` + `meta[name=description]` per route. Charts are Apache ECharts 5, tree-shaken (`src/charts/EChart.tsx` wrapper, `options.ts` builders, `kit.ts` shared styling); colours are CSS variables in `src/index.css` (validated palette, dark + light), read into charts by `src/lib/theme.tsx`. FINRA OTC chart drops the quarter still in progress. tsconfig has `noUnusedLocals` + `noUnusedParameters` |
 | `.github/workflows/weekly.yml` | Mondays 06:00 UTC + manual: fetch -> parse -> analyse -> `build_site.py` -> `npm run build` -> GitHub Pages. `data/raw` persists in the Actions cache (key = hash of the file list), never in git |
 
 Stack: Python, requests, BeautifulSoup, DuckDB (all storage + SQL analysis), matplotlib.
@@ -41,6 +42,7 @@ No pandas by design: analysis is in SQL.
   (Morgan Stanley's terms forbid redistribution; keep all raw data private).
 - `data/pfof.duckdb`: rebuilt from raw on every parse run.
 - `firms.csv`: firm metadata. `reporter_id` = 605 ID, `crd_606` = 606 filer CRD, `short_name` = chart label.
+- `fees.csv`: broker fee + trust facts, hand-maintained (see pipeline table). Committed: public figures from public pages.
 
 ## Sources
 - 605: `public.s3.com/rule605/` (directory listing, one folder per reporter ID; ~80% of firms).
@@ -64,7 +66,13 @@ No pandas by design: analysis is in SQL.
   symbol x LotSizeFlag (ROUND/ODD/FRACT) x OrderSize bucket x OrderType. OrderType is a 5-char code
   (decoded from the rule, checked against the data): [M/L][marketable Y/N, X for market][beyond-midpoint]
   [IOC][stop price]; MXXNN = plain market order, LYNNN = marketable limit. Brokers' executed shares are in
-  CvrdOrderExctdAwayQty (routed away); market makers' in CvrdOrderExctdQty. Times are milliseconds.
+  CvrdOrderExctdAwayQty (routed away); market makers' in CvrdOrderExctdQty.
+- 605 time fields (avg execution time) are treated as **milliseconds**: `TIME_UNIT = "ms"` in `build_site.py` ->
+  `meta.timeUnit`, the only place to change it; site copy reads it from there. NOT confirmed from a source
+  (1 Nov 2026): the SEC adopting release (sec.gov/files/rules/final/2024/34-99679.pdf) came back as an undecoded
+  PDF stream, NYSE's 605 page defines no unit, eCFR 242.605 redirects to an unblock page. The magnitudes fit ms
+  (Fidelity avg 463; max 4,106,215 = 68 min, which in seconds would be 47 days). Cboe/Nasdaq 605 docs and the FIF
+  fact sheet not yet checked (open issue 4).
 - The summary CSV can NOT be exactly rebuilt from the detail: dollar-weighting MXXNN rows gets within
   0.01 for S&P 500 (HOOD 0.322 vs 0.316) but not for other stocks (0.446 vs 0.539). Unknown aggregation rule.
 - Market makers' new-format reports are not on S3: Citadel (site blocks scripts; downloaded by hand into
@@ -142,8 +150,9 @@ No pandas by design: analysis is in SQL.
 2. SoFi's 606 reports only SoFi's share (Apex keeps the rest), so its payment is understated.
    Show Apex (clearing firm) separately from retail brokers.
 3. ~~Confirm Fidelity's CRD~~ Done: 7784 (BrokerCheck API: api.brokercheck.finra.org/search/firm?query=<crd>).
-4. Verify in the FIF Rule 605 fact sheet: bucket 199999 meaning, execution-time unit, effective-spread
-   sign convention (Fidelity is negative).
+4. Verify in the FIF Rule 605 fact sheet (or Cboe/Nasdaq 605 docs): bucket 199999 meaning, execution-time unit
+   (still unconfirmed 1 Nov 2026, see Format notes; the pipeline asserts ms), effective-spread sign convention
+   (Fidelity is negative).
 5. ~~Expand to ~20 retail brokers~~ Done Oct 2026 (12 added to firms.csv). Still open: Albert, Avenue,
    eToro, Stash, WF FiNet have no 606 in FINRA bulk data (introducing brokers? find their clearing
    firm's 606). Firstrade files 606 (CRD 16843) but has no 605 on public.s3.com. Wealthfront CRD 153407 verified.
@@ -157,6 +166,13 @@ No pandas by design: analysis is in SQL.
 9. Splitting "other stocks" further: 605/606 summaries only split S&P 500 vs other. Execution quality could be
    split by stock/price via the 605 detailed reports (per-symbol .zip, skipped by `--summary-only`); payment cannot.
 10. Still missing (file 606, but 605 not on public.s3.com - need per-firm fetchers like Virtu/Jane Street):
-   Interactive Brokers ($72M 2026Q2; 605 codes IBCO/IBFR/FRAC), TradeStation, Alpaca, Firstrade, Ally (TKNG),
-   Tradier, TradeUP. Citadel on the live site: its site deliberately blocks scripts - do not try to get around
-   that; options are a hand-downloaded file made available to CI privately, or committing derived results only.
+   Interactive Brokers ($72M 2026Q2; 605 codes IBCO/IBFR/FRAC): its reports page
+   interactivebrokers.com/en/index.php?f=1366 returned 403 to a script (1 Nov 2026) - same rule as Citadel, do not
+   retry or work around; a hand download or another published route is needed. TradeStation, Alpaca, Firstrade,
+   Ally (TKNG), Tradier, TradeUP untried. Citadel on the live site: its site deliberately blocks scripts - do not
+   try to get around that; options are a hand-downloaded file made available to CI privately, or committing
+   derived results only.
+11. Re-check `fees.csv` every quarter (next: Feb 2027, with the 606 refresh): fee schedules change without notice
+   and the file is hand-kept. Fill the gaps first: `cash_yield` is null for every broker; Schwab, SoFi, Coinbase and
+   E*TRADE have no fee at all (their pages block scripts or time out: read them in a browser, do not script around
+   them); Webull's standard margin tier is unread. Bump `checked_on`; `meta.feesChecked` is what the site shows.

@@ -48,7 +48,7 @@ export default function AllFirms({ d, f, set }: { d: Data; f: Filters; set: (p: 
           <EChart option={chart} height={360} label="Customer cost of every reporting firm, grouped by type"
             onClick={(p) => p.data?.hl && go(`broker/${p.data.id}`)} />
         </Card>
-        <Card title="All reporters" right={<Segmented size="sm" value={group} onChange={setGroup} options={[[-1, "All"], ...GROUPS.map((g, i) => [i, g.replace("Tracked retail brokers", "Tracked")] as [number, string])]} />}>
+        <Card title="All reporters" right={<Segmented size="sm" label="Firm group" value={group} onChange={setGroup} options={[[-1, "All"], ...GROUPS.map((g, i) => [i, g.replace("Tracked retail brokers", "Tracked")] as [number, string])]} />}>
           <DataTable rows={shown} cols={cols} initial={{ key: "cust", dir: 1 }} search={(r) => `${r.name} ${r.id} ${r.cat}`}
             onRow={(r) => r.tracked && go(`broker/${r.id}`)} file={`rule605_reporters_${f.month}.csv`} maxHeight={560} />
         </Card>

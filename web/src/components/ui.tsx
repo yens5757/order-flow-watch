@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useId, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type SyntheticEvent } from "react";
 
 /* ---------- icons (inline, stroke-based) ---------- */
 const PATHS: Record<string, ReactNode> = {
@@ -6,6 +6,7 @@ const PATHS: Record<string, ReactNode> = {
   back: <path d="M19 12H5M11 18l-6-6 6-6" />,
   left: <path d="m15 18-6-6 6-6" />,
   right: <path d="m9 18 6-6-6-6" />,
+  swap: <><path d="M4 7h13M13 3l4 4-4 4" /><path d="M20 17H7M11 13l-4 4 4 4" /></>,
   info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></>,
   sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>,
   moon: <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />,
@@ -67,14 +68,27 @@ export function Card({ title, sub, right, info, children, className = "", foot }
   );
 }
 
-/** Small "i" that reveals a definition on hover or keyboard focus. */
+/** Small "i" that reveals a definition on hover or keyboard focus; Escape hides it again. The button's hit area is 40px
+ *  (negative margins keep its footprint in the text at 20px), and the text is read to screen readers as its description. */
 export function Info({ children }: { children: ReactNode }) {
+  const id = useId();
+  const [hidden, setHidden] = useState(false);
+  const [phone, setPhone] = useState<CSSProperties | null>(null);
+  // on phones the box spans the viewport width under the icon (offset inside the icon's own wrapper, since the page's
+  // entrance animation would capture a fixed box), so an icon in a right-hand column cannot push it off screen
+  const place = (e: SyntheticEvent<HTMLElement>) => {
+    if (window.innerWidth >= 640) { setPhone(null); return; }
+    const r = e.currentTarget.getBoundingClientRect();
+    setPhone({ left: 16 - r.left, width: window.innerWidth - 32, maxWidth: "none" });
+  };
   return (
-    <span className="group relative inline-flex">
-      <button type="button" className="rounded-full text-muted hover:text-ink focus:text-ink focus:outline-none" aria-label="More information">
+    <span className="group relative inline-flex" onMouseEnter={place} onFocus={place} onMouseLeave={() => setHidden(false)} onBlur={() => setHidden(false)}>
+      <button type="button" aria-label="More information" aria-describedby={id}
+        onKeyDown={(e) => { if (e.key === "Escape") setHidden(true); }}
+        className="-m-2.5 grid h-10 w-10 place-items-center rounded-full text-muted hover:text-ink focus:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
         <Icon name="info" size={15} />
       </button>
-      <span role="tooltip" className="pointer-events-none absolute left-1/2 top-6 z-30 w-64 -translate-x-1/2 rounded-xl border border-line bg-surface2 p-3 text-left text-[12.5px] font-normal leading-relaxed text-ink2 opacity-0 shadow-card transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+      <span id={id} role="tooltip" style={phone ?? undefined} className={`pointer-events-none absolute left-0 top-6 z-30 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-line bg-surface2 p-3 text-left text-[12.5px] font-normal leading-relaxed text-ink2 opacity-0 shadow-card transition-opacity sm:left-1/2 sm:-translate-x-1/2 ${hidden ? "" : "group-focus-within:opacity-100 group-hover:opacity-100"}`}>
         {children}
       </span>
     </span>
@@ -82,15 +96,25 @@ export function Info({ children }: { children: ReactNode }) {
 }
 
 /* ---------- controls ---------- */
-export function Segmented<T extends string | number>({ value, onChange, options, size = "md" }: {
-  value: T; onChange: (v: T) => void; options: [T, string][]; size?: "sm" | "md";
+/** A radio group drawn as a pill switch: `label` names it for assistive tech, arrow keys move between options. */
+export function Segmented<T extends string | number>({ label, value, onChange, options, size = "md" }: {
+  label: string; value: T; onChange: (v: T) => void; options: [T, string][]; size?: "sm" | "md";
 }) {
+  const keys = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
+    const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    const j = (i + step + options.length) % options.length;
+    onChange(options[j][0]);
+    (e.currentTarget.parentElement?.children[j] as HTMLElement | undefined)?.focus();
+  };
   return (
-    <div className="inline-flex rounded-xl border border-line bg-surface2 p-1" role="tablist">
-      {options.map(([v, label]) => (
-        <button key={String(v)} type="button" role="tab" aria-selected={value === v} onClick={() => onChange(v)}
-          className={`whitespace-nowrap rounded-lg font-medium transition-colors ${size === "sm" ? "px-2.5 py-1 text-[12.5px]" : "px-3 py-1.5 text-[13.5px]"} ${value === v ? "bg-surface3 text-ink shadow-sm" : "text-muted hover:text-ink"}`}>
-          {label}
+    <div className="inline-flex rounded-xl border border-line bg-surface2 p-[3px]" role="radiogroup" aria-label={label}>
+      {options.map(([v, text], i) => (
+        <button key={String(v)} type="button" role="radio" aria-checked={value === v} tabIndex={value === v ? 0 : -1}
+          onClick={() => onChange(v)} onKeyDown={(e) => keys(e, i)}
+          className={`min-h-[34px] whitespace-nowrap rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${size === "sm" ? "px-3 text-[12.5px]" : "px-3.5 text-[13.5px]"} ${value === v ? "bg-surface3 text-ink shadow-sm" : "text-muted hover:text-ink"}`}>
+          {text}
         </button>
       ))}
     </div>
@@ -126,12 +150,12 @@ export function Switch({ label, checked, onChange }: { label: string; checked: b
 }
 
 /* ---------- figures ---------- */
-export function Kpi({ icon, label, value, sub, tone }: { icon?: string; label: string; value: ReactNode; sub?: ReactNode; tone?: "good" | "bad" }) {
+export function Kpi({ icon, label, value, sub, tone, info }: { icon?: string; label: string; value: ReactNode; sub?: ReactNode; tone?: "good" | "bad"; info?: ReactNode }) {
   return (
     <div className="rounded-2xl border border-line bg-surface p-5 shadow-card">
       <div className="flex items-center gap-2 text-[12.5px] font-medium text-muted">
         {icon && <span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--accent-soft)] text-accent"><Icon name={icon} size={15} /></span>}
-        {label}
+        {label}{info && <Info>{info}</Info>}
       </div>
       <div className={`mt-3 font-display text-[30px] font-extrabold leading-none tracking-tight ${tone === "good" ? "text-better" : tone === "bad" ? "text-worse" : "text-ink"}`}>{value}</div>
       {sub && <div className="mt-2 text-[12.5px] leading-snug text-muted">{sub}</div>}
@@ -167,3 +191,28 @@ export function Legend({ items }: { items: { color: string; label: string; dashe
 export const Empty = ({ children }: { children: ReactNode }) => (
   <div className="grid h-48 place-items-center rounded-xl border border-dashed border-line text-center text-[13.5px] text-muted">{children}</div>
 );
+
+/** The numbers behind a chart as a collapsed table: the text version for screen readers and anyone who wants to copy them. */
+export function ChartTable({ head, rows, summary = "Show as a table" }: { head: string[]; rows: ReactNode[][]; summary?: string }) {
+  return (
+    <details className="group mt-1 text-[13px]">
+      <summary className="inline-flex min-h-10 cursor-pointer list-none items-center gap-1.5 font-medium text-muted hover:text-ink">
+        <Icon name="right" size={14} className="transition-transform group-open:rotate-90" />{summary}
+      </summary>
+      <div className="mb-2 overflow-x-auto rounded-xl border border-line">
+        <table className="w-full border-collapse">
+          <thead className="bg-surface2">
+            <tr>{head.map((h, i) => <th key={h} scope="col" className={`whitespace-nowrap px-3 py-2 font-semibold text-ink2 ${i ? "text-right" : "text-left"}`}>{h}</th>)}</tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i} className="border-t border-line">
+                {r.map((c, j) => <td key={j} className={`whitespace-nowrap px-3 py-1.5 ${j ? "tnum text-right text-ink" : "text-ink2"}`}>{c}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  );
+}
