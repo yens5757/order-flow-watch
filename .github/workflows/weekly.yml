@@ -14,6 +14,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  issues: write           # the hand-update reminder issue
 
 concurrency:
   group: pages
@@ -66,6 +67,23 @@ jobs:
           python pfof_vs_execution.py
           python same_stock.py
           python build_site.py
+
+      - name: Remind about updates only a human can do (one open issue, labelled hand-update)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python reminders.py > reminder.md
+          cat reminder.md
+          gh label create hand-update --color d93f0b --description "Data only a human can download" 2>/dev/null || true
+          n=$(gh issue list --label hand-update --state open --json number --jq '.[0].number // empty')
+          if grep -q "^Nothing due" reminder.md; then
+            if [ -n "$n" ]; then gh issue close "$n" --comment "Nothing left to do by hand."; fi
+          elif [ -z "$n" ]; then
+            gh issue create --title "Updates to do by hand" --label hand-update --body-file reminder.md
+          elif [ "$(gh issue view "$n" --json body --jq .body)" != "$(cat reminder.md)" ]; then
+            gh issue edit "$n" --body-file reminder.md
+            gh issue comment "$n" --body-file reminder.md   # a comment sends the e-mail; an edit does not
+          fi
 
       - uses: actions/setup-node@v4
         with:
