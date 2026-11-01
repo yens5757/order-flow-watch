@@ -88,7 +88,7 @@ export function Info({ children }: { children: ReactNode }) {
         className="-m-2.5 grid h-10 w-10 place-items-center rounded-full text-muted hover:text-ink focus:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
         <Icon name="info" size={15} />
       </button>
-      <span id={id} role="tooltip" style={phone ?? undefined} className={`pointer-events-none absolute left-0 top-6 z-30 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-line bg-surface2 p-3 text-left text-[12.5px] font-normal leading-relaxed text-ink2 opacity-0 shadow-card transition-opacity sm:left-1/2 sm:-translate-x-1/2 ${hidden ? "" : "group-focus-within:opacity-100 group-hover:opacity-100"}`}>
+      <span id={id} role="tooltip" style={phone ?? undefined} className={`pointer-events-none absolute left-0 top-6 z-30 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-line bg-surface2 p-3 whitespace-normal text-left text-[12.5px] font-normal leading-relaxed text-ink2 opacity-0 shadow-card transition-opacity sm:left-1/2 sm:-translate-x-1/2 ${hidden ? "" : "group-focus-within:opacity-100 group-hover:opacity-100"}`}>
         {children}
       </span>
     </span>
