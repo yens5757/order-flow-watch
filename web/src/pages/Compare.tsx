@@ -1,17 +1,18 @@
-// #/compare/<A>/<B>: two brokers side by side in plain words: what a $10,000 trade costs at each, what each is paid
-// for the order, its fees and its regulator records. Defaults to Robinhood vs Fidelity; unknown ids fall back to those.
-import { useMemo, useState, type ReactNode } from "react";
+// compare/<a>-vs-<b>/: two brokers side by side in plain words: what a $10,000 trade costs at each, what each is paid
+// for the order, its fees and its regulator records. The URL names the pair in one order (alphabetical by slug, see
+// comparePath); compare/ shows Robinhood vs Fidelity. Unknown ids fall back to those.
+import { Fragment, useMemo, useState, type ReactNode } from "react";
 import { EChart } from "../charts/EChart";
 import { lines } from "../charts/options";
 import { FilterBar } from "../components/Filters";
 import { Card, ChartTable, Empty, Icon, Info, PageHeader, Segmented, Select, Status } from "../components/ui";
-import { execKey, files606, metric, nameOf, OT_LABEL, SIZE_STEPS, SP_LABEL, type Data, type Fee, type Filters, type Firm, type Metric } from "../lib/data";
+import { execKey, files606, metric, nameOf, OT_LABEL, SIZE_STEPS, slugOf, SP_LABEL, type Data, type Fee, type Filters, type Firm, type Metric } from "../lib/data";
 import { dayLong, monthLong, quarterLong, signed, usd2 } from "../lib/format";
 import { go } from "../lib/hooks";
 import { METRICS, type MetricKey } from "../lib/metrics";
+import { brokerPath, comparePath, DEFAULT_PAIR, href, pagePath, pairOrder } from "../lib/routes";
 import { useTheme } from "../lib/theme";
 
-const DEFAULTS = ["HOOD", "FIBS"];
 const SIZE_SHORT: Record<number, string> = { 0: "<$250", 250: "$250", 1000: "$1k", 5000: "$5k", 10000: "$10k", 20000: "$20k", 50000: "$50k", 200000: "$200k+" };
 /** The pairs people search for most, in the order they are shown. */
 const POPULAR: [string, string][] = [
@@ -105,16 +106,21 @@ function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm
       <p className="mt-3 text-[15.5px] leading-relaxed text-ink2">{money}</p>
       <p className="mt-3 text-[13.5px] leading-relaxed text-muted">
         This isn't a verdict on which broker is better overall: that also depends on what you trade, the interest you earn on cash, the app and the support.
-        The <a href="#/calculator" className="font-semibold text-accent hover:underline">yearly cost calculator</a> puts numbers on your own trading habits.
+        The <a href={href(pagePath("calculator"))} className="font-semibold text-accent hover:underline">yearly cost calculator</a> puts numbers on your own trading habits.
       </p>
     </Card>
   );
 }
 
-export default function Compare({ d, f, set, a, b }: { d: Data; f: Filters; set: (p: Partial<Filters>) => void; a: string; b: string }) {
+/** `explicit`: the pair is in the URL (compare/<a>-vs-<b>/). On the bare compare/ page the heading names the page and the
+ *  pair is a sub-heading linking to its own page, so the two URLs are not copies of one another (one canonical each). */
+export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Filters; set: (p: Partial<Filters>) => void; a: string; b: string; explicit: boolean }) {
   const { t } = useTheme();
-  const A = d.byId[a] ?? d.byId[DEFAULTS[0]] ?? d.brokers[0];
-  const B = d.byId[b] ?? d.byId[DEFAULTS[1]] ?? d.brokers[1];
+  const first = d.byId[a] ?? d.byId[DEFAULT_PAIR[0]] ?? d.brokers[0];
+  const second = d.byId[b] ?? d.byId[DEFAULT_PAIR[1]] ?? d.brokers[1];
+  // the URL fixes the pair's order; the swap button turns the two columns round on screen
+  const [swapped, setSwapped] = useState(false);
+  const A = swapped ? second : first, B = swapped ? first : second;
   const s: Filters = { ...f, b: 199999 }; // headline numbers: all orders under $200,000, whatever size the explorer last used
   const rA = metric(d, A, s), rB = metric(d, B, s);
   const feeA: Fee | undefined = d.fees[A.id], feeB: Fee | undefined = d.fees[B.id];
@@ -197,7 +203,7 @@ export default function Compare({ d, f, set, a, b }: { d: Data; f: Filters; set:
   };
   const head = (F: Firm, i: number) => (
     <th scope="col" className={`px-2 py-2 text-right sm:w-[22%] ${i === 0 ? "max-sm:text-left" : ""}`}>
-      <a href={`#/broker/${F.id}`} className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-ink hover:text-accent">
+      <a href={href(brokerPath(F.slug))} className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-ink hover:text-accent">
         <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: t.s[i] }} aria-hidden="true" />{F.short}
       </a>
     </th>
@@ -219,18 +225,30 @@ export default function Compare({ d, f, set, a, b }: { d: Data; f: Filters; set:
   const sizeChart = useMemo(() => lines(t, SIZE_STEPS.map((bk) => SIZE_SHORT[bk]), bySize,
     { fmt: unit === "usd" ? (v) => usd2(v) : (v) => `${v.toFixed(0)}%` }), [t, A, B, f, unit]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // every pair of retail brokers, each once, in the order its page shows it: sorted by slug, so each broker pairs with the ones after it
+  const retail = [...d.brokers].sort((x, y) => (x.slug < y.slug ? -1 : x.slug > y.slug ? 1 : 0));
+  const pairCount = (retail.length * (retail.length - 1)) / 2;
+  const isCurrent = (x: Firm, y: Firm) => (x.id === A.id && y.id === B.id) || (x.id === B.id && y.id === A.id);
+
   return (
     <div className="rise">
-      <PageHeader eyebrow="Compare" title={`${A.short} vs ${B.short}`}
-        sub="Two brokers side by side: what a trade really costs, what each is paid for your order, its fees and whether it's registered. Prices and payments come from the reports brokers must publish by law; fees from each broker's own price list; registration from FINRA and SIPC."
+      <PageHeader eyebrow="Compare" title={explicit ? `${A.short} vs ${B.short}` : "Compare two brokers"}
+        sub={<>
+          {!explicit && (
+            <span className="mb-1 block font-semibold text-ink">
+              Showing <a href={href(comparePath(A.slug, B.slug))} className="text-accent hover:underline">{A.short} vs {B.short}</a> to start; pick any two brokers in the boxes.
+            </span>
+          )}
+          Two brokers side by side: what a trade really costs, what each is paid for your order, its fees and whether it's registered. Prices and payments come from the reports brokers must publish by law; fees from each broker's own price list; registration from FINRA and SIPC.
+        </>}
         right={
           <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 sm:w-auto sm:grid-cols-[190px_auto_190px]">
-            <Select label="First broker" value={A.id} onChange={(v) => go(`compare/${v}/${B.id}`)} options={opts} full />
-            <button type="button" onClick={() => go(`compare/${B.id}/${A.id}`)} aria-label="Swap the two brokers" title="Swap"
+            <Select label="First broker" value={A.id} onChange={(v) => go(comparePath(slugOf(d, v), B.slug))} options={opts} full />
+            <button type="button" onClick={() => setSwapped(!swapped)} aria-label="Swap the two brokers" title="Swap"
               className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-surface text-ink2 hover:border-accent hover:text-ink">
               <Icon name="swap" size={18} />
             </button>
-            <Select label="Second broker" value={B.id} onChange={(v) => go(`compare/${A.id}/${v}`)} options={opts} full />
+            <Select label="Second broker" value={B.id} onChange={(v) => go(comparePath(A.slug, slugOf(d, v)))} options={opts} full />
           </div>
         } />
       <FilterBar d={d} f={f} set={set} show={["sp", "ot"]} />
@@ -248,7 +266,7 @@ export default function Compare({ d, f, set, a, b }: { d: Data; f: Filters; set:
           foot={<>A tick marks the better value where there is a clear better direction; measures with no tick (speed, payment, order size, price-improved) are context, not a score.
             Registration facts are not an endorsement: a registered broker can still get you poor prices.
             Prices: each broker's {monthLong(f.month)} report (SEC Rule 605), all orders under $200,000. Payment: its {quarterLong(f.quarter)} report (SEC Rule 606).
-            {" "}<a href="#/method" className="font-semibold text-accent hover:underline">How we measure</a></>}>
+            {" "}<a href={href(pagePath("how-we-measure"))} className="font-semibold text-accent hover:underline">How we measure</a></>}>
           <table className="w-full border-collapse max-sm:block">
             <caption className="sr-only">{A.short} and {B.short} side by side</caption>
             <thead className="max-sm:block">
@@ -297,24 +315,44 @@ export default function Compare({ d, f, set, a, b }: { d: Data; f: Filters; set:
             <p className="mt-2 text-[14.5px] leading-relaxed text-white/85">
               Tell the calculator how often you trade and how much, and see the yearly cost at {A.short}, {B.short} and every other broker.
             </p>
-            <a href={`#/calculator?b=${A.id}`} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[14px] font-semibold text-[#1b2a55] hover:bg-white/90">
+            <a href={`${href(pagePath("calculator"))}?b=${A.slug}`} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[14px] font-semibold text-[#1b2a55] hover:bg-white/90">
               See your yearly cost<Icon name="arrow" size={15} />
             </a>
           </div>
 
           <Card title="Popular comparisons" sub="Tap a pair to compare it">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
-              {POPULAR.map(([x, y]) => {
-                const cur = (x === A.id && y === B.id) || (x === B.id && y === A.id);
+              {POPULAR.filter(([x, y]) => d.byId[x] && d.byId[y]).map(([x, y]) => pairOrder(d.byId[x], d.byId[y])).map(([x, y]) => {
+                const cur = isCurrent(x, y);
                 return (
-                  <a key={`${x}-${y}`} href={`#/compare/${x}/${y}`} aria-current={cur ? "page" : undefined}
+                  <a key={`${x.id}-${y.id}`} href={href(comparePath(x.slug, y.slug))} aria-current={cur ? "page" : undefined}
                     className={`rounded-xl border px-3 py-2.5 text-[13.5px] font-medium transition-colors ${cur ? "border-accent bg-[var(--accent-soft)] text-ink" : "border-line bg-surface2 text-ink2 hover:border-accent hover:text-ink"}`}>
-                    {d.byId[x]?.short ?? x} <span className="text-muted">vs</span> {d.byId[y]?.short ?? y}
+                    {x.short} <span className="text-muted">vs</span> {y.short}
                   </a>
                 );
               })}
             </div>
             <div className="mt-3 text-[12.5px] text-muted">Or pick any two brokers in the boxes at the top.</div>
+            {/* every pair has a page of its own; the list is collapsed but always on the page, so each one can be found and linked */}
+            <details className="group mt-3">
+              <summary className="inline-flex min-h-10 cursor-pointer list-none items-center gap-1.5 text-[13px] font-medium text-muted hover:text-ink">
+                <Icon name="right" size={14} className="transition-transform group-open:rotate-90" />Every comparison ({pairCount} pairs)
+              </summary>
+              <div className="mt-2 space-y-2 text-[13px] leading-relaxed">
+                {retail.slice(0, -1).map((x, i) => (
+                  <div key={x.id}>
+                    <span className="font-semibold text-ink">{x.short}</span> <span className="text-muted">vs</span>{" "}
+                    {retail.slice(i + 1).map((y, j) => (
+                      <Fragment key={y.id}>
+                        {j > 0 && <span className="text-muted"> · </span>}
+                        <a href={href(comparePath(x.slug, y.slug))} aria-current={isCurrent(x, y) ? "page" : undefined}
+                          className={isCurrent(x, y) ? "font-semibold text-ink" : "text-accent hover:underline"}>{y.short}</a>
+                      </Fragment>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </details>
           </Card>
         </div>
       </div>

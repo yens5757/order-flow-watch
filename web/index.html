@@ -3,18 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Which US brokers get you the best price on a trade, from the reports they must publish by law (SEC Rules 605 and 606). Updated weekly." />
+    <!-- scripts/prerender.mjs writes each page's title, description, canonical link and og:title/url/description
+         here and drops the generic ones below; 404.html (the shell for unknown paths) keeps the generic ones -->
+    <!--app-head-->
+    <meta name="description" content="What your broker's trades really cost: which US brokers get you the best price, from the reports they must publish by law (SEC Rules 605 and 606). Updated weekly." />
     <!-- link previews (LinkedIn, Slack, X...); og.png is 1280x640, also used as the GitHub social preview -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Order Flow Watch: is your broker getting you a good price?" />
-    <meta property="og:description" content="What brokers are paid for your orders vs the prices their customers get, from the reports US brokers must publish by law (SEC Rules 605 and 606). Updated weekly." />
+    <meta property="og:title" content="Fills and Fees: is your broker getting you a good price?" />
+    <meta property="og:description" content="What your broker's trades really cost: what brokers are paid for your orders vs the prices their customers get, from the reports US brokers must publish by law (SEC Rules 605 and 606). Updated weekly." />
     <meta property="og:url" content="https://yens5757.github.io/order-flow-watch/" />
     <meta property="og:image" content="https://yens5757.github.io/order-flow-watch/og.png" />
     <meta property="og:image:width" content="1280" />
     <meta property="og:image:height" content="640" />
-    <meta property="og:image:alt" content="Order Flow Watch: extra cost of a $10,000 trade at US brokers" />
+    <meta property="og:image:alt" content="Fills and Fees: extra cost of a $10,000 trade at US brokers" />
     <meta name="twitter:card" content="summary_large_image" />
-    <title>Order Flow Watch</title>
+    <title>Fills and Fees</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234f7cff'/%3E%3Cstop offset='1' stop-color='%239d6bff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M8 21l6-6 4 4 6-8' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
     <!-- dark by default; apply a saved choice before first paint -->
     <script>
@@ -25,7 +28,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <div id="root"></div>
+    <!-- scripts/prerender.mjs puts each page's HTML in place of the placeholder and removes the loader, so the page is
+         readable before any script runs; 404.html and the dev server keep the loader until main.tsx has the data -->
+    <div id="root"><!--app-html--><div id="app-loading" class="grid place-items-center py-40 font-sans text-muted"><span class="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-[var(--accent)]"></span><span class="mt-4 text-[13.5px]">Loading the latest reports…</span></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

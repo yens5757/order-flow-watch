@@ -8,6 +8,7 @@ import { Card, Icon, PageHeader, Segmented, Status } from "../components/ui";
 import { brokerRows, files606, type Data, type Evidence, type Metric, type Sp } from "../lib/data";
 import { dayLong, monthLong, quarterLong, signed } from "../lib/format";
 import { METRICS } from "../lib/metrics";
+import { href, pagePath } from "../lib/routes";
 import { median } from "../lib/stats";
 import { useTheme } from "../lib/theme";
 
@@ -75,15 +76,15 @@ function questions(d: Data, x: Tests): [string, ReactNode][] {
   const items: [string, ReactNode][] = [
     ["Is my broker registered?", <>
       <p>Every broker here publishes the official monthly price report (Rule 605), and {unmatched === 0 ? "every one is" : unmatched === 1 ? "all but one are" : `all but ${unmatched} are`} matched to a FINRA BrokerCheck record (registration, history, any disciplinary actions). Each broker's page links that record and says whether we found SIPC membership, which protects up to $500,000 of securities and cash per customer if the firm itself fails.</p>
-      <p>These are registration facts, not an endorsement: SIPC does not cover losses from the market or from a poor price, which is what the rest of this site is about. <a href="#/explore" className={LINK}>Pick a broker</a> to see its record.</p>
+      <p>These are registration facts, not an endorsement: SIPC does not cover losses from the market or from a poor price, which is what the rest of this site is about. <a href={href(pagePath("brokers"))} className={LINK}>Pick a broker</a> to see its record.</p>
     </>],
     ["What is payment for order flow?", <>
       <p>When you place a stock order, most brokers don't send it to an exchange. They send it to a trading firm (a market maker such as Citadel Securities or Virtu) that fills it from its own inventory and pays the broker a fraction of a cent per share for the business. Rule 606 makes those payments public every quarter.</p>
-      <p>The trading firm earns the gap between the buy and sell quotes (the spread), so the worry is that a broker paid more lets its customers keep less of that gap. Across the brokers here that link {x.confirmed ? "does show up" : "does not hold up"}: see “Does getting paid make fills worse?” below. The closest published study reached {x.confirmed ? "a different" : "the same"} answer: Schwarz, Barber, Huang, Jorion and Odean (<i>Journal of Finance</i>, 2025) placed 85,000 real trades and found payment for order flow did not explain the price differences. <a href="#/explore?m=cost10k&vs=pay10k" className={LINK}>The explorer</a> shows both sides per broker.</p>
+      <p>The trading firm earns the gap between the buy and sell quotes (the spread), so the worry is that a broker paid more lets its customers keep less of that gap. Across the brokers here that link {x.confirmed ? "does show up" : "does not hold up"}: see “Does getting paid make fills worse?” below. The closest published study reached {x.confirmed ? "a different" : "the same"} answer: Schwarz, Barber, Huang, Jorion and Odean (<i>Journal of Finance</i>, 2025) placed 85,000 real trades and found payment for order flow did not explain the price differences. <a href={`${href(pagePath("brokers"))}?m=cost10k&vs=pay10k`} className={LINK}>The explorer</a> shows both sides per broker.</p>
     </>],
     ["Does $0 commission mean free?", <>
       <p>No. Almost every broker charges $0 to trade a stock, but your order is filled at a price somewhere between the best buy and the best sell quote, and that gap is a real cost that never appears on a statement. Brokers differ by more on it than on any fee: on the same stocks and order sizes, the best and worst brokers here are tens of points of the spread apart.</p>
-      <p><a href="#/" className={LINK}>The home page</a> shows that gap in dollars on a $10,000 trade; <a href="#/calculator" className={LINK}>the calculator</a> adds the fees you do see: options per contract, margin interest and the interest you don't earn on idle cash.</p>
+      <p><a href={href(pagePath("home"))} className={LINK}>The home page</a> shows that gap in dollars on a $10,000 trade; <a href={href(pagePath("calculator"))} className={LINK}>the calculator</a> adds the fees you do see: options per contract, margin interest and the interest you don't earn on idle cash.</p>
     </>],
   ];
 
@@ -106,7 +107,7 @@ function questions(d: Data, x: Tests): [string, ReactNode][] {
 
   items.push(["Which broker is best?", <>
     <p>It depends on what and how much you trade. The price ranking covers market orders in stocks. If you trade a few times a year, a dollar or two per trade matters less than the interest on your idle cash or a transfer-out fee; if you mostly trade options, the reports don't cover your trades at all.</p>
-    <p>Put your own habits into <a href="#/calculator" className={LINK}>the yearly cost calculator</a>, which adds up spread cost, commissions, options fees, idle-cash interest and margin interest per broker, then <a href="#/compare" className={LINK}>compare your two finalists</a> side by side. The calculator is an estimate built from averages, not a bill.</p>
+    <p>Put your own habits into <a href={href(pagePath("calculator"))} className={LINK}>the yearly cost calculator</a>, which adds up spread cost, commissions, options fees, idle-cash interest and margin interest per broker, then <a href={href(pagePath("compare"))} className={LINK}>compare your two finalists</a> side by side. The calculator is an estimate built from averages, not a bill.</p>
   </>]);
   return items;
 }

@@ -5,10 +5,11 @@ import { EChart } from "../charts/EChart";
 import { labeledScatter, ranked } from "../charts/options";
 import { DataTable, type Col } from "../components/DataTable";
 import { Card, Empty, Icon, Info, PageHeader, Segmented, Select, Switch } from "../components/ui";
-import { brokerRows, BUCKET_LABEL, BUCKETS, type Data, type Metric, type Ot, type Sp } from "../lib/data";
+import { brokerRows, BUCKET_LABEL, BUCKETS, idFromUrl, slugOf, type Data, type Metric, type Ot, type Sp } from "../lib/data";
 import { dayLong, quarterLong, strength } from "../lib/format";
-import { go, readQuery, writeQuery } from "../lib/hooks";
+import { go, onNavigate, readLocation, readQuery, writeQuery } from "../lib/hooks";
 import { METRIC_KEYS, METRICS, type MetricKey } from "../lib/metrics";
+import { brokerPath, href, pagePath, parseRoute } from "../lib/routes";
 import { median, spearman } from "../lib/stats";
 import { useTheme } from "../lib/theme";
 
@@ -26,8 +27,9 @@ const MEASURE_GROUPS: [string, MetricKey[]][] = [
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const defaults = (d: Data): S => ({ m: "cost10k", vs: "", sp: "Y", ot: "M", b: 199999, q: d.meta.quarter, sort: "best", ex: [], paid: false, clr: false });
 
-function fromUrl(d: Data): S {
-  const p = readQuery(), s = defaults(d);
+/** The view a query string describes (brokers/?m=cost10k&vs=pay10k&ex=webull,moomoo); anything missing or odd is the default. */
+function fromUrl(d: Data, search: string): S {
+  const p = readQuery(search), s = defaults(d);
   return {
     m: isKey(p.get("m")) ? (p.get("m") as MetricKey) : s.m,
     vs: isKey(p.get("vs")) && p.get("vs") !== p.get("m") ? (p.get("vs") as MetricKey) : "",
@@ -36,7 +38,8 @@ function fromUrl(d: Data): S {
     b: p.has("b") && BUCKETS.some(([b]) => b === Number(p.get("b"))) ? Number(p.get("b")) : s.b,
     q: d.meta.quarters.includes(p.get("q") ?? "") ? p.get("q")! : s.q,
     sort: (["best", "worst", "az"] as const).find((x) => x === p.get("sort")) ?? "best",
-    ex: (p.get("ex") ?? "").split(",").filter(Boolean),
+    // slugs (or reporter ids from older links) of the brokers hidden; unknown names are dropped
+    ex: (p.get("ex") ?? "").split(",").map((x) => idFromUrl(d, x)).filter((x): x is string => x != null),
     paid: p.get("paid") === "1",
     clr: p.get("clr") === "1",
   };
@@ -51,9 +54,10 @@ function Group({ title, children, info }: { title: string; children: ReactNode; 
   );
 }
 
-export default function Explore({ d }: { d: Data }) {
+/** `search`: the query string the page was opened with; later same-page changes arrive through onNavigate. */
+export default function Explore({ d, search }: { d: Data; search: string }) {
   const { t } = useTheme();
-  const [s, setS] = useState<S>(() => fromUrl(d));
+  const [s, setS] = useState<S>(() => fromUrl(d, search));
   const [open, setOpen] = useState(false); // filters panel on phones
   const set = (p: Partial<S>) => setS((x) => ({ ...x, ...p, ...(p.m && p.m === x.vs ? { vs: "" as const } : {}) }));
   const def = defaults(d);
@@ -61,19 +65,16 @@ export default function Explore({ d }: { d: Data }) {
   const toQuery = (s: S) => ({
     m: s.m !== def.m ? s.m : null, vs: s.vs || null, sp: s.sp !== "Y" ? s.sp : null, ot: s.ot !== "M" ? s.ot : null,
     b: s.b !== def.b ? s.b : null, q: s.q !== def.q ? s.q : null, sort: s.sort !== "best" ? s.sort : null,
-    ex: s.ex.length ? s.ex.join(",") : null, paid: s.paid ? 1 : null, clr: s.clr ? 1 : null,
+    ex: s.ex.length ? s.ex.map((id) => slugOf(d, id)).join(",") : null, paid: s.paid ? 1 : null, clr: s.clr ? 1 : null,
   });
   useEffect(() => { writeQuery(toQuery(s)); }, [s]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // a same-route hash change (a shared link, the back button) loads its view; the bare nav link gets the current view written back
-  useEffect(() => {
-    const on = () => {
-      if (!/^#\/(explore|brokers)(\?|$)/.test(location.hash)) return;
-      if (readQuery().toString()) setS(fromUrl(d)); else writeQuery(toQuery(s));
-    };
-    addEventListener("hashchange", on);
-    return () => removeEventListener("hashchange", on);
-  }, [d, s]); // eslint-disable-line react-hooks/exhaustive-deps
+  // a same-page navigation (a shared link, the back button) loads its view; the bare nav link gets the current view written back
+  useEffect(() => onNavigate(() => {
+    const loc = readLocation();
+    if (parseRoute(d, loc.path).page !== "brokers") return;
+    if (readQuery(loc.search).toString()) setS(fromUrl(d, loc.search)); else writeQuery(toQuery(s));
+  }), [d, s]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const M = METRICS[s.m], V = s.vs ? METRICS[s.vs] : null;
   const all = useMemo(() => brokerRows(d, { sp: s.sp, ot: s.ot, b: s.b, month: d.meta.month, quarter: s.q, clearing: s.clr }), [d, s.sp, s.ot, s.b, s.q, s.clr]);
@@ -263,16 +264,16 @@ export default function Explore({ d }: { d: Data }) {
             foot={foot || undefined}>
             {withV.length ? (
               <EChart option={chart} height={V ? 460 : Math.max(240, sorted.length * 28 + 50)} label={`${M.label} by broker`}
-                onClick={(p) => p.data?.id && go(`broker/${p.data.id}`)} />
+                onClick={(p) => p.data?.id && go(brokerPath(slugOf(d, p.data.id)))} />
             ) : feeMissing ? <p className="text-[13.5px] text-muted">We haven't confirmed {feeSide!.label.toLowerCase()} for any broker yet, so there is nothing to chart. Pick another measure on the left.</p>
               : <Empty>No broker has data for this combination. Try another order size or stock type.</Empty>}
           </Card>
 
           <Card title="Every number in one table" sub="Same filters as the chart · click a column to sort · click a row for the broker's report"
-            right={<a href="#/firms" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent">Every firm that reports ({Object.keys(d.reporters).length})<Icon name="arrow" size={14} /></a>}>
+            right={<a href={href(pagePath("firms"))} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent">Every firm that reports ({Object.keys(d.reporters).length})<Icon name="arrow" size={14} /></a>}>
             <DataTable key={`${s.m}-${s.sort}`} rows={shown} cols={cols} highlight={[s.m, s.vs]}
               initial={s.sort === "az" ? { key: "name", dir: 1 } : { key: s.m, dir: ((M.better ? dir : -1) * (s.sort === "worst" ? -1 : 1)) as 1 | -1 }}
-              onRow={(r) => go(`broker/${r.id}`)} search={(r) => `${r.f.short} ${r.f.name}`}
+              onRow={(r) => go(brokerPath(r.f.slug))} search={(r) => `${r.f.short} ${r.f.name}`}
               file={`brokers-${s.sp === "Y" ? "sp500" : "other-stocks"}-${s.ot === "M" ? "market" : "marketable-limit"}-orders.csv`} />
           </Card>
         </div>

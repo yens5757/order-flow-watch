@@ -1,29 +1,56 @@
-import { useEffect, useState } from "react";
+// Browser-side navigation: history, the current location and the query string. Everything here touches window,
+// so it is only ever called from effects and event handlers (never while rendering: the pages also render on the
+// server, see entry-server.tsx). The pure path logic lives in routes.ts.
+import { useEffect, useLayoutEffect } from "react";
+import type { Data } from "./data";
+import { BASE, href, normalizeLocation } from "./routes";
 
-const parts = () => (location.hash.replace(/^#\/?/, "").split("?")[0] || "").split("/");
+export interface Loc { path: string; search: string }
 
-/** Hash routes (#/explore, #/broker/HOOD): no server config needed on GitHub Pages. */
-export function useRoute() {
-  const [route, setRoute] = useState(parts);
-  useEffect(() => {
-    const on = () => {
-      setRoute(parts());
-      window.scrollTo({ top: 0 });
-      // a new page for a screen reader too: focus lands on <main>, not wherever it was on the old page
-      (document.querySelector("main") as HTMLElement | null)?.focus({ preventScroll: true });
-    };
-    addEventListener("hashchange", on);
-    return () => removeEventListener("hashchange", on);
-  }, []);
-  return route;
+/** The current page path (relative to the base, e.g. "brokers/robinhood/") and query string ("?m=gap" or ""). */
+export function readLocation(): Loc {
+  const p = location.pathname;
+  return { path: p.startsWith(BASE) ? p.slice(BASE.length) : p.replace(/^\/+/, ""), search: location.search };
 }
-export const go = (path: string) => { location.hash = `/${path}`; };
 
-/** Settings carried in the hash after "?", e.g. #/explore?m=cost10k&vs=pay10k, so views can be linked and shared. */
-export const readQuery = () => new URLSearchParams(location.hash.split("?")[1] ?? "");
+type Listener = () => void;
+const listeners = new Set<Listener>();
+/** Called after every navigation, once history holds the new URL: the app's own (`go`, an internal link) and the
+ *  browser's (back and forward). Pages whose state lives in the query string listen for same-page changes.
+ *  Returns the unsubscribe function, so it can be the body of a useEffect. */
+export function onNavigate(l: Listener): () => void {
+  listeners.add(l);
+  return () => { listeners.delete(l); };
+}
+/** Tells every listener the URL changed (App calls it on popstate). */
+export const navigated = () => { for (const l of [...listeners]) l(); };
+
+/** Opens a page path (with any query), e.g. go("brokers/robinhood/") or go("calculator/?b=fidelity"). */
+export function go(path: string) {
+  const url = href(path);
+  if (url === location.pathname + location.search) return; // the hash router ignored a change to the same route too
+  history.pushState(null, "", url);
+  navigated();
+}
+
+/** Settings carried in the query string, e.g. brokers/?m=cost10k&vs=pay10k, so views can be linked and shared. */
+export const readQuery = (search: string) => new URLSearchParams(search);
 export function writeQuery(q: Record<string, string | number | boolean | null | undefined>) {
   const p = new URLSearchParams();
   for (const [k, v] of Object.entries(q)) if (v != null && v !== "" && v !== false) p.set(k, String(v));
   const s = p.toString();
-  history.replaceState(null, "", `#/${parts().join("/")}${s ? `?${s}` : ""}`); // no hashchange: keeps scroll position
+  history.replaceState(null, "", `${location.pathname}${s ? `?${s}` : ""}`); // no navigation event: keeps scroll position
 }
+
+/** Rewrites an old-style URL in place (a #/ hash route, an old path name, a comparison in the other order): see
+ *  normalizeLocation. Returns true when the URL changed. Run before the first render and on popstate. */
+export function fixLocation(d: Data): boolean {
+  const { path, search } = readLocation();
+  const fixed = normalizeLocation(d, path, search, location.hash);
+  if (!fixed) return false;
+  history.replaceState(null, "", href(fixed.path) + fixed.search);
+  return true;
+}
+
+/** useLayoutEffect in the browser (state read from localStorage lands before the first paint), a plain effect on the server. */
+export const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;

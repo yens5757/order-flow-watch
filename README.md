@@ -1,40 +1,44 @@
 # Payment for Order Flow vs Retail Execution Quality
 
-[![Order Flow Watch: is your broker getting you a good price?](docs/social-preview.png)](https://yens5757.github.io/order-flow-watch/)
+[![Fills and Fees: is your broker getting you a good price?](docs/social-preview.png)](https://yens5757.github.io/order-flow-watch/)
 
 **Do retail brokers that are paid more for routing customer orders give their customers worse fills?**
 
-An automated pipeline that joins two SEC disclosures, refreshed weekly and published as a website:
+An automated pipeline that joins two SEC disclosures, refreshed weekly and published as a website, **Fills and Fees**
+(what your broker's trades really cost; the repository keeps its original name, `order-flow-watch`, for now):
 
 - **Rule 606**: which market makers each broker sends orders to, and how much it is paid.
 - **Rule 605**: how good the resulting fills were. Since August 2026 the amended rule requires
   large brokers to publish these reports too, which makes a broker-by-broker comparison possible.
 
-**Website:** [yens5757.github.io/order-flow-watch](https://yens5757.github.io/order-flow-watch/). Two layers:
+**Website:** [Fills and Fees](https://yens5757.github.io/order-flow-watch/) at yens5757.github.io/order-flow-watch. Two layers:
 a plain-language home page (what a $10,000 trade costs at each broker, pick-your-broker report card) for
 non-experts, and an explorer where you choose the measure, compare two, filter, sort and share the view.
-The menu is Home, Compare, Calculator, Brokers, Trading firms; a "How we measure" page (`#/method`) is linked from the
-footer and from the calculator and compare pages:
+The menu is Home, Compare (`compare/`), Calculator (`calculator/`), Brokers (`brokers/`, the explorer) and
+Trading firms (`trading-firms/`, the market makers); a "How we measure" page (`how-we-measure/`) is linked from the
+footer and from the calculator and compare pages, and `firms/` lists every Rule 605 reporter. Every page has its
+own URL (paths relative to the site root; old `#/...` links redirect to them):
 
-- **Compare** (`#/compare/<A>/<B>`, opens as Robinhood vs Fidelity): two brokers side by side on fills, fees and
-  what they are paid for the order flow.
-- **Calculator** (`#/calculator`): the annual-cost estimator. Enter how you trade (trades per year, typical order
+- **Compare** (`compare/`, opens as Robinhood vs Fidelity; any pair at `compare/<a>-vs-<b>/` with the two broker
+  slugs in alphabetical order, e.g. `compare/fidelity-vs-robinhood/`, the other order redirects): two brokers side
+  by side on fills, fees and what they are paid for the order flow.
+- **Calculator** (`calculator/`): the annual-cost estimator. Enter how you trade (trades per year, typical order
   size, share in S&P 500 stocks, options contracts, idle cash, margin borrowed) and it ranks every broker by what
   that would cost you per year, split into spread paid on fills, commissions, options fees, interest lost on idle
   cash and margin interest, and says which parts a broker has no published figure for. A compact version sits
   on the home page.
-- **Broker pages** (`#/broker/<ID>`): the report card plus a fees card (stock commission, options fee per contract,
-  margin rate, interest on idle cash, transfer-out fee) and a trust card (FINRA BrokerCheck link by CRD, SIPC
-  membership).
+- **Broker pages** (`brokers/<slug>/`, e.g. `brokers/robinhood/`): the report card plus a fees card (stock
+  commission, options fee per contract, margin rate, interest on idle cash, transfer-out fee) and a trust card
+  (FINRA BrokerCheck link by CRD, SIPC membership).
 - **Execution speed**: average execution time from Rule 605, in milliseconds, as a measure in the explorer
-  (`#/explore?m=speed`) next to the fee measures.
+  (`brokers/?m=speed`) next to the fee measures.
 
 Plus market-maker comparisons, every Rule 605 reporter, and the statistics behind each claim. Options trading is
 outside Rule 605, so the site compares options fees but not options fills.
 
 | Home: the easy layer | Explore: the interactive layer |
 |---|---|
-| [![Home page](docs/screenshot-home.png)](https://yens5757.github.io/order-flow-watch/) | [![Explorer](docs/screenshot-explore.png)](https://yens5757.github.io/order-flow-watch/#/explore?m=cost10k&vs=pay10k) |
+| [![Home page](docs/screenshot-home.png)](https://yens5757.github.io/order-flow-watch/) | [![Explorer](docs/screenshot-explore.png)](https://yens5757.github.io/order-flow-watch/brokers/?m=cost10k&vs=pay10k) |
 
 ## Findings so far
 
@@ -83,7 +87,7 @@ fetch_context.py ────┘                           └─> build_site.py
 |---|---|
 | Collect | Python, requests, BeautifulSoup |
 | Store + analyse | DuckDB (SQL), permutation tests and bootstrap intervals in plain Python (`stats.py`) |
-| Present | React + TypeScript + Tailwind (Vite), interactive Apache ECharts (dark by default); matplotlib for the README chart |
+| Present | React + TypeScript + Tailwind (Vite), interactive Apache ECharts (dark by default), every page pre-rendered to static HTML at build time; matplotlib for the README chart |
 | Schedule + host | GitHub Actions (weekly) + GitHub Pages |
 
 ## Run it locally
@@ -105,9 +109,12 @@ python build_site.py                                # -> web/public/data/site.js
 cd web
 npm install
 npm run dev                                         # http://localhost:5173
+npm run build                                       # dist/: one pre-rendered index.html per page + sitemap.xml
 ```
 
-Raw reports are downloaded into `data/` and are never committed.
+Raw reports are downloaded into `data/` and are never committed. The link-preview image (`web/public/og.png`, also
+`docs/social-preview.png`) is rendered by `node scripts/og.mjs` in `web/` with `PLAYWRIGHT_CORE` pointing at any
+installed `playwright-core` package (it is not a dependency of the site).
 
 ## Fees
 
@@ -131,6 +138,38 @@ for each cell of that broker's row and stamps `checked_on`; then run `python bui
 GitHub Pages on a free account needs a public repository. The code, firm list and derived results are public;
 raw reports are not (they stay in the Actions cache).
 
+## Site structure and SEO
+
+Every page has a real URL under the site root: `compare/`, `compare/fidelity-vs-robinhood/`, `calculator/`,
+`brokers/`, `brokers/robinhood/`, `trading-firms/`, `firms/`, `how-we-measure/`. `npm run build` pre-renders each
+of them to a static `index.html` with its own title, description, canonical link and Open Graph tags, and writes
+`sitemap.xml` and `robots.txt`, so search engines and link previews see the full content without running the app;
+in a browser the React app then takes over on top of the pre-rendered page. Old `#/...` links and the previous
+page names (`explore/`, `market-makers/`, `method/`, `broker/<ID>/`) redirect to the new paths.
+
+The site's public address is set in one place, `.github/workflows/weekly.yml`: `SITE_BASE` (the path the site is
+served under, `/order-flow-watch/` on GitHub Pages) and `VITE_SITE_URL` (the full URL used for canonical links,
+the sitemap and link previews). To move to a custom domain, change them to `SITE_BASE=/` and
+`VITE_SITE_URL=https://<your domain>/`, add a `web/public/CNAME` file containing the domain, point the domain's DNS at
+GitHub Pages and enter it under **Settings → Pages → Custom domain**. The repository and its github.io address keep
+their names.
+
+## Private data
+
+Two firms block automated downloads of their Rule 605 reports: Citadel (CDRG) and Interactive Brokers (IBBD). They
+are downloaded by hand and can still reach the weekly build through a private repository
+(`yens5757/order-flow-watch-private`) laid out as the raw folder is:
+
+```
+605/cdrg/CDRG<YYYYMM>.csv   605/cdrg/CDRG<YYYYMM>.zip     # summary CSV + detailed report (a zipped .txt is fine)
+605/ibbd/IBBD<YYYYMM>.csv   605/ibbd/IBBD<YYYYMM>.zip
+```
+
+Add a repository secret `PRIVATE_DATA_TOKEN` (a token that can read that private repository). When it is set, the
+workflow checks the private repository out and copies its `605/` folder into `data/raw/605/` before parsing; when
+it is not set, the step is skipped and the job runs without those two firms. The files never enter this repository
+or the published site.
+
 ## Limitations
 
 - **Sample:** 19 brokers report both payments and fills. Correlations, not causes.
@@ -140,7 +179,8 @@ raw reports are not (they stay in the Actions cache).
   shows no payment; its routing affiliate Futu Clearing's is used instead.
 - **Share-weighting:** Rule 605 averages weight by shares; the same-stock comparison avoids this.
 - **Citadel and Interactive Brokers** block automated downloads, so their reports are added by hand into
-  `data/raw/605/cdrg/` and `data/raw/605/ibbd/`; the weekly job runs without them.
+  `data/raw/605/cdrg/` and `data/raw/605/ibbd/`; the weekly job runs without them unless the private
+  repository is set up (see "Private data").
 - **Fees** are hand-collected from published schedules (last checked 2026-11-01), not from a regulatory filing,
   and blank where a broker's own pages could not be read.
 

@@ -3,17 +3,18 @@
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { EChart } from "../charts/EChart";
 import { ranked } from "../charts/options";
-import Estimator from "../components/Estimator";
+import Estimator, { loadBroker, saveBroker } from "../components/Estimator";
 import { Card, ChartTable, Icon, Segmented, Select } from "../components/ui";
-import { brokerRows, nameOf, type Data, type Fee, type Metric, type Sp } from "../lib/data";
+import { brokerRows, nameOf, slugOf, type Data, type Fee, type Metric, type Sp } from "../lib/data";
 import { dayLong, dollars, pct, quarterLong, usd2, usdTick } from "../lib/format";
-import { go } from "../lib/hooks";
+import { go, useBrowserLayoutEffect } from "../lib/hooks";
 import { median } from "../lib/stats";
 import { METRICS } from "../lib/metrics";
+import { brokerPath, comparePath, href, pagePath, pairOrder } from "../lib/routes";
 import { useTheme } from "../lib/theme";
 
 const STOCKS: [Sp, string][] = [["Y", "Big companies (S&P 500)"], ["N", "Other stocks"]];
-/** the pairs people search for most; each links to #/compare/<A>/<B> */
+/** the pairs people search for most; each links to its comparison page */
 const PAIRS: [string, string][] = [["HOOD", "FIBS"], ["HOOD", "CHAS"], ["HOOD", "WBUS"], ["WBUS", "FUTM"], ["CHAS", "FIBS"], ["FIBS", "VGRD"]];
 /** the broker a pick is compared with by default (Fidelity, or Robinhood when Fidelity is the pick) */
 const compareWith = (id: string) => (id === "FIBS" ? "HOOD" : "FIBS");
@@ -59,13 +60,19 @@ function Heading({ title, sub, right }: { title: string; sub: ReactNode; right?:
 export default function Home({ d }: { d: Data }) {
   const { t } = useTheme();
   const [sp, setSp] = useState<Sp>("Y");
-  const [pick, setPick] = useState(() => { try { return localStorage.getItem("broker") ?? "HOOD"; } catch { return "HOOD"; } });
+  // the visitor's broker is remembered in the browser; read in an effect, never while rendering (this page also renders on the server)
+  const [pick, setPick] = useState("HOOD");
+  useBrowserLayoutEffect(() => { setPick(loadBroker()); }, []);
   const card = useRef<HTMLDivElement>(null);
-  const choose = (id: string) => { setPick(id); try { localStorage.setItem("broker", id); } catch { /* fine */ } };
+  const choose = (id: string) => { setPick(id); saveBroker(id); };
   // scrolls to the picker and moves focus there too, so the next Tab lands in the section and a screen reader follows
   const toPicker = () => { card.current?.scrollIntoView({ behavior: "smooth", block: "start" }); card.current?.focus({ preventScroll: true }); };
   const base = { ot: "M" as const, b: 199999, month: d.meta.month, quarter: d.meta.quarter, clearing: false };
-  const short = (id: string) => d.byId[id]?.short ?? id;
+  /** a popular pair in the order its page shows it, with its link */
+  const pairs = PAIRS.filter(([a, b]) => d.byId[a] && d.byId[b]).map(([a, b]) => pairOrder(d.byId[a], d.byId[b]));
+  const pairHref = ([x, y]: [{ slug: string }, { slug: string }]) => href(comparePath(x.slug, y.slug));
+  const firstPair = pairs[0] ?? pairOrder(d.brokers[0], d.brokers[1] ?? d.brokers[0]);
+  const calculatorHref = (id: string) => `${href(pagePath("calculator"))}?b=${slugOf(d, id)}`;
 
   // headline numbers always use big-company stocks, the most common trade
   const hero = useMemo(() => brokerRows(d, { ...base, sp: "Y" }).filter((r) => r.cost10k != null).sort((a, b) => a.cost10k! - b.cost10k!), [d]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -140,10 +147,10 @@ export default function Home({ d }: { d: Data }) {
             <button type="button" onClick={toPicker} className={`${BTN} text-white shadow-card hover:-translate-y-0.5`} style={{ background: "var(--grad)" }}>
               Check your broker<Icon name="arrow" size={16} className="rotate-90" />
             </button>
-            <a href={`#/compare/${PAIRS[0][0]}/${PAIRS[0][1]}`} className={`${BTN} border border-line bg-surface text-ink hover:border-accent`}>
+            <a href={pairHref(firstPair)} className={`${BTN} border border-line bg-surface text-ink hover:border-accent`}>
               Compare two brokers<Icon name="arrow" size={16} />
             </a>
-            <a href="#/calculator" className={`${BTN} border border-line bg-surface text-ink hover:border-accent`}>
+            <a href={href(pagePath("calculator"))} className={`${BTN} border border-line bg-surface text-ink hover:border-accent`}>
               What does it cost you a year?<Icon name="arrow" size={16} />
             </a>
           </div>
@@ -171,7 +178,7 @@ export default function Home({ d }: { d: Data }) {
       {/* ---------- your broker ---------- */}
       <section ref={card} tabIndex={-1} className="scroll-mt-24 pt-14 outline-none">
         <Heading title="How does your broker do?"
-          sub={<>Pick a broker. Everything is per $10,000 of market orders, averaged over all order sizes under $200,000. The average is weighted by shares, so a broker's largest orders count most; for your own trade size, use <a href={`#/calculator?b=${pick}`} className="font-semibold text-accent">the calculator</a>.</>}
+          sub={<>Pick a broker. Everything is per $10,000 of market orders, averaged over all order sizes under $200,000. The average is weighted by shares, so a broker's largest orders count most; for your own trade size, use <a href={calculatorHref(pick)} className="font-semibold text-accent">the calculator</a>.</>}
           right={
             <div className="flex flex-wrap items-center gap-3">
               <Segmented size="sm" label="Stocks" value={sp} onChange={setSp} options={STOCKS} />
@@ -198,8 +205,8 @@ export default function Home({ d }: { d: Data }) {
                 <li className="flex gap-3"><Icon name="info" size={19} className="mt-0.5 text-muted" />"Fair price" = halfway between the best price you could buy at and the best you could sell at when you traded (the midpoint).</li>
               </ul>
               <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
-                <a href={`#/broker/${me.id}`} className={LINK}>Full report for {me.f.short}<Icon name="arrow" size={15} /></a>
-                <a href={`#/compare/${me.id}/${compareWith(me.id)}`} className={LINK}>Compare {me.f.short} with…<Icon name="arrow" size={15} /></a>
+                <a href={href(brokerPath(me.f.slug))} className={LINK}>Full report for {me.f.short}<Icon name="arrow" size={15} /></a>
+                <a href={href(comparePath(me.f.slug, slugOf(d, compareWith(me.id))))} className={LINK}>Compare {me.f.short} with…<Icon name="arrow" size={15} /></a>
               </div>
             </Card>
 
@@ -233,26 +240,26 @@ export default function Home({ d }: { d: Data }) {
             onClick={(p) => { if (p.data?.id) { choose(p.data.id); toPicker(); } }} />
           <ChartTable head={["Broker", METRICS.cost10k.short, METRICS.pay10k.short]}
             rows={rows.map((r) => [r.f.short, usd2(r.cost10k), r.pay10k == null ? "no report of its own" : usd2(r.pay10k)])} />
-          <a href={`#/explore?m=cost10k&vs=pay10k${sp === "N" ? "&sp=N" : ""}`} className={`mt-2 ${LINK}`}>Explore these numbers with filters<Icon name="arrow" size={15} /></a>
+          <a href={`${href(pagePath("brokers"))}?m=cost10k&vs=pay10k${sp === "N" ? "&sp=N" : ""}`} className={`mt-2 ${LINK}`}>Explore these numbers with filters<Icon name="arrow" size={15} /></a>
         </Card>
       </section>
 
       {/* ---------- a year of trading ---------- */}
       <section className="pt-14">
         <Heading title="What your broker costs you in a year" sub="A few cents a trade adds up. Type in how often and how much you trade to see the yearly total at each broker."
-          right={<a href={`#/calculator?b=${pick}`} className={LINK}>Open the full calculator<Icon name="arrow" size={15} /></a>} />
+          right={<a href={calculatorHref(pick)} className={LINK}>Open the full calculator<Icon name="arrow" size={15} /></a>} />
         <Estimator d={d} compact broker={pick} onBroker={choose} />
       </section>
 
       {/* ---------- popular comparisons ---------- */}
       <section className="pt-14">
         <Card title="Popular comparisons" sub="Two brokers side by side: prices, fees and what you'd pay"
-          right={<a href="#/compare" className={LINK}>Pick any two<Icon name="arrow" size={15} /></a>}>
+          right={<a href={href(pagePath("compare"))} className={LINK}>Pick any two<Icon name="arrow" size={15} /></a>}>
           <div className="flex flex-wrap gap-2.5">
-            {PAIRS.map(([a, b]) => (
-              <a key={`${a}${b}`} href={`#/compare/${a}/${b}`}
+            {pairs.map((p) => (
+              <a key={`${p[0].id}${p[1].id}`} href={pairHref(p)}
                 className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface2 px-3.5 py-2.5 text-[13.5px] font-medium text-ink transition-colors hover:border-accent hover:bg-[var(--accent-soft)]">
-                {short(a)} <span className="text-muted">vs</span> {short(b)}
+                {p[0].short} <span className="text-muted">vs</span> {p[1].short}
               </a>
             ))}
           </div>
@@ -268,19 +275,19 @@ export default function Home({ d }: { d: Data }) {
               unpaidPricey.length
                 ? <>{topPaid.map((r) => r.f.short).join(" and ")} are paid the most for orders, yet {unpaidPricey.map((r) => r.f.short).join(" and ")}, which {unpaidPricey.length > 1 ? "aren't" : "isn't"} paid at all, {unpaidPricey.length > 1 ? "cost" : "costs"} customers more.</>
                 : <>{topPaid.map((r) => r.f.short).join(" and ")} are paid the most for orders, but how much a broker is paid only weakly predicts what its customers pay.</>,
-              "explore?m=cost10k&vs=pay10k", "See payment vs price"],
+              `${pagePath("brokers")}?m=cost10k&vs=pay10k`, "See payment vs price"],
             ["scale", "Same stock, very different price",
               <>Comparing the exact same trades, {gaps[0]?.f.short} customers get the best prices and {gaps[gaps.length - 1]?.f.short} customers the worst, even when the same trading firms fill them.</>,
-              "explore?m=gap", "See every broker"],
+              `${pagePath("brokers")}?m=gap`, "See every broker"],
             ["layers", "Most of the money is in options",
               <>{optPct}% of the {dollars(paid)} paid to brokers in {quarterLong(lastQ)} was for options trades, which these price reports don't cover at all.</>,
-              "method", "See how we measure"],
-          ].map(([icon, title, text, href, cta]) => (
+              pagePath("how-we-measure"), "See how we measure"],
+          ].map(([icon, title, text, path, cta]) => (
             <Card key={title as string} className="flex flex-col">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--accent-soft)] text-accent"><Icon name={icon as string} size={20} /></span>
               <h3 className="mt-4 text-[17px] font-semibold text-ink">{title}</h3>
               <p className="mt-2 flex-1 text-[14.5px] leading-relaxed text-ink2">{text}</p>
-              <a href={`#/${href}`} className={`mt-1.5 ${LINK}`}>{cta}<Icon name="arrow" size={15} /></a>
+              <a href={href(path as string)} className={`mt-1.5 ${LINK}`}>{cta}<Icon name="arrow" size={15} /></a>
             </Card>
           ))}
         </div>
@@ -315,16 +322,16 @@ export default function Home({ d }: { d: Data }) {
               pick what to measure, filter by stock type, order size and quarter, and sort every broker. The charts update as you go.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#/explore" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-[15px] font-semibold text-[#1b2a55] hover:bg-white/90">
+              <a href={href(pagePath("brokers"))} className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-[15px] font-semibold text-[#1b2a55] hover:bg-white/90">
                 Open the explorer<Icon name="arrow" size={16} />
               </a>
-              <a href={`#/compare/${PAIRS[0][0]}/${PAIRS[0][1]}`} className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-[15px] font-semibold text-white hover:bg-white/20">
+              <a href={pairHref(firstPair)} className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-[15px] font-semibold text-white hover:bg-white/20">
                 Compare two brokers
               </a>
-              <a href="#/calculator" className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-[15px] font-semibold text-white hover:bg-white/20">
+              <a href={href(pagePath("calculator"))} className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-[15px] font-semibold text-white hover:bg-white/20">
                 Yearly cost calculator
               </a>
-              <button type="button" onClick={() => go("market-makers")} className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-[15px] font-semibold text-white hover:bg-white/20">
+              <button type="button" onClick={() => go(pagePath("trading-firms"))} className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-[15px] font-semibold text-white hover:bg-white/20">
                 Meet the trading firms
               </button>
             </div>

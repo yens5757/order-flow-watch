@@ -24,6 +24,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 150
+    env:
+      # Where the site lives. This is the ONE place to change when a custom domain is set up:
+      # SITE_BASE becomes "/" and VITE_SITE_URL the new origin (with a trailing slash), and a file
+      # web/public/CNAME holding the bare domain must be added so GitHub Pages serves it there.
+      # Vite reads SITE_BASE for its base path; the app, the pre-rendered pages, the canonical links
+      # and sitemap.xml read VITE_SITE_URL.
+      SITE_BASE: /order-flow-watch/
+      VITE_SITE_URL: https://yens5757.github.io/order-flow-watch/
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +48,39 @@ jobs:
           path: data/raw
           key: raw-${{ github.run_id }}
           restore-keys: raw-
+
+      # Reports no script can fetch (Citadel's and Interactive Brokers' sites block scripts) come from the
+      # PRIVATE repo yens5757/order-flow-watch-private, where they are put by hand. Only runs when the
+      # repository secret PRIVATE_DATA_TOKEN is set: a fine-grained personal access token with read-only
+      # "Contents" access to that one repo. Layout of the private repo (same as data/raw/605/ here):
+      #   605/cdrg/CDRG<YYYYMM>.csv + CDRG<YYYYMM>.zip   Citadel Securities  (summary CSV + detailed report)
+      #   605/ibbd/IBBD<YYYYMM>.csv + IBBD<YYYYMM>.zip   Interactive Brokers LLC
+      # The detailed report may be the bare pipe-delimited .txt or a zip of it: the parser takes the
+      # first .txt member. Everything under 605/ is copied into data/raw/605/ (folder per firm), so it is
+      # parsed, cached and kept private exactly like the fetched reports - never committed.
+      # The token reaches ONLY the checkout step below, never the job environment: pip, the fetchers (many third-party
+      # hosts), npm's lifecycle scripts and the build must not be able to read it. A step `if` cannot read `secrets`,
+      # so a one-line step records whether the secret is set (true/false, not its value) and the two steps test that.
+      - name: Is the private repo configured? (repository secret PRIVATE_DATA_TOKEN)
+        id: private
+        run: echo "has=${{ secrets.PRIVATE_DATA_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the private repo of hand-downloaded reports
+        if: steps.private.outputs.has == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: yens5757/order-flow-watch-private
+          token: ${{ secrets.PRIVATE_DATA_TOKEN }}
+          path: private-data
+          persist-credentials: false
+        continue-on-error: false
+
+      - name: Copy the hand-downloaded reports into the raw folder
+        if: steps.private.outputs.has == 'true'
+        run: |
+          mkdir -p data/raw/605
+          cp -r private-data/605/. data/raw/605/
+          find data/raw/605/cdrg data/raw/605/ibbd -type f 2>/dev/null | sort
 
       - name: Fetch new reports
         run: |
@@ -91,7 +132,7 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      - name: Build website
+      - name: Build website (type-check, bundle, then pre-render every page + sitemap.xml + 404.html)
         working-directory: web
         run: |
           npm ci

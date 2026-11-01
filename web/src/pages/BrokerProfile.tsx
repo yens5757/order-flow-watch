@@ -5,11 +5,12 @@ import { FeesCard } from "../components/FeesCard";
 import { FilterBar } from "../components/Filters";
 import { TrustCard } from "../components/TrustCard";
 import { Card, Empty, Icon, Kpi, Select } from "../components/ui";
-import { brokerRows, execKey, files606, metric, nameOf, SIZE_STEPS, SP_LABEL, type Data, type Filters } from "../lib/data";
+import { brokerRows, execKey, files606, metric, nameOf, SIZE_STEPS, slugOf, SP_LABEL, type Data, type Filters } from "../lib/data";
 import { cents, dollars, monthLong, ms, num, pct, quarterLong, quarterShort, signed, usd2 } from "../lib/format";
 import { go } from "../lib/hooks";
 import { median } from "../lib/stats";
 import { METRICS } from "../lib/metrics";
+import { brokerPath, comparePath, href, pagePath } from "../lib/routes";
 import { useTheme } from "../lib/theme";
 
 const SIZE_SHORT: Record<number, string> = { 0: "<$250", 250: "$250", 1000: "$1k", 5000: "$5k", 10000: "$10k", 20000: "$20k", 50000: "$50k", 200000: "$200k+" };
@@ -81,24 +82,24 @@ export default function BrokerProfile({ d, f, set, id }: { d: Data; f: Filters; 
     <div className="rise">
       <div className="flex flex-wrap items-end justify-between gap-4 pb-6 pt-10">
         <div>
-          <a href="#/brokers" className="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink2 hover:text-ink"><Icon name="back" size={15} />All brokers</a>
+          <a href={href(pagePath("brokers"))} className="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink2 hover:text-ink"><Icon name="back" size={15} />All brokers</a>
           <h1 className="mt-2 font-display text-[34px] font-extrabold tracking-tight text-ink sm:text-[40px]">{firm.name}</h1>
           <div className="mt-2 flex flex-wrap gap-2 text-[12px]">
             {[firm.type === "clearing_firm" ? "Clearing firm" : "Retail broker", `Monthly price report: ${monthLong(f.month)}`, has606 ? "Reports what it is paid for orders" : "Files no payment report of its own"].map((s) => (
               <span key={s} className="rounded-full border border-line bg-surface px-2.5 py-1 text-ink2">{s}</span>
             ))}
           </div>
-          <a href={`#/calculator?b=${firm.id}`} className="mt-3 inline-flex min-h-10 items-center gap-1.5 text-[14px] font-semibold text-accent transition-all hover:gap-2.5">
+          <a href={`${href(pagePath("calculator"))}?b=${firm.slug}`} className="mt-3 inline-flex min-h-10 items-center gap-1.5 text-[14px] font-semibold text-accent transition-all hover:gap-2.5">
             What would {firm.short} cost you a year?<Icon name="arrow" size={15} />
           </a>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2">
-            <a href={`#/broker/${prev.id}`} aria-label={`Previous: ${prev.short}`} className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-surface text-ink2 hover:border-accent hover:text-ink"><Icon name="left" /></a>
-            <Select label="Broker" value={firm.id} onChange={(v) => go(`broker/${v}`)} options={order.map((o) => [o.id, nameOf(o)])} />
-            <a href={`#/broker/${next.id}`} aria-label={`Next: ${next.short}`} className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-surface text-ink2 hover:border-accent hover:text-ink"><Icon name="right" /></a>
+            <a href={href(brokerPath(prev.slug))} aria-label={`Previous: ${prev.short}`} className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-surface text-ink2 hover:border-accent hover:text-ink"><Icon name="left" /></a>
+            <Select label="Broker" value={firm.id} onChange={(v) => go(brokerPath(slugOf(d, v)))} options={order.map((o) => [o.id, nameOf(o)])} />
+            <a href={href(brokerPath(next.slug))} aria-label={`Next: ${next.short}`} className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-surface text-ink2 hover:border-accent hover:text-ink"><Icon name="right" /></a>
           </div>
-          <Select label="Compare with" value="" onChange={(v) => { if (v) go(`compare/${firm.id}/${v}`); }}
+          <Select label="Compare with" value="" onChange={(v) => { if (v) go(comparePath(firm.slug, slugOf(d, v))); }}
             options={[["", "Compare with…"], ...others.map((o): [string, string] => [o.id, o.short])]} />
         </div>
       </div>

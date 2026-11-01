@@ -1,6 +1,7 @@
 // Fee facts for one broker (commission, options, margin, idle cash, transfer out) with the date they were checked.
 import type { Data, Fee } from "../lib/data";
 import { dayLong, pct } from "../lib/format";
+import { href, pagePath } from "../lib/routes";
 import { Card, Empty, Icon } from "./ui";
 
 /** Fee dollars: whole amounts without cents ($0, $75), otherwise two decimals ($0.65, $49.95). */
@@ -73,7 +74,7 @@ export function FeesCard({ d, id }: { d: Data; id: string }) {
 
   return (
     <Card title={`What ${short} charges`} sub="Published fees for a standard account you manage yourself"
-      right={<a href="#/explore?m=commission" className="-my-2.5 inline-flex items-center gap-1.5 py-2.5 text-[13px] font-semibold text-accent">Every broker's fees<Icon name="arrow" size={14} /></a>}
+      right={<a href={`${href(pagePath("brokers"))}?m=commission`} className="-my-2.5 inline-flex items-center gap-1.5 py-2.5 text-[13px] font-semibold text-accent">Every broker's fees<Icon name="arrow" size={14} /></a>}
       foot={foot}>
       {body}
     </Card>

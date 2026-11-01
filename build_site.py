@@ -13,6 +13,7 @@ Only derived, aggregated numbers go into the file - no raw report files.
 
 import csv
 import json
+import re
 from collections import Counter, defaultdict
 from datetime import date
 from pathlib import Path
@@ -50,6 +51,25 @@ def rows(con, sql):
 
 def rnd(v, n=4):
     return None if v is None else round(v, n)
+
+
+def slug(short):
+    """URL name of a firm from its short name, e.g. "J.P. Morgan" -> jp-morgan, "E*TRADE" -> etrade, "Cash App" -> cash-app.
+    Rule (the site's routes.ts applies the same one as a fallback): lower-case; "&" -> "and"; drop ".", "*" and "'" so
+    initials and brand marks stay one word; every other run of characters outside [a-z0-9] -> "-"; trim "-"."""
+    s = short.lower().replace("&", "and")
+    s = re.sub(r"[.*']", "", s)
+    return re.sub(r"[^a-z0-9]+", "-", s).strip("-")
+
+
+def unique_slugs(shorts):
+    """Slugs for a list of short names, in order; a repeat gets -2, -3, ... appended."""
+    out, seen = [], Counter()
+    for short in shorts:
+        base = slug(short) or "firm"
+        seen[base] += 1
+        out.append(base if seen[base] == 1 else f"{base}-{seen[base]}")
+    return out
 
 
 def fee_rows():
@@ -265,8 +285,9 @@ def main():
                  "months": sorted({r["m"] for r in exec_rows}), "quarter": quarter,
                  "quarters": sorted({p["quarter"] for p in pay}),
                  "vix": {m: round(sum(v) / len(v), 1) for m, v in sorted(vix.items()) if m >= "2024-04"}},
-        "firms": [{"id": f["reporter_id"], "name": f["name"], "short": f["short_name"], "type": f["firm_type"],
-                   "crd": f["crd_606"] or fee_crd.get(f["reporter_id"])} for f in firms],
+        "firms": [{"id": f["reporter_id"], "name": f["name"], "short": f["short_name"], "slug": s, "type": f["firm_type"],
+                   "crd": f["crd_606"] or fee_crd.get(f["reporter_id"])}
+                  for f, s in zip(firms, unique_slugs(f["short_name"] for f in firms))],
         "fees": fees,
         "marketMakers": [{"id": k, "name": v} for k, v in same_stock.MARKET_MAKERS.items()],
         "reporters": reporters,

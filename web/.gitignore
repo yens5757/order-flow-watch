@@ -1,0 +1,2 @@
+# Server bundle that scripts/prerender.mjs builds and imports (dist/ and public/data/ are ignored from the repo root)
+dist-ssr/

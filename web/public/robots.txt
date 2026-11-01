@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://yens5757.github.io/order-flow-watch/sitemap.xml

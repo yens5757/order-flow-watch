@@ -3,7 +3,10 @@
 export type Sp = "Y" | "N";
 export type Ot = "M" | "ML";
 
-export interface Firm { id: string; name: string; short: string; type: "broker" | "clearing_firm"; crd: string | null }
+/** `slug` names the firm in URLs (brokers/<slug>/, compare/<a>-vs-<b>/): the short name lower-cased, "&" -> "and", any run of
+ *  other characters -> "-" (dots and asterisks dropped: jp-morgan, etrade), unique across firms. build_site.py writes it;
+ *  until it does, `buildData` derives it from `short` by the same rule. */
+export interface Firm { id: string; name: string; short: string; type: "broker" | "clearing_firm"; crd: string | null; slug: string }
 export interface ExecRow {
   id: string; m: string; sp: Sp; ot: Ot; b: number;
   efq: number | null; pi: number | null; aq: number | null; qs: number | null;
@@ -30,7 +33,8 @@ export interface Fee {
   crd: string | null; sipc: boolean | null; sources: string[]; checked: string; confidence: "high" | "medium" | "low"; notes: string;
 }
 
-interface Raw {
+/** site.json as written: what `fetch` returns and what the pre-render reads from disk. `buildData` turns it into `Data`. */
+export interface Raw {
   meta: {
     built: string; month: string; detailMonth: string; months: string[]; quarter: string; quarters: string[]; vix: Record<string, number>;
     /** unit of the 605 time fields (t): "ms" */
@@ -38,7 +42,7 @@ interface Raw {
     /** date the fee facts were last checked (fees.csv), null if the file is empty */
     feesChecked: string | null;
   };
-  firms: Firm[];
+  firms: (Omit<Firm, "slug"> & { slug?: string })[];
   marketMakers: { id: string; name: string }[];
   reporters: Record<string, { name: string; cat: string }>;
   execCols: string[];
@@ -57,40 +61,70 @@ interface Raw {
   fees: Fee[];
 }
 
-export interface Data extends Omit<Raw, "exec" | "pay" | "usd" | "venues" | "fees"> {
+export interface Data extends Omit<Raw, "exec" | "pay" | "usd" | "venues" | "fees" | "firms"> {
+  firms: Firm[];
   exec: Map<string, ExecRow>;
   pay: Map<string, Record<Ot, number | null>>;
   usd: Usd[];
   venues: Venue[];
   byId: Record<string, Firm>;
+  /** by URL slug */
+  bySlug: Record<string, Firm>;
   brokers: Firm[];
   /** by reporter id; brokers without a fees.csv row are absent */
   fees: Record<string, Fee>;
 }
 
-export async function loadData(): Promise<Data> {
-  const res = await fetch("./data/site.json");
-  if (!res.ok) throw new Error(`Could not load data (${res.status}). Run build_site.py first.`);
-  const raw: Raw = await res.json();
+/** The URL slug of a short name: "J.P. Morgan" -> jp-morgan, "E*TRADE" -> etrade, "Cash App" -> cash-app, "WF FiNet" -> wf-finet. */
+export const slugify = (s: string) =>
+  s.toLowerCase().replace(/&/g, "and").replace(/[.*'’]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+/** The lookups the pages use, from site.json as written. Pure: the pre-render calls it with the file read from disk. */
+export function buildData(raw: Raw): Data {
   const exec = new Map<string, ExecRow>();
   for (const r of raw.exec) {
     const o = Object.fromEntries(raw.execCols.map((c, i) => [c, r[i]])) as unknown as ExecRow;
     exec.set(execKey(o.id, o.m, o.sp, o.ot, o.b), o);
   }
+  // slugs from the file, or derived from the short name until build_site.py writes them; unique either way
+  const taken = new Set<string>();
+  const firms: Firm[] = raw.firms.map((f) => {
+    const base = f.slug || slugify(f.short) || f.id.toLowerCase();
+    let slug = base;
+    for (let i = 2; taken.has(slug); i++) slug = `${base}-${i}`;
+    taken.add(slug);
+    return { ...f, slug };
+  });
   return {
     ...raw,
+    firms,
     exec,
     pay: new Map(raw.pay.map(([crd, q, sp, m, ml]) => [`${crd}|${q}|${sp}`, { M: m, ML: ml }])),
     usd: raw.usd.map(([crd, q, seg, usd]) => ({ crd, q, seg, usd })),
     venues: raw.venues.map(([crd, q, sp, venue, mkt, ml, mc, mlc]) => ({ crd, q, sp, venue, share: { M: mkt, ML: ml }, cph: { M: mc, ML: mlc } })),
-    byId: Object.fromEntries(raw.firms.map((f) => [f.id, f])),
-    brokers: raw.firms.filter((f) => f.type === "broker"),
+    byId: Object.fromEntries(firms.map((f) => [f.id, f])),
+    bySlug: Object.fromEntries(firms.map((f) => [f.slug, f])),
+    brokers: firms.filter((f) => f.type === "broker"),
     fees: Object.fromEntries(raw.fees.map((x) => [x.id, x])),
   };
 }
 
+/** `Data` whether given the built lookups or the raw file (a caller that skipped `buildData`). */
+export const asData = (x: Data | Raw): Data => ("byId" in x ? x : buildData(x));
+
+/** Fetches site.json from under the site's base (the browser; the pre-render reads the file instead). */
+export async function loadData(): Promise<Data> {
+  const res = await fetch(`${import.meta.env.BASE_URL}data/site.json`);
+  if (!res.ok) throw new Error(`Could not load data (${res.status}). Run build_site.py first.`);
+  return buildData((await res.json()) as Raw);
+}
+
 export const execKey = (id: string, m: string, sp: Sp, ot: Ot, b: number) => `${id}|${m}|${sp}|${ot}|${b}`;
 export const nameOf = (f: Firm) => f.short + (f.type === "clearing_firm" ? " (clearing)" : "");
+/** A firm's URL slug by reporter id (the id itself, lower-cased, for one not in site.json). */
+export const slugOf = (d: Data, id: string) => d.byId[id]?.slug ?? id.toLowerCase();
+/** A reporter id from a URL value: a slug, or an id from a link written before slugs existed; null when it is neither. */
+export const idFromUrl = (d: Data, v: string | null | undefined): string | null => (v ? (d.bySlug[v] ?? d.byId[v])?.id ?? null : null);
 
 export const BUCKETS: [number, string][] = [
   [0, "Under $250"], [250, "$250–1k"], [1000, "$1k–5k"], [5000, "$5k–10k"], [10000, "$10k–20k"],

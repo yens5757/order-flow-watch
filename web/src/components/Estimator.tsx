@@ -1,5 +1,5 @@
 // Annual-cost estimator: a few inputs in, every broker's yearly cost out. `compact` is the home-page version;
-// the full one with every input exposed lives on #/calculator. Pass `value`/`onChange` to own the inputs (the
+// the full one with every input exposed lives on calculator/. Pass `value`/`onChange` to own the inputs (the
 // calculator page does, to keep them in the URL) and `broker`/`onBroker` to own the visitor's broker (Home's picker,
 // the calculator's ?b=); otherwise both live here and are remembered in localStorage.
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -8,6 +8,8 @@ import { base, catAxis, legend, tip, tooltip, valueAxis } from "../charts/kit";
 import { annualCost, DEFAULT_INPUTS, nobodyHas, PARTS, type CostInputs, type CostLine } from "../lib/cost";
 import type { Data } from "../lib/data";
 import { dayLong, monthLong, num, usd2 } from "../lib/format";
+import { useBrowserLayoutEffect } from "../lib/hooks";
+import { href, pagePath } from "../lib/routes";
 import { useTheme, type Tokens } from "../lib/theme";
 import { DataTable, type Col } from "./DataTable";
 import { Card, ChartTable, Empty, Icon, Info, Segmented, Select } from "./ui";
@@ -111,10 +113,12 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
   d: Data; compact?: boolean; value?: CostInputs; onChange?: (i: CostInputs) => void; broker?: string; onBroker?: (id: string) => void;
 }) {
   const { t } = useTheme();
-  const [own, setOwn] = useState(loadInputs);
+  // what the visitor last typed and picked comes from the browser in an effect, never while rendering (this also renders on the server)
+  const [own, setOwn] = useState<CostInputs>(DEFAULT_INPUTS);
+  const [ownPick, setOwnPick] = useState("HOOD");
+  useBrowserLayoutEffect(() => { if (!value) setOwn(loadInputs()); if (!broker) setOwnPick(loadBroker()); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const inp = value ?? own;
   const set = (p: Partial<CostInputs>) => { const next = { ...inp, ...p }; saveInputs(next); if (onChange) onChange(next); else setOwn(next); };
-  const [ownPick, setOwnPick] = useState(loadBroker);
   const pick = broker ?? ownPick;
   const choose = (id: string) => { saveBroker(id); if (onBroker) onBroker(id); else setOwnPick(id); };
 
@@ -174,7 +178,7 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
             {asTable(shown)}
             <div className="flex flex-wrap items-center justify-between gap-2 text-[12.5px] text-muted">
               <span>{[incomplete ? "* some fees not available, so the bar is incomplete" : "", nobody.length ? `${nobody.join(", ")}: not verified for any broker yet, so left out everywhere` : ""].filter(Boolean).join(" · ")}</span>
-              <a href="#/calculator" className="-my-2.5 inline-flex items-center gap-1.5 py-2.5 font-semibold text-accent transition-all hover:gap-2.5">All {lines.length} brokers, options, cash and margin<Icon name="arrow" size={15} /></a>
+              <a href={href(pagePath("calculator"))} className="-my-2.5 inline-flex items-center gap-1.5 py-2.5 font-semibold text-accent transition-all hover:gap-2.5">All {lines.length} brokers, options, cash and margin<Icon name="arrow" size={15} /></a>
             </div>
           </>
         ) : <Empty>No broker has price data for this trade size yet.</Empty>}

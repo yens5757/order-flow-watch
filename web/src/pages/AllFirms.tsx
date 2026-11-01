@@ -4,9 +4,10 @@ import { strip } from "../charts/options";
 import { DataTable, type Col } from "../components/DataTable";
 import { FilterBar } from "../components/Filters";
 import { Card, Legend, PageHeader, Segmented } from "../components/ui";
-import { BUCKET_LABEL, execKey, OT_LABEL, SP_LABEL, type Data, type Filters } from "../lib/data";
+import { BUCKET_LABEL, execKey, OT_LABEL, slugOf, SP_LABEL, type Data, type Filters } from "../lib/data";
 import { num, pct, titleCase } from "../lib/format";
 import { go } from "../lib/hooks";
+import { brokerPath } from "../lib/routes";
 import { useTheme } from "../lib/theme";
 
 /** Firm groups: [chart row label, toggle label, chart row label on phones (line breaks keep them narrow so the plot keeps its width)]. */
@@ -59,11 +60,11 @@ export default function AllFirms({ d, f, set }: { d: Data; f: Filters; set: (p: 
           right={<Legend items={[{ color: t.s[0], label: "Broker on this site" }, { color: t.context, label: "Other firm" }]} />}
           foot={<>The chart leaves off firms whose customers pay less than −50% or more than 250% of the spread ({cut.length === 0 ? "none this month" : cut.length > 5 ? `${cut.length} firms this month` : `this month: ${cut.map((r) => r.name).join(", ")}`}); they stay in the table below.</>}>
           <EChart option={chart} height={360} label="Share of the spread customers pay at every reporting firm, grouped by type"
-            onClick={(p) => p.data?.hl && go(`broker/${p.data.id}`)} />
+            onClick={(p) => p.data?.hl && go(brokerPath(slugOf(d, p.data.id)))} />
         </Card>
         <Card title="All firms" right={<Segmented size="sm" label="Firm group" value={group} onChange={setGroup} options={[[-1, "All"], ...GROUPS.map(([, p], i) => [i, p] as [number, string])]} />}>
           <DataTable rows={shown} cols={cols} initial={{ key: "cust", dir: 1 }} search={(r) => `${r.name} ${r.id} ${r.cat}`}
-            onRow={(r) => r.tracked && go(`broker/${r.id}`)} file={`rule605_reporters_${f.month}.csv`} maxHeight={560} />
+            onRow={(r) => r.tracked && go(brokerPath(slugOf(d, r.id)))} file={`rule605_reporters_${f.month}.csv`} maxHeight={560} />
         </Card>
       </div>
     </div>

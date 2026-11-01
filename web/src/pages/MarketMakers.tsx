@@ -6,6 +6,7 @@ import { Card, Empty, Icon, Kpi, PageHeader, Segmented } from "../components/ui"
 import { SP_LABEL, type Data, type Filters } from "../lib/data";
 import { monthLong, pct, quarterLong, quarterShort } from "../lib/format";
 import { go } from "../lib/hooks";
+import { brokerPath } from "../lib/routes";
 import { useTheme } from "../lib/theme";
 
 const trim = (n: string) => n.replace(/ (Securities|Americas|Financial|Execution|Services|LLC)$/, "");
@@ -79,7 +80,7 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
         right={<Segmented size="sm" label="Show" value={metric} onChange={setMetric} options={[["share", "Share of orders"], ["pay", "Payment rate"]]} />}
         foot={metric === "pay" && paid.length > 0 ? <>Read across a row. {oneRate} of the {paid.length} brokers that use two or more of these firms are paid one rate (within a cent) by all of them; {paid.length - oneRate} are paid different rates by different firms.{negative && " A number below zero means the broker paid the trading firm."}</> : undefined}>
         {brs.length ? <EChart option={heat} height={brs.length * 34 + 160} label="Which trading firms each broker sends its orders to"
-          onClick={(p) => { const y = p.data?.value?.[1]; if (y != null && brs[y]) go(`broker/${brs[y].id}`); }} /> : <Empty>No reports of where orders went for this quarter.</Empty>}
+          onClick={(p) => { const y = p.data?.value?.[1]; if (y != null && brs[y]) go(brokerPath(brs[y].slug)); }} /> : <Empty>No reports of where orders went for this quarter.</Empty>}
       </Card>
 
       {missing.length > 0 && (
