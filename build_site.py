@@ -75,16 +75,19 @@ def unique_slugs(shorts):
 def fee_rows():
     """fees.csv -> one dict per broker, blanks as None (Y/N flags as bools, source_urls as a list).
     A fee cell of "NA" means the product is not offered at all (Stash, Cash App and Wealthfront have no options trading):
-    the value is still None, and the key is listed in notOffered so the site can say "not offered" instead of "not checked"."""
+    the value is still None, and the key is listed in notOffered so the site can say "not offered" instead of "not checked".
+    "VAR" means the rate exists but depends on a balance tier, a program or a separate product (IBKR's tiered cash interest,
+    Merrill's quote-only margin): also None, listed in varies, shown as "varies"."""
     yn = {"Y": True, "N": False}
     cols = (("commission", "commission_stock"), ("optionsFee", "options_per_contract"), ("marginRate", "margin_rate_25k"),
             ("cashYield", "cash_yield"), ("transferOut", "transfer_out_full"))
 
     def num(v):
-        return float(v) if v not in (None, "", "NA") else None
+        return float(v) if v not in (None, "", "NA", "VAR") else None
 
     return [{"id": r["reporter_id"], "retail": r["retail_self_directed"] == "Y",
              **{k: num(r[c]) for k, c in cols}, "notOffered": [k for k, c in cols if r[c] == "NA"],
+             "varies": [k for k, c in cols if r[c] == "VAR"],
              "crd": r["crd"] or None, "sipc": yn.get(r["sipc"]),
              "sources": [u for u in r["source_urls"].split() if u.startswith("http")],
              "checked": r["checked_on"], "confidence": r["confidence"], "notes": r["notes"]}

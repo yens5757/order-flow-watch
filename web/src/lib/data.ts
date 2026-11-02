@@ -30,6 +30,8 @@ export interface Fee {
   commission: number | null; optionsFee: number | null; marginRate: number | null; cashYield: number | null; transferOut: number | null;
   /** fee facts that are null because the broker has no such product (Stash, Cash App and Wealthfront: no options trading), not because nobody checked */
   notOffered: FeeKey[];
+  /** fee facts that are null because the rate depends on a balance tier, a program or a separate product (IBKR cash interest, Merrill margin) */
+  varies: FeeKey[];
   crd: string | null; sipc: boolean | null; sources: string[]; checked: string; confidence: "high" | "medium" | "low"; notes: string;
 }
 

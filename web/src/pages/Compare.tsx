@@ -6,7 +6,7 @@ import { EChart } from "../charts/EChart";
 import { lines } from "../charts/options";
 import { FilterBar } from "../components/Filters";
 import { Card, ChartTable, Empty, Icon, Info, PageHeader, Segmented, Select, Status } from "../components/ui";
-import { execKey, files606, metric, nameOf, OT_LABEL, SIZE_STEPS, slugOf, SP_LABEL, type Data, type Fee, type Filters, type Firm, type Metric } from "../lib/data";
+import { execKey, files606, metric, nameOf, OT_LABEL, SIZE_STEPS, slugOf, SP_LABEL, type Data, type Fee, type FeeKey, type Filters, type Firm, type Metric } from "../lib/data";
 import { dayLong, monthLong, quarterLong, signed, usd2 } from "../lib/format";
 import { go } from "../lib/hooks";
 import { METRICS, type MetricKey } from "../lib/metrics";
@@ -131,7 +131,7 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
   const fill = (k: MetricKey, fmt = METRICS[k].fmt, na?: Row["na"]): Row =>
     ({ key: k, label: METRICS[k].label, info: METRICS[k].desc, better: METRICS[k].better, av: METRICS[k].get(rA), bv: METRICS[k].get(rB), fmt, na });
   // a fee is "not offered" when the broker has no such product at all (no options trading), "not confirmed" when nobody has checked it
-  const feeNa = (k: "optionsFee"): [string, string] => [feeA, feeB].map((x) => (x?.notOffered.includes(k) ? "not offered" : "not confirmed")) as [string, string];
+  const feeNa = (k: FeeKey): [string, string] => [feeA, feeB].map((x) => (x?.notOffered.includes(k) ? "not offered" : x?.varies.includes(k) ? "varies" : "not confirmed")) as [string, string];
   const checked = [...new Set([feeA, feeB].filter((x): x is Fee => !!x).map((x) => x.checked))];
   const crd = (F: Firm) => d.fees[F.id]?.crd ?? F.crd ?? null; // the account's broker-dealer first; the 606 CRD can be a routing affiliate
   const brokerCheck = (F: Firm) => {
@@ -165,8 +165,8 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
       rows: [
         fill("commission", undefined, "not confirmed"),
         fill("optionsFee", undefined, feeNa("optionsFee")),
-        fill("marginRate", undefined, "not confirmed"),
-        fill("cashYield", undefined, "not confirmed"),
+        fill("marginRate", undefined, feeNa("marginRate")),
+        fill("cashYield", undefined, feeNa("cashYield")),
         { key: "transferOut", label: "Transfer-out fee", info: "For moving your whole account to another broker. Lower is better.",
           better: "low", av: rA.transferOut, bv: rB.transferOut, fmt: usd2, na: "not confirmed" },
       ],

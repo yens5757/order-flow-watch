@@ -22,7 +22,7 @@ export function FeesCard({ d, id }: { d: Data; id: string }) {
   const checkedIso = d.meta.feesChecked ?? fee?.checked;
   const when = checkedIso ? `checked ${dayLong(checkedIso)}` : "check date unknown";
   // [label, formatted value or null when not verified, one-clause gloss]; a product the broker doesn't have says so
-  const na = (k: Fee["notOffered"][number]) => (fee?.notOffered.includes(k) ? "Not offered" : null);
+  const na = (k: Fee["notOffered"][number]) => (fee?.notOffered.includes(k) ? "Not offered" : fee?.varies.includes(k) ? "Varies" : null);
   const rows: [string, string | null, string][] = fee ? [
     ["Commission per stock trade", fee.commission == null ? na("commission") : money(fee.commission),
       "Per online stock or ETF trade; most brokers charge $0."],
@@ -35,6 +35,7 @@ export function FeesCard({ d, id }: { d: Data; id: string }) {
     ["Full transfer out", fee.transferOut == null ? na("transferOut") : money(fee.transferOut),
       "To move your whole account to another broker."],
   ] : [];
+  for (const r of rows) if (r[1] === "Varies") r[2] = "Depends on a balance tier, a program or a separate cash product: see the broker.";
   const known = rows.filter((r) => r[1] != null).length;
   // BrokerCheck lookups back the CRD, not the fees; the trust card covers that side
   const sources = (fee?.sources ?? []).filter((u) => !/brokercheck/i.test(u));
