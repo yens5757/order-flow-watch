@@ -87,7 +87,7 @@ export default function Calculator({ d, search }: { d: Data; search: string }) {
   return (
     <div className="rise">
       <PageHeader eyebrow="Calculator" title="What does your broker cost you per year?"
-        sub="Tell us how you trade and see the yearly cost at every broker: trade prices, commissions, options fees, idle cash and margin."
+        sub="Enter how you trade; see the yearly cost at every broker."
         right={
           <button type="button" onClick={copy} className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-[14px] font-semibold text-ink hover:border-accent">
             <Icon name={copied ? "check" : "ext"} size={16} />{copied ? "Link copied" : "Copy link"}
@@ -95,42 +95,19 @@ export default function Calculator({ d, search }: { d: Data; search: string }) {
         } />
       <Estimator d={d} value={inp} onChange={setInp} broker={broker} onBroker={setBroker} />
 
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="mt-5">
         <Card title="How this is calculated" sub="Five parts, added up">
           <ul className="space-y-3 text-[14px] leading-relaxed text-ink2">
             <Line label="Trade prices">
-              Every broker must report, by law, how far from the fair price its customers' market orders were filled (SEC Rule 605; we use {monthLong(d.meta.month)}).
-              We take that share of the spread (the gap between the buy and sell price) for orders of your size, apply it to half the typical gap, and multiply by what you trade in a year.
-              Big-company (S&P 500) and other stocks are worked out separately and blended by your mix.
+              Each broker's reported share of the spread for orders of your size (SEC Rule 605, {monthLong(d.meta.month)}) × half the typical spread × what you trade a year, blended by your stock mix.
             </Line>
-            <Line label="Commissions">Trades per year × the broker's commission per stock trade.</Line>
-            <Line label="Options fees">Contracts per year × the broker's fee per contract. Only the fee: how well options orders are filled is not reported anywhere. A broker with no options trading at all is marked "options (not offered)".</Line>
-            <Line label="Idle cash">Cash sitting idle × the interest you give up vs the best-paying broker. The broker with the highest verified rate shows $0; the others show the difference.</Line>
-            <Line label="Margin">Borrowed × the broker's standard margin interest rate on a $25,000 loan; new-account and promotional rates are left out.</Line>
+            <Line label="Commissions">Trades × commission per stock trade.</Line>
+            <Line label="Options fees">Contracts × fee per contract (fee only; options prices aren't reported).</Line>
+            <Line label="Idle cash">Idle cash × the interest you give up vs the best-paying broker.</Line>
+            <Line label="Margin">Borrowed × standard margin rate at $25,000.</Line>
           </ul>
-          <div className="tnum mt-4 rounded-xl bg-surface2 p-4 text-[13px] leading-relaxed text-ink">
-            total = trades × size × cost per $ traded<br />
-            &nbsp;&nbsp;+ trades × commission<br />
-            &nbsp;&nbsp;+ contracts × options fee<br />
-            &nbsp;&nbsp;+ idle cash × (best yield − this broker's yield)<br />
-            &nbsp;&nbsp;+ borrowed × margin rate
-          </div>
           <p className="mt-3 text-[13px] leading-relaxed text-muted">
-            Fees come from each broker's own fee pages, {checked}. When a fee could not be verified, that part is left out and the row says so: a missing number is not a $0.
-          </p>
-        </Card>
-
-        <Card title="What this leaves out" sub="Real costs the data can't see">
-          <ul className="space-y-3 text-[14px] leading-relaxed text-ink2">
-            <Line label="Options prices">Rule 605 covers stocks only. Options are most of what brokers are paid for, but how well those orders are filled is not reported.</Line>
-            <Line label="Limit orders">Only market orders are counted. A limit order that waits for your price is a different trade, and its quality is measured differently.</Line>
-            <Line label="Taxes">Account type, holding period and tax-loss harvesting can matter far more than any number here.</Line>
-            <Line label="Promotions">Sign-up bonuses, free stock, transfer bonuses and temporary fee waivers are not counted; neither are higher-tier memberships with better rates.</Line>
-            <Line label="Everything else">Fund expense ratios, currency conversion, inactivity and account fees, and what a broker's app or research is worth to you.</Line>
-          </ul>
-          <p className="mt-4 text-[13px] leading-relaxed text-muted">
-            These are estimates, not advice. The price numbers are one month of each broker's own report; fees change without notice.
-            See <a href={href(pagePath("how-we-measure"))} className="font-semibold text-accent">how we measure</a> for the full method.
+            Fees: each broker's own pages, {checked}. An unverified fee is left out, never counted as $0. Not counted: options prices, resting limit orders, taxes, promotions, fund fees. <a href={href(pagePath("how-we-measure"))} className="font-semibold text-accent">How we measure</a>.
           </p>
         </Card>
       </div>

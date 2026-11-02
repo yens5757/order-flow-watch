@@ -38,7 +38,7 @@ const fair = (v: number) => (v < 0 ? `a price ${usd2(-v)} better than the fair p
 
 /** The short answer, generated from the numbers: who is cheaper on a $10,000 trade, by how much, and whether fees change it. */
 function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm; rA: Metric; rB: Metric; feeA?: Fee; feeB?: Fee }) {
-  const stocks = f.sp === "Y" ? "big-company (S&P 500) stocks" : "stocks outside the S&P 500";
+  const stocks = f.sp === "Y" ? "S&P 500 stocks" : "other stocks";
   const order = f.ot === "M" ? "market order" : "marketable limit order";
   const price: ReactNode[] = [], money: ReactNode[] = [];
 
@@ -46,7 +46,7 @@ function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm
   const diff = rA.cost10k != null && rB.cost10k != null ? rA.cost10k - rB.cost10k : null; // > 0: B is cheaper
   let cheap: Firm | null = null;
   if (diff == null) {
-    price.push(<>{rA.cost10k == null ? A.short : B.short} hasn't published its {monthLong(f.month)} price report yet, so the two can't be compared on price.</>);
+    price.push(<>{rA.cost10k == null ? A.short : B.short} hasn't published its {monthLong(f.month)} price report yet.</>);
   } else if (Math.abs(diff) < 0.05) {
     price.push(<>Per $10,000 of {order}s in {stocks}, {A.short} and {B.short} customers pay about the same: {fair(rA.cost10k!)} and {fair(rB.cost10k!)}.</>);
   } else {
@@ -58,12 +58,12 @@ function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm
   // 2. does it hold on identical trades? (same stocks, same order sizes)
   if (rA.gap != null && rB.gap != null) {
     const g = rA.gap - rB.gap; // > 0: B gets the better price on identical trades
-    if (Math.abs(g) < 1) price.push(<> On the exact same stocks and order sizes the two are level.</>);
+    if (Math.abs(g) < 1) price.push(<> On identical trades the two are level.</>);
     else {
       const same = g > 0 ? B : A;
       price.push(cheap == null || same.id === cheap.id
-        ? <> That holds on identical trades too: on the exact same stocks and order sizes, {same.short} gets the better price.</>
-        : <> On the exact same stocks and order sizes, though, {same.short} comes out ahead, so part of the headline difference is what each broker's customers trade rather than the prices they get.</>);
+        ? <> That holds on identical trades too.</>
+        : <> On identical trades, though, {same.short} comes out ahead: part of the gap is what each broker's customers trade.</>);
     }
   }
 
@@ -71,11 +71,11 @@ function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm
   const pa = rA.pay10k, pb = rB.pay10k;
   const paid = (F: Firm, v: number | null) =>
     v == null ? `${F.short} files no payment report of its own (another firm routes its orders)`
-      : v > 0.005 ? `${F.short} is paid about ${usd2(v)} per $10,000 order by the trading firms its orders go to`
+      : v > 0.005 ? `${F.short} is paid about ${usd2(v)} per $10,000 order`
       : v < -0.005 ? `${F.short} pays its trading firm about ${usd2(-v)} per $10,000 order`
-      : `${F.short} isn't paid for sending orders`;
+      : `${F.short} isn't paid for orders`;
   if (pa != null && pb != null && pa > 0.005 && pb > 0.005) {
-    money.push(<>Trading firms pay {A.short} about {usd2(pa)} and {B.short} about {usd2(pb)} for every $10,000 order sent their way.</>);
+    money.push(<>Trading firms pay {A.short} about {usd2(pa)} and {B.short} about {usd2(pb)} per $10,000 order.</>);
   } else {
     money.push(<>{paid(A, pa)}; {paid(B, pb)}.</>);
   }
@@ -85,28 +85,27 @@ function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm
   if (ca != null && cb != null) {
     if (ca === cb) {
       money.push(ca === 0
-        ? <> Neither charges a commission on stock trades, so the price you get is the whole cost of a trade.</>
-        : <> Both charge {usd2(ca)} commission per stock trade, so that doesn't separate them.</>);
+        ? <> Neither charges a stock commission.</>
+        : <> Both charge {usd2(ca)} per stock trade.</>);
     } else {
       const hi = ca > cb ? A : B, lo = ca > cb ? B : A, gap = Math.abs(ca - cb);
-      money.push(<> Fees change the picture: {hi.short} charges {usd2(Math.max(ca, cb))} commission per stock trade and {lo.short} {usd2(Math.min(ca, cb))}, a difference that {diff != null && gap > Math.abs(diff) ? "outweighs" : "is smaller than"} the price difference per $10,000 traded.</>);
+      money.push(<> Commissions: {hi.short} {usd2(Math.max(ca, cb))} per stock trade, {lo.short} {usd2(Math.min(ca, cb))}, which {diff != null && gap > Math.abs(diff) ? "outweighs" : "is smaller than"} the price difference.</>);
     }
   } else {
     const unknown = [ca == null ? A.short : null, cb == null ? B.short : null].filter(Boolean).join(" and ");
-    money.push(<> We haven't confirmed {unknown}'s stock commission yet, so fees could still change the picture.</>);
+    money.push(<> {unknown}'s stock commission is not confirmed yet.</>);
   }
   const oa = feeA?.optionsFee ?? null, ob = feeB?.optionsFee ?? null;
   if (oa != null && ob != null && oa !== ob) {
-    money.push(<> For options, {oa < ob ? A.short : B.short} charges less ({usd2(Math.min(oa, ob))} against {usd2(Math.max(oa, ob))} per contract); the official price reports don't cover options at all.</>);
+    money.push(<> Options: {oa < ob ? A.short : B.short} charges less ({usd2(Math.min(oa, ob))} vs {usd2(Math.max(oa, ob))} per contract).</>);
   }
 
   return (
-    <Card title="The short answer" sub={`${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot]} orders · averaged over all order sizes under $200,000 (large orders weigh most; see cost by order size below)`}>
+    <Card title="The short answer" sub={`${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot]} orders · all sizes under $200,000`}>
       <p className="text-[15.5px] leading-relaxed text-ink2">{price}</p>
       <p className="mt-3 text-[15.5px] leading-relaxed text-ink2">{money}</p>
       <p className="mt-3 text-[13.5px] leading-relaxed text-muted">
-        This isn't a verdict on which broker is better overall: that also depends on what you trade, the interest you earn on cash, the app and the support.
-        The <a href={href(pagePath("calculator"))} className="font-semibold text-accent hover:underline">yearly cost calculator</a> puts numbers on your own trading habits.
+        Not a verdict on which broker is better overall; for your own habits, use the <a href={href(pagePath("calculator"))} className="font-semibold text-accent hover:underline">yearly cost calculator</a>.
       </p>
     </Card>
   );
@@ -162,13 +161,13 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
       ],
     },
     {
-      title: "Fees", sub: checked.length ? `checked ${checked.map((c) => dayLong(c)).join(" and ")} on the brokers' own pages` : "not checked yet",
+      title: "Fees", sub: checked.length ? `checked ${checked.map((c) => dayLong(c)).join(" and ")}` : "not checked yet",
       rows: [
         fill("commission", undefined, "not confirmed"),
         fill("optionsFee", undefined, feeNa("optionsFee")),
         fill("marginRate", undefined, "not confirmed"),
         fill("cashYield", undefined, "not confirmed"),
-        { key: "transferOut", label: "Fee to move your account elsewhere", info: "Dollars charged for a full transfer of your account to another broker. Lower is better.",
+        { key: "transferOut", label: "Transfer-out fee", info: "For moving your whole account to another broker. Lower is better.",
           better: "low", av: rA.transferOut, bv: rB.transferOut, fmt: usd2, na: "not confirmed" },
       ],
     },
@@ -176,11 +175,11 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
       title: "Is it registered?", sub: "regulator records, not an endorsement",
       rows: [
         { key: "crd", label: "FINRA record", a: brokerCheck(A), b: brokerCheck(B),
-          info: "FINRA's BrokerCheck lists every US broker's licences, history and any disciplinary actions. The link opens this broker's record." },
+          info: "BrokerCheck: the broker's licences, history and any disciplinary actions." },
         { key: "sipc", label: "SIPC member", a: sipc(A), b: sipc(B),
-          info: "SIPC protection returns your securities and cash (up to $500,000) if the broker itself fails. It does not cover investment losses." },
+          info: "Returns your securities and cash (up to $500,000) if the broker fails; not investment losses." },
         { key: "606", label: "Reports what it is paid for orders", a: yesNo(files606(d, A.crd)), b: yesNo(files606(d, B.crd)),
-          info: "A Rule 606 report shows where a broker sends orders and what it is paid for them. A broker that hands all its orders to another firm files no report of its own." },
+          info: "Rule 606: where a broker sends orders and what it is paid. A broker whose orders go through another firm files none." },
       ],
     },
   ];
@@ -236,10 +235,10 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
         sub={<>
           {!explicit && (
             <span className="mb-1 block font-semibold text-ink">
-              Showing <a href={href(comparePath(A.slug, B.slug))} className="text-accent hover:underline">{A.short} vs {B.short}</a> to start; pick any two brokers in the boxes.
+              Showing <a href={href(comparePath(A.slug, B.slug))} className="text-accent hover:underline">{A.short} vs {B.short}</a>; pick any two above.
             </span>
           )}
-          Two brokers side by side: what a trade really costs, what each is paid for your order, its fees and whether it's registered. Prices and payments come from the reports brokers must publish by law; fees from each broker's own price list; registration from FINRA and SIPC.
+          Prices, payments, fees and registration, side by side.
         </>}
         right={
           <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 sm:w-auto sm:grid-cols-[190px_auto_190px]">
@@ -255,17 +254,16 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
 
       {A.id === B.id && (
         <div className="mb-5 rounded-xl border border-line bg-surface2 px-4 py-3 text-[13.5px] text-ink2">
-          That's the same broker twice. Pick a different one in either box to compare.
+          Same broker twice: pick a different one in either box.
         </div>
       )}
 
       <Verdict f={f} A={A} B={B} rA={rA} rB={rB} feeA={feeA} feeB={feeB} />
 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1.1fr_1fr]">
-        <Card title="Side by side" sub="Tap a broker's name for its full report"
-          foot={<>A tick marks the better value where there is a clear better direction; measures with no tick (speed, payment, order size, price-improved) are context, not a score.
-            Registration facts are not an endorsement: a registered broker can still get you poor prices.
-            Prices: each broker's {monthLong(f.month)} report (SEC Rule 605), all orders under $200,000. Payment: its {quarterLong(f.quarter)} report (SEC Rule 606).
+        <Card title="Side by side" sub="Tap a name for its report"
+          foot={<>Tick = the better value; unticked rows are context, not a score.
+            Prices: {monthLong(f.month)} (SEC Rule 605), orders under $200,000. Payment: {quarterLong(f.quarter)} (SEC Rule 606).
             {" "}<a href={href(pagePath("how-we-measure"))} className="font-semibold text-accent hover:underline">How we measure</a></>}>
           <table className="w-full border-collapse max-sm:block">
             <caption className="sr-only">{A.short} and {B.short} side by side</caption>
@@ -298,29 +296,26 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
         </Card>
 
         <div className="flex flex-col gap-5">
-          <Card title="Cost by order size" sub={`${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot]} orders · from the smallest orders to the largest`}
-            right={<Segmented size="sm" label="Unit" value={unit} onChange={setUnit} options={[["usd", "$ on $10,000"], ["pct", "% of the buy–sell gap"]]} />}
-            foot="Most people's trades are under $10,000. Orders of $200,000 and over are a different market: every broker gets far worse prices there.">
+          <Card title="Cost by order size" sub={`${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot]} orders`}
+            right={<Segmented size="sm" label="Unit" value={unit} onChange={setUnit} options={[["usd", "$ on $10,000"], ["pct", "% of spread"]]} />}
+            foot="Every broker gets far worse prices on orders of $200,000 and over.">
             {hasSize ? (
               <>
                 <EChart option={sizeChart} height={300} label={`Cost by order size, ${A.short} vs ${B.short}`} />
                 <ChartTable head={["Order size", A.short, B.short]}
                   rows={SIZE_STEPS.map((bk, i) => [SIZE_SHORT[bk], ...bySize.map((sr) => (sr.values[i] == null ? "–" : unit === "usd" ? usd2(sr.values[i]) : `${sr.values[i]!.toFixed(0)}%`))])} />
               </>
-            ) : <Empty>No price data for these two brokers with these filters.</Empty>}
+            ) : <Empty>No price data with these filters.</Empty>}
           </Card>
 
           <div className="relative overflow-hidden rounded-2xl p-6 text-white shadow-card sm:p-7" style={{ background: "var(--grad)" }}>
             <h2 className="font-display text-[22px] font-extrabold tracking-tight">What does this add up to in a year?</h2>
-            <p className="mt-2 text-[14.5px] leading-relaxed text-white/85">
-              Tell the calculator how often you trade and how much, and see the yearly cost at {A.short}, {B.short} and every other broker.
-            </p>
             <a href={`${href(pagePath("calculator"))}?b=${A.slug}`} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[14px] font-semibold text-[#1b2a55] hover:bg-white/90">
               See your yearly cost<Icon name="arrow" size={15} />
             </a>
           </div>
 
-          <Card title="Popular comparisons" sub="Tap a pair to compare it">
+          <Card title="Popular comparisons">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
               {POPULAR.filter(([x, y]) => d.byId[x] && d.byId[y]).map(([x, y]) => pairOrder(d.byId[x], d.byId[y])).map(([x, y]) => {
                 const cur = isCurrent(x, y);
@@ -332,7 +327,6 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
                 );
               })}
             </div>
-            <div className="mt-3 text-[12.5px] text-muted">Or pick any two brokers in the boxes at the top.</div>
             {/* every pair has a page of its own; the list is collapsed but always on the page, so each one can be found and linked */}
             <details className="group mt-3">
               <summary className="inline-flex min-h-10 cursor-pointer list-none items-center gap-1.5 text-[13px] font-medium text-muted hover:text-ink">

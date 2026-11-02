@@ -69,7 +69,7 @@ function stackedBars(t: Tokens, rows: CostLine[], hl: string | undefined): Optio
       trigger: "axis", axisPointer: { type: "shadow", shadowStyle: { color: t.neutral, opacity: 0.25 } },
       formatter: (ps: any[]) => { // eslint-disable-line @typescript-eslint/no-explicit-any
         const r = rows[ps[0].dataIndex];
-        return tip(r.name, [...PARTS.map((p) => [t.s[p.slot], p.label, value(r, p)] as [string, string, string]), [null, "Total per year", perYear(r.total)]],
+        return tip(r.name, [...PARTS.map((p) => [t.s[p.slot], p.label, value(r, p)] as [string, string, string]), [null, "Total", perYear(r.total)]],
           r.missing.length ? `Not available: ${r.missing.join(", ")}` : undefined);
       },
     }),
@@ -134,22 +134,23 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
   // reported once; a line's `gaps` is what it lacks that others have, which is what the asterisks, chips and sentence flag
   const nobody = nobodyHas(lines);
   const incomplete = shown.filter((l) => l.gaps.length).length;
+  const starNote = incomplete ? "* some fees not available: incomplete bars, listed last" : "";
+  const nobodyNote = nobody.length ? `${nobody.join(", ")}: not verified anywhere yet, so left out everywhere` : "";
+  const empty = <Empty>No price data for this trade size.</Empty>;
   const chart = useMemo(() => stackedBars(t, shown, me?.id), [t, shown, me?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // "Fidelity's commission is not available, so its figure is incomplete", for the visitor's broker and the one named cheapest
-  const caveat = (l: CostLine) => (l.gaps.length ? <span className="text-muted"> {l.short}'s {list(l.gaps)} {l.gaps.length > 1 ? "are" : "is"} not available, so its figure is incomplete.</span> : null);
+  // "Fidelity's figure is incomplete: commission not available", for the visitor's broker and the one named cheapest
+  const caveat = (l: CostLine) => (l.gaps.length ? <span className="text-muted"> {l.short}'s figure is incomplete: {list(l.gaps)} not available.</span> : null);
   let summary: ReactNode = null;
   if (me && cheapest && me !== cheapest) summary = <>At <b>{me.short}</b> this would {phrase(me.total)} a year; at <b>{cheapest.short}</b> it would {phrase(cheapest.total)}.{caveat(me)}{caveat(cheapest)}</>;
   else if (me && priciest) summary = <>At <b>{me.short}</b> this would {phrase(me.total)} a year, the lowest of {lines.length} brokers; at <b>{priciest.short}</b> it would {phrase(priciest.total)}.{caveat(me)}</>;
   else if (cheapest && priciest) summary = <>At <b>{cheapest.short}</b> this would {phrase(cheapest.total)} a year; at <b>{priciest.short}</b> it would {phrase(priciest.total)}.{caveat(cheapest)}</>;
 
   const checked = d.meta.feesChecked ? `checked ${dayLong(d.meta.feesChecked)}` : "not yet checked";
-  const foot = (
-    <>Prices: how far from the fair price each broker's customers' market orders were filled, for orders of your size, from the official SEC Rule 605 reports for {monthLong(d.meta.month)}. Fees: each broker's own price list, {checked}.
-      {" "}Estimates, not advice: fees change, and your own trades will differ.</>
-  );
+  // one sourcing line per page: the fee source and its check date are stated here on Home, and by the calculator page's own card otherwise
+  const foot = <>Prices: SEC Rule 605 reports for {monthLong(d.meta.month)}, orders of your size.{compact && <> Fees: each broker's own pages, {checked}.</>} Estimates, not advice.</>;
   const brokerPick = <Select label="Your broker" value={me?.id ?? ""} onChange={choose} options={[...lines].sort((a, b) => a.short.localeCompare(b.short)).map((l) => [l.id, l.short])} />;
-  const mixInfo = <Info>Big companies = stocks in the S&P 500. Other stocks = anything else, including ETFs. "A mix" counts half of each.</Info>;
+  const mixInfo = <Info>Big companies = S&P 500 stocks; other = everything else, including ETFs; a mix = half of each.</Info>;
   const asTable = (rows: CostLine[]) => (
     <ChartTable head={["Broker", "Total per year", ...PARTS.map((p) => p.label)]}
       rows={rows.map((r) => [r.short + (r.gaps.length ? " *" : ""), perYear(r.total), ...PARTS.map((p) => (r[p.key] === 0 && p.facts.some((f) => r.missing.includes(f)) ? "–" : perYear(r[p.key])))])} />
@@ -169,25 +170,25 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
 
   if (compact) {
     return (
-      <Card title="Your yearly estimate" sub="Trade prices plus fees. Change the numbers to match how you trade." right={brokerPick} foot={foot}>
+      <Card title="Your yearly estimate" sub="Change the numbers to match how you trade." right={brokerPick} foot={foot}>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{mainInputs}</div>
         {shown.length ? (
           <>
             <p className="mt-5 text-[15px] leading-relaxed text-ink2">{summary}</p>
-            <EChart option={chart} height={shown.length * 28 + 60} label="Yearly cost at the cheapest brokers and yours" onClick={(p) => { if (p.data?.id) choose(p.data.id); }} />
+            <EChart option={chart} height={shown.length * 28 + 60} label="Yearly cost by broker" onClick={(p) => { if (p.data?.id) choose(p.data.id); }} />
             {asTable(shown)}
             <div className="flex flex-wrap items-center justify-between gap-2 text-[12.5px] text-muted">
-              <span>{[incomplete ? "* some fees not available, so the bar is incomplete" : "", nobody.length ? `${nobody.join(", ")}: not verified for any broker yet, so left out everywhere` : ""].filter(Boolean).join(" · ")}</span>
-              <a href={href(pagePath("calculator"))} className="-my-2.5 inline-flex items-center gap-1.5 py-2.5 font-semibold text-accent transition-all hover:gap-2.5">All {lines.length} brokers, options, cash and margin<Icon name="arrow" size={15} /></a>
+              <span>{[starNote, nobodyNote].filter(Boolean).join(" · ")}</span>
+              <a href={href(pagePath("calculator"))} className="-my-2.5 inline-flex items-center gap-1.5 py-2.5 font-semibold text-accent transition-all hover:gap-2.5">All {lines.length} brokers, every cost<Icon name="arrow" size={15} /></a>
             </div>
           </>
-        ) : <Empty>No broker has price data for this trade size yet.</Empty>}
+        ) : empty}
       </Card>
     );
   }
 
   const cols: Col<CostLine>[] = [
-    { key: "rank", label: "#", value: (r) => lines.indexOf(r) + 1, num: true, hint: "Complete estimates first, then cheapest first" },
+    { key: "rank", label: "#", value: (r) => lines.indexOf(r) + 1, num: true, hint: "Complete estimates first, then cheapest" },
     { key: "name", label: "Broker", pin: true, value: (r) => r.short, render: (r) => (
       <span className="inline-flex items-center gap-2">
         <span className={r.id === me?.id ? "font-bold text-ink" : "font-medium text-ink"}>{r.short}</span>
@@ -205,7 +206,7 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
 
   return (
     <div className="space-y-5">
-      <Card title="How you trade" sub="Change any number; everything below updates" right={
+      <Card title="How you trade" right={
         <div className="flex flex-wrap items-center gap-3">
           {changed && <button type="button" onClick={() => set(DEFAULT_INPUTS)} className="-mx-2 min-h-10 rounded-lg px-2 text-[13px] font-medium text-muted hover:text-ink">Reset</button>}
           {brokerPick}
@@ -213,27 +214,27 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
       }>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
           {mainInputs}
-          <Num label="Options contracts per year" value={inp.options} onChange={(options) => set({ options })} step={1} hint="Fee only: price quality isn't reported" />
-          <Num label="Cash sitting idle" value={inp.idleCash} onChange={(idleCash) => set({ idleCash })} step={500} prefix="$" hint="Uninvested, on a typical day" />
+          <Num label="Options contracts per year" value={inp.options} onChange={(options) => set({ options })} step={1} />
+          <Num label="Cash sitting idle" value={inp.idleCash} onChange={(idleCash) => set({ idleCash })} step={500} prefix="$" hint="On a typical day" />
           <Num label="Borrowed on margin" value={inp.margin} onChange={(margin) => set({ margin })} step={500} prefix="$" hint="On a typical day" />
         </div>
       </Card>
 
-      <Card title="What a year of this costs at each broker" sub={`${lines.length} brokers · tap a bar to make it yours`} foot={foot}>
+      <Card title="Yearly cost at each broker" sub={`${lines.length} brokers · tap a bar to pick yours`} foot={foot}>
         {shown.length ? (
           <>
             <p className="text-[15.5px] leading-relaxed text-ink2">
-              {summary}{rank && me && <span className="text-muted"> {me.short} ranks #{rank} of {lines.length}{incomplete ? " (complete estimates listed first)" : ""}.</span>}
+              {summary}{rank && me && <span className="text-muted"> {me.short} ranks #{rank} of {lines.length}.</span>}
             </p>
-            <EChart option={chart} height={shown.length * 28 + 60} label="Yearly cost at each broker, split by source" onClick={(p) => { if (p.data?.id) choose(p.data.id); }} />
-            {incomplete > 0 && <p className="text-[12.5px] text-muted">* fees not available for part of the estimate: the bar shows only what could be worked out, and these brokers are listed after the complete ones.</p>}
-            {nobody.length > 0 && <p className="mt-1 text-[12.5px] text-muted">Not verified for any broker yet: {nobody.join(", ")}. That part is left out everywhere, so it doesn't change the order.</p>}
+            <EChart option={chart} height={shown.length * 28 + 60} label="Yearly cost by broker and source" onClick={(p) => { if (p.data?.id) choose(p.data.id); }} />
+            {starNote && <p className="text-[12.5px] text-muted">{starNote}.</p>}
+            {nobodyNote && <p className="mt-1 text-[12.5px] text-muted">{nobodyNote}.</p>}
           </>
-        ) : <Empty>No broker has price data for this trade size yet.</Empty>}
+        ) : empty}
       </Card>
 
       {lines.length > 0 && (
-        <Card title="The breakdown" sub="Dollars per year, by source. Click a heading to sort; click a row to make that broker yours.">
+        <Card title="The breakdown" sub="Dollars per year · tap a row to pick yours">
           <DataTable rows={lines} cols={cols} initial={{ key: "rank", dir: 1 }} search={(r) => r.name + " " + r.short} file="yearly-cost-by-broker.csv" onRow={(r) => choose(r.id)} />
         </Card>
       )}

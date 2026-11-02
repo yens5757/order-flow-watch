@@ -44,13 +44,13 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
   );
 }
 
-/** Section heading with an optional link on the right; wraps under the title on a phone. */
+/** Section heading with an optional sub line and an optional link on the right; wraps under the title on a phone. */
 function Heading({ title, sub, right }: { title: string; sub: ReactNode; right?: ReactNode }) {
   return (
     <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
       <div>
         <h2 className="font-display text-[28px] font-extrabold tracking-tight text-ink sm:text-[32px]">{title}</h2>
-        <p className="mt-1 text-[15px] text-ink2">{sub}</p>
+        {sub != null && <p className="mt-1 text-[15px] text-ink2">{sub}</p>}
       </div>
       {right}
     </div>
@@ -90,26 +90,26 @@ export default function Home({ d }: { d: Data }) {
   const chart = useMemo(() => ranked(t, rows.map((r) => ({
     id: r.id, name: r.f.short, v: r.cost10k!, hl: r.id === me?.id,
     rows: [[t.s[1], METRICS.cost10k.short, usd2(r.cost10k)], [t.s[0], METRICS.pay10k.short, r.pay10k == null ? "no report of its own" : usd2(r.pay10k)]],
-  })), { fmt: (v) => usd2(v), axis: usdTick, color: t.s[1], median: med, tone: "low-better", foot: "Click to see this broker above" }), [t, rows, me?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  })), { fmt: (v) => usd2(v), axis: usdTick, color: t.s[1], median: med, tone: "low-better" }), [t, rows, me?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const payLine = !me ? "" : me.pay10k == null ? "Files no payment report of its own (another firm routes its orders)."
-    : me.pay10k > 0.005 ? `Gets about ${usd2(me.pay10k)} from trading firms for sending them that order.`
-    : me.pay10k < -0.005 ? `Pays its trading firm about ${usd2(-me.pay10k)} to handle that order.`
-    : "Isn't paid for sending customer orders.";
-  const gapLine = !me || me.gap == null ? "Not enough detail to compare it on identical trades."
-    : me.gap < -3 ? "Gets better prices than most brokers on the exact same stocks."
-    : me.gap > 3 ? "Gets worse prices than most brokers on the exact same stocks."
-    : "About average on the exact same stocks.";
+    : me.pay10k > 0.005 ? `Paid about ${usd2(me.pay10k)} by trading firms for that order.`
+    : me.pay10k < -0.005 ? `Pays its trading firm about ${usd2(-me.pay10k)} for that order.`
+    : "Not paid for orders.";
+  const gapLine = !me || me.gap == null ? "No same-trade comparison available."
+    : me.gap < -3 ? "Better prices than most brokers on identical trades."
+    : me.gap > 3 ? "Worse prices than most brokers on identical trades."
+    : "About average on identical trades.";
   // fee facts checked by hand on the broker's own pages (fees.csv); each line only shows when the fact is verified
   const fee: Fee | undefined = me ? d.fees[me.id] : undefined;
   const cashLine = fee?.cashYield == null ? null
-    : fee.cashYield > 0 ? `Pays ${pct(fee.cashYield, 2)} a year on cash you leave uninvested.` : "Pays no interest on cash you leave uninvested.";
+    : fee.cashYield > 0 ? `${pct(fee.cashYield, 2)} a year on idle cash.` : "No interest on idle cash.";
   const optionsLine = fee?.optionsFee == null ? null
-    : fee.optionsFee > 0 ? `Charges ${usd2(fee.optionsFee)} per options contract.` : "Charges nothing per options contract.";
+    : fee.optionsFee > 0 ? `${usd2(fee.optionsFee)} per options contract.` : "$0 per options contract.";
   const tone = me && me.cost10k! <= med ? "text-better" : "text-worse";
   /** "pay $0.84 above the fair price" or, for a negative cost, "get $0.10 better than the fair price"; `gloss` explains the term at its first mention */
   const vsFair = (v: number | null | undefined, gloss = false) => {
-    const fair = gloss ? <>the fair price (the midpoint between the best buy and sell quotes at the time)</> : <>the fair price</>;
+    const fair = gloss ? <>the fair price (midpoint of the best buy and sell quotes)</> : <>the fair price</>;
     return v != null && v < 0 ? <>get {usd2(-v)} better than {fair}</> : <>pay {usd2(v)} above {fair}</>;
   };
   const scale = Math.max(0.01, ...rows.map((r) => r.cost10k!));
@@ -134,14 +134,13 @@ export default function Home({ d }: { d: Data }) {
         <div className="glow !inset-y-0 !left-1/2 !right-auto w-screen -translate-x-1/2" aria-hidden="true" />
         <div className="relative mx-auto max-w-3xl">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 px-3 py-1 text-[12.5px] font-medium text-ink2" title={`Data updated ${dayLong(d.meta.built.slice(0, 10))}`}>
-            <span className="h-2 w-2 rounded-full bg-[var(--good)]" />Updated weekly from the reports brokers must publish
+            <span className="h-2 w-2 rounded-full bg-[var(--good)]" />Updated weekly
           </div>
           <h1 className="font-display text-[40px] font-extrabold leading-[1.05] tracking-tight text-ink sm:text-[60px]">
             Is your broker getting you a <span className="grad-text">good price?</span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-[17.5px] leading-relaxed text-ink2">
-            When you buy a stock, your broker usually sends the order to a trading firm, and that firm often pays the broker for it.
-            We read the reports brokers must publish by law to show what that means for you.
+            Trading firms pay brokers for your orders. We read the official reports to show what that costs you.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <button type="button" onClick={toPicker} className={`${BTN} text-white shadow-card hover:-translate-y-0.5`} style={{ background: "var(--grad)" }}>
@@ -151,7 +150,7 @@ export default function Home({ d }: { d: Data }) {
               Compare two brokers<Icon name="arrow" size={16} />
             </a>
             <a href={href(pagePath("calculator"))} className={`${BTN} border border-line bg-surface text-ink hover:border-accent`}>
-              What does it cost you a year?<Icon name="arrow" size={16} />
+              Yearly cost<Icon name="arrow" size={16} />
             </a>
           </div>
         </div>
@@ -160,25 +159,24 @@ export default function Home({ d }: { d: Data }) {
       {/* ---------- three numbers ---------- */}
       <section className="grid grid-cols-1 gap-5 md:grid-cols-3">
         <Stat icon="scale" label="Price gap between brokers" value={hero.length ? usd2(hero[hero.length - 1].cost10k! - hero[0].cost10k!) : "–"}>
-          For every $10,000 of market orders in big-company (S&P 500) stocks, {hero[0]?.f.short} customers {vsFair(hero[0]?.cost10k, true)}; {hero[hero.length - 1]?.f.short} customers {vsFair(hero[hero.length - 1]?.cost10k)}.
-          All order sizes under $200,000 are averaged, so large orders weigh most.
+          Per $10,000 of S&P 500 market orders, {hero[0]?.f.short} customers {vsFair(hero[0]?.cost10k, true)}; {hero[hero.length - 1]?.f.short} customers {vsFair(hero[hero.length - 1]?.cost10k)}.
         </Stat>
         <Stat icon="coins" label="Paid to brokers for orders" value={dollars(paid)}>
-          Trading firms paid the brokers we track this much in {quarterLong(lastQ)}. {optPct}% of it was for options trades.
+          Paid by trading firms in {quarterLong(lastQ)}.
         </Stat>
         <Stat icon="users" label="Does getting paid hurt you?" value={paidHurts ? "Not by itself" : "Not clearly"}>
           {paidHurts
-            ? <>Brokers that are paid more do get slightly worse prices on stocks outside the S&P 500, but that comes down to the cheaper shares their customers tend to trade, not the payment. Which broker you use matters more.</>
+            ? <>Paid-more brokers do slightly worse outside the S&P 500, but cheap shares explain it, not payment.</>
             : rawY
-              ? <>Across the {rawY.n} brokers that report both, being paid more doesn't reliably go with worse prices. Which broker you use matters more than whether it's paid.</>
-              : <>Brokers that are paid more don't reliably give worse prices. Which broker you use matters more than whether it's paid.</>}
+              ? <>Across {rawY.n} brokers, payment doesn't reliably predict price; your choice of broker matters more.</>
+              : <>Payment doesn't reliably predict price; your choice of broker matters more.</>}
         </Stat>
       </section>
 
       {/* ---------- your broker ---------- */}
       <section ref={card} tabIndex={-1} className="scroll-mt-24 pt-14 outline-none">
         <Heading title="How does your broker do?"
-          sub={<>Pick a broker. Everything is per $10,000 of market orders, averaged over all order sizes under $200,000. The average is weighted by shares, so a broker's largest orders count most; for your own trade size, use <a href={calculatorHref(pick)} className="font-semibold text-accent">the calculator</a>.</>}
+          sub={<>Per $10,000 of market orders, all sizes under $200,000 averaged, so large orders weigh most. For your own trade size, use <a href={calculatorHref(pick)} className="font-semibold text-accent">the calculator</a>.</>}
           right={
             <div className="flex flex-wrap items-center gap-3">
               <Segmented size="sm" label="Stocks" value={sp} onChange={setSp} options={STOCKS} />
@@ -195,22 +193,21 @@ export default function Home({ d }: { d: Data }) {
                 <span className="text-[15px] text-ink2">extra per $10,000 traded</span>
               </div>
               <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-line bg-surface2 px-3 py-1 text-[13px] font-semibold text-ink">
-                #{rank} cheapest of {rows.length} brokers per $10,000 traded
+                #{rank} cheapest of {rows.length} brokers
               </div>
               <ul className="mt-6 space-y-3.5 text-[15px] text-ink2">
                 <li className="flex gap-3"><Icon name="coins" size={19} className="mt-0.5 text-[var(--s1)]" />{payLine}</li>
                 <li className="flex gap-3"><Icon name="scale" size={19} className="mt-0.5 text-accent" />{gapLine}</li>
                 {cashLine && <li className="flex gap-3"><Icon name="chart" size={19} className="mt-0.5 text-[var(--s5)]" />{cashLine}</li>}
                 {optionsLine && <li className="flex gap-3"><Icon name="layers" size={19} className="mt-0.5 text-[var(--s8)]" />{optionsLine}</li>}
-                <li className="flex gap-3"><Icon name="info" size={19} className="mt-0.5 text-muted" />"Fair price" = halfway between the best price you could buy at and the best you could sell at when you traded (the midpoint).</li>
               </ul>
               <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2">
-                <a href={href(brokerPath(me.f.slug))} className={LINK}>Full report for {me.f.short}<Icon name="arrow" size={15} /></a>
-                <a href={href(comparePath(me.f.slug, slugOf(d, compareWith(me.id))))} className={LINK}>Compare {me.f.short} with…<Icon name="arrow" size={15} /></a>
+                <a href={href(brokerPath(me.f.slug))} className={LINK}>Full report<Icon name="arrow" size={15} /></a>
+                <a href={href(comparePath(me.f.slug, slugOf(d, compareWith(me.id))))} className={LINK}>Compare with…<Icon name="arrow" size={15} /></a>
               </div>
             </Card>
 
-            <Card title="Compared with other brokers" sub={METRICS.cost10k.label}>
+            <Card title="Compared with other brokers">
               <div className="space-y-5 pt-1">
                 {compare.map(([label, r]) => {
                   const v = r ? r.cost10k! : med, mine = r?.id === me.id;
@@ -235,25 +232,25 @@ export default function Home({ d }: { d: Data }) {
         )}
 
         <Card className="mt-5" title="What each broker costs per $10,000 traded"
-          sub={`Extra paid above the fair price · ${sp === "Y" ? "big-company (S&P 500)" : "other"} stocks · market orders under $200,000, averaged · tap a bar to check that broker`}>
+          sub={`${sp === "Y" ? "S&P 500" : "Other"} stocks · tap a bar`}>
           <EChart option={chart} height={rows.length * 27 + 40} label="Extra cost per $10,000 traded at each broker"
             onClick={(p) => { if (p.data?.id) { choose(p.data.id); toPicker(); } }} />
           <ChartTable head={["Broker", METRICS.cost10k.short, METRICS.pay10k.short]}
             rows={rows.map((r) => [r.f.short, usd2(r.cost10k), r.pay10k == null ? "no report of its own" : usd2(r.pay10k)])} />
-          <a href={`${href(pagePath("brokers"))}?m=cost10k&vs=pay10k${sp === "N" ? "&sp=N" : ""}`} className={`mt-2 ${LINK}`}>Explore these numbers with filters<Icon name="arrow" size={15} /></a>
+          <a href={`${href(pagePath("brokers"))}?m=cost10k&vs=pay10k${sp === "N" ? "&sp=N" : ""}`} className={`mt-2 ${LINK}`}>Explore with filters<Icon name="arrow" size={15} /></a>
         </Card>
       </section>
 
       {/* ---------- a year of trading ---------- */}
       <section className="pt-14">
-        <Heading title="What your broker costs you in a year" sub="A few cents a trade adds up. Type in how often and how much you trade to see the yearly total at each broker."
-          right={<a href={calculatorHref(pick)} className={LINK}>Open the full calculator<Icon name="arrow" size={15} /></a>} />
+        <Heading title="What your broker costs you in a year" sub={null}
+          right={<a href={calculatorHref(pick)} className={LINK}>Full calculator<Icon name="arrow" size={15} /></a>} />
         <Estimator d={d} compact broker={pick} onBroker={choose} />
       </section>
 
       {/* ---------- popular comparisons ---------- */}
       <section className="pt-14">
-        <Card title="Popular comparisons" sub="Two brokers side by side: prices, fees and what you'd pay"
+        <Card title="Popular comparisons"
           right={<a href={href(pagePath("compare"))} className={LINK}>Pick any two<Icon name="arrow" size={15} /></a>}>
           <div className="flex flex-wrap gap-2.5">
             {pairs.map((p) => (
@@ -273,14 +270,14 @@ export default function Home({ d }: { d: Data }) {
           {[
             ["coins", "Getting paid doesn't predict the price",
               unpaidPricey.length
-                ? <>{topPaid.map((r) => r.f.short).join(" and ")} are paid the most for orders, yet {unpaidPricey.map((r) => r.f.short).join(" and ")}, which {unpaidPricey.length > 1 ? "aren't" : "isn't"} paid at all, {unpaidPricey.length > 1 ? "cost" : "costs"} customers more.</>
-                : <>{topPaid.map((r) => r.f.short).join(" and ")} are paid the most for orders, but how much a broker is paid only weakly predicts what its customers pay.</>,
+                ? <>{topPaid.map((r) => r.f.short).join(" and ")} are paid the most, yet unpaid {unpaidPricey.map((r) => r.f.short).join(" and ")} {unpaidPricey.length > 1 ? "cost" : "costs"} customers more.</>
+                : <>{topPaid.map((r) => r.f.short).join(" and ")} are paid the most, but payment only weakly predicts what customers pay.</>,
               `${pagePath("brokers")}?m=cost10k&vs=pay10k`, "See payment vs price"],
             ["scale", "Same stock, very different price",
-              <>Comparing the exact same trades, {gaps[0]?.f.short} customers get the best prices and {gaps[gaps.length - 1]?.f.short} customers the worst, even when the same trading firms fill them.</>,
+              <>Same trading firms, yet {gaps[0]?.f.short} customers get the best prices and {gaps[gaps.length - 1]?.f.short} the worst on identical trades.</>,
               `${pagePath("brokers")}?m=gap`, "See every broker"],
             ["layers", "Most of the money is in options",
-              <>{optPct}% of the {dollars(paid)} paid to brokers in {quarterLong(lastQ)} was for options trades, which these price reports don't cover at all.</>,
+              <>{optPct}% of the {dollars(paid)} paid in {quarterLong(lastQ)} was for options, which the price reports don't cover.</>,
               pagePath("how-we-measure"), "See how we measure"],
           ].map(([icon, title, text, path, cta]) => (
             <Card key={title as string} className="flex flex-col">
@@ -298,16 +295,15 @@ export default function Home({ d }: { d: Data }) {
         <Card>
           <h2 className="font-display text-[24px] font-extrabold tracking-tight text-ink">How your order gets filled</h2>
           <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-3">
-            <Step n={1} title="You place an order">You tap "buy" for a few shares of a stock in your broker's app.</Step>
-            <Step n={2} title="Your broker sends it on">Most brokers pass it to a trading firm (a "market maker"), which may pay the broker for the business.</Step>
-            <Step n={3} title="The trading firm fills it">You get a price somewhere between the best price you could buy at and the best you could sell at. The closer to the middle (the fair price), the better for you.</Step>
+            <Step n={1} title="You place an order">You tap "buy" in your broker's app.</Step>
+            <Step n={2} title="Your broker sends it on">Usually to a trading firm (a "market maker"), which may pay the broker for it.</Step>
+            <Step n={3} title="The trading firm fills it">Your price lands between the best buy and sell quotes; every cent a share off the middle (the fair price) is $1 on a $10,000 trade.</Step>
           </div>
           <div className="mt-8 rounded-xl bg-surface2 p-5">
-            <div className="grid grid-cols-3 gap-2 text-[12.5px] text-muted"><span>You could sell at $99.97</span><span className="text-center font-semibold text-ink">Fair price $100.00</span><span className="text-right">You could buy at $100.03</span></div>
+            <div className="grid grid-cols-3 gap-2 text-[12.5px] text-muted"><span>Sell at $99.97</span><span className="text-center font-semibold text-ink">Fair price $100.00</span><span className="text-right">Buy at $100.03</span></div>
             <div className="relative mt-3 h-2.5 rounded-full" style={{ background: "linear-gradient(90deg, var(--better), var(--context), var(--worse))" }}>
               <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[var(--surface-2)] bg-ink" />
             </div>
-            <p className="mt-3 text-[13.5px] text-ink2">Buying at $100.01 instead of $100.00 costs a cent a share: $1 on a $10,000 trade of 100 shares. Small per trade, big across millions of trades.</p>
           </div>
         </Card>
       </section>
@@ -317,22 +313,12 @@ export default function Home({ d }: { d: Data }) {
         <div className="relative overflow-hidden rounded-3xl p-8 text-white shadow-card sm:p-12" style={{ background: "var(--grad)" }}>
           <div className="relative max-w-2xl">
             <h2 className="font-display text-[28px] font-extrabold tracking-tight sm:text-[34px]">Want to dig deeper?</h2>
-            <p className="mt-3 text-[16px] leading-relaxed text-white/85">
-              Put two brokers side by side, work out what a year of your own trading costs at each one, or open the explorer:
-              pick what to measure, filter by stock type, order size and quarter, and sort every broker. The charts update as you go.
-            </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a href={href(pagePath("brokers"))} className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-[15px] font-semibold text-[#1b2a55] hover:bg-white/90">
                 Open the explorer<Icon name="arrow" size={16} />
               </a>
-              <a href={pairHref(firstPair)} className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-[15px] font-semibold text-white hover:bg-white/20">
-                Compare two brokers
-              </a>
-              <a href={href(pagePath("calculator"))} className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-[15px] font-semibold text-white hover:bg-white/20">
-                Yearly cost calculator
-              </a>
               <button type="button" onClick={() => go(pagePath("trading-firms"))} className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-[15px] font-semibold text-white hover:bg-white/20">
-                Meet the trading firms
+                Trading firms
               </button>
             </div>
           </div>

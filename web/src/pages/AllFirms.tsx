@@ -53,13 +53,13 @@ export default function AllFirms({ d, f, set }: { d: Data; f: Filters; set: (p: 
   return (
     <div className="rise">
       <PageHeader eyebrow="All firms" title="Every firm that reports how well it fills orders"
-        sub={`${data.length} firms publish a monthly report on how well they fill orders (SEC Rule 605): brokers, wealth managers, trading firms (market makers) and exchanges.`} />
+        sub={`${data.length} firms file a monthly price report (SEC Rule 605).`} />
       <FilterBar d={d} f={f} set={set} show={["sp", "ot", "b", "month"]} />
       <div className="space-y-5">
-        <Card title="Where the brokers on this site sit among every firm" sub={`${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot].toLowerCase()} orders · ${BUCKET_LABEL[f.b].toLowerCase()} · one dot per firm`}
+        <Card title="Where the brokers on this site sit among every firm" sub={`${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot].toLowerCase()} orders · ${BUCKET_LABEL[f.b].toLowerCase()}`}
           right={<Legend items={[{ color: t.s[0], label: "Broker on this site" }, { color: t.context, label: "Other firm" }]} />}
-          foot={<>The chart leaves off firms whose customers pay less than −50% or more than 250% of the spread ({cut.length === 0 ? "none this month" : cut.length > 5 ? `${cut.length} firms this month` : `this month: ${cut.map((r) => r.name).join(", ")}`}); they stay in the table below.</>}>
-          <EChart option={chart} height={360} label="Share of the spread customers pay at every reporting firm, grouped by type"
+          foot={<>Left off the chart: firms whose customers pay under −50% or over 250% of the spread ({cut.length === 0 ? "none this month" : cut.length > 5 ? `${cut.length} firms this month` : `this month: ${cut.map((r) => r.name).join(", ")}`}); they stay in the table below.</>}>
+          <EChart option={chart} height={360} label="Customer pays, by firm group"
             onClick={(p) => p.data?.hl && go(brokerPath(slugOf(d, p.data.id)))} />
         </Card>
         <Card title="All firms" right={<Segmented size="sm" label="Firm group" value={group} onChange={setGroup} options={[[-1, "All"], ...GROUPS.map(([, p], i) => [i, p] as [number, string])]} />}>

@@ -11,8 +11,8 @@ const label = (u: string) => { const s = u.replace(/^https?:\/\/(www\.)?/, "").r
 
 const CONFIDENCE: Record<Fee["confidence"], string | null> = {
   high: null,
-  medium: "Partly confirmed: some of these facts could not be read from the broker's own pages.",
-  low: "Low confidence: these facts could not be confirmed on the broker's own pages yet.",
+  medium: "Partly confirmed on the broker's own pages.",
+  low: "Not yet confirmed on the broker's own pages.",
 };
 
 export function FeesCard({ d, id }: { d: Data; id: string }) {
@@ -21,19 +21,19 @@ export function FeesCard({ d, id }: { d: Data; id: string }) {
   const fee: Fee | undefined = d.fees[id];
   const checkedIso = d.meta.feesChecked ?? fee?.checked;
   const when = checkedIso ? `checked ${dayLong(checkedIso)}` : "check date unknown";
-  // [label, formatted value or null when not verified, one-line gloss]; a product the broker doesn't have says so
+  // [label, formatted value or null when not verified, one-clause gloss]; a product the broker doesn't have says so
   const na = (k: Fee["notOffered"][number]) => (fee?.notOffered.includes(k) ? "Not offered" : null);
   const rows: [string, string | null, string][] = fee ? [
     ["Commission per stock trade", fee.commission == null ? na("commission") : money(fee.commission),
-      "Charged on each online stock or ETF trade. Nearly every broker charges $0, so the cost hides in the price you get."],
+      "Per online stock or ETF trade; most brokers charge $0."],
     ["Options, per contract", fee.optionsFee == null ? na("optionsFee") : money(fee.optionsFee),
-      "To open an options trade, on top of any per-trade commission. The official price reports don't cover options, so this is the fee only; the prices options orders get aren't reported."],
+      "On top of any commission; the price reports don't cover options."],
     ["Margin interest rate", fee.marginRate == null ? na("marginRate") : pct(fee.marginRate, 2),
-      "Yearly interest on money borrowed against your account, at about a $25,000 balance: the standard rate, not a new-account or promotional one."],
+      "Yearly, standard rate at about a $25,000 balance."],
     ["Interest on idle cash", fee.cashYield == null ? na("cashYield") : pct(fee.cashYield, 2),
-      "Yearly interest (APY) on uninvested cash in a standard account, not a paid tier or a separate cash product."],
+      "Yearly (APY) on uninvested cash in a standard account."],
     ["Full transfer out", fee.transferOut == null ? na("transferOut") : money(fee.transferOut),
-      "One-off fee to move your whole account to another broker."],
+      "To move your whole account to another broker."],
   ] : [];
   const known = rows.filter((r) => r[1] != null).length;
   // BrokerCheck lookups back the CRD, not the fees; the trust card covers that side
@@ -42,12 +42,12 @@ export function FeesCard({ d, id }: { d: Data; id: string }) {
 
   const body = !fee ? (
     <Empty><span className="px-6">{firm?.type === "clearing_firm"
-      ? `${short} is a clearing firm that settles trades for other brokers, not an account you open yourself, so there is no retail fee schedule.`
-      : `We haven't checked ${short}'s fees yet.`}</span></Empty>
+      ? `${short} is a clearing firm that settles trades for other brokers; it has no retail fee schedule.`
+      : `${short}'s fees aren't checked yet.`}</span></Empty>
   ) : !fee.retail ? (
-    <Empty><span className="px-6">{short} doesn't offer an account you manage yourself: its accounts come with an advisor and a fee schedule of their own, so there is no public price list to compare.</span></Empty>
+    <Empty><span className="px-6">{short} offers advisor-managed accounts only, with no public price list.</span></Empty>
   ) : known === 0 ? (
-    <Empty><span className="px-6">No fee could be confirmed on {short}'s own pages yet. Most US brokers charge $0 per stock trade; what differs is the price you get.</span></Empty>
+    <Empty><span className="px-6">No fee confirmed on {short}'s own pages yet. Most brokers charge $0 per stock trade.</span></Empty>
   ) : (
     <ul className="divide-y divide-line">
       {rows.map(([name, value, gloss]) => (
@@ -64,7 +64,7 @@ export function FeesCard({ d, id }: { d: Data; id: string }) {
 
   const foot = fee && fee.retail ? (
     <>
-      {known > 0 ? <>From {short}'s own price list, {when}.</> : <>Fees {when}.</>}
+      {known > 0 ? <>{short}'s price list, {when}.</> : <>Fees {when}.</>}
       {sources.length > 0 && <> Sources: {sources.map((u, i) => (
         <span key={u}>{i > 0 && ", "}<a href={u} target="_blank" rel="noopener" className="text-accent hover:underline">{label(u)}</a></span>
       ))}.</>}
@@ -73,7 +73,7 @@ export function FeesCard({ d, id }: { d: Data; id: string }) {
   ) : undefined;
 
   return (
-    <Card title={`What ${short} charges`} sub="Published fees for a standard account you manage yourself"
+    <Card title={`What ${short} charges`} sub="For a standard self-directed account"
       right={<a href={`${href(pagePath("brokers"))}?m=commission`} className="-my-2.5 inline-flex items-center gap-1.5 py-2.5 text-[13px] font-semibold text-accent">Every broker's fees<Icon name="arrow" size={14} /></a>}
       foot={foot}>
       {body}

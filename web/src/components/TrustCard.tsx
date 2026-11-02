@@ -21,24 +21,24 @@ export function TrustCard({ d, firm }: { d: Data; firm: Firm }) {
   const rows: { kind: "good" | "bad" | "neutral"; chip: string; text: ReactNode; gloss: string }[] = [
     crd
       ? { kind: "good", chip: "Registered", text: <>Registered with FINRA, CRD {crd}. {ext(BROKERCHECK + crd, "BrokerCheck record")}</>,
-        gloss: "FINRA's public file on the firm: licences, history and any disciplinary events." }
+        gloss: "Licences, history and any disciplinary events." }
       : { kind: "neutral", chip: "Not found", text: <>FINRA record not found yet. {ext("https://brokercheck.finra.org/", "Search BrokerCheck")}</>,
-        gloss: "We haven't found this broker's FINRA record yet; search BrokerCheck by its name." },
+        gloss: "Search by the broker's name." },
     { kind: sipc === true ? "good" : sipc === false ? "bad" : "neutral", chip: sipc === true ? "Member" : sipc === false ? "Not a member" : "Not checked",
       text: <>SIPC member: {sipc === true ? "yes" : sipc === false ? "no" : "unknown"}. {ext(SIPC_LIST, "SIPC member list")}</>,
-      gloss: "SIPC returns customers' securities and cash (up to $500,000) if a member broker fails. It does not cover market losses." },
+      gloss: "Up to $500,000 of securities and cash back if the broker fails; not market losses." },
     { kind: "good", chip: "Published", text: <>Publishes the monthly price report (SEC Rule 605)</>,
-      gloss: "The monthly report the price figures on this page come from." },
+      gloss: "Where this page's prices come from." },
     has606
       ? { kind: "good", chip: "Published", text: <>Reports what it is paid for orders (SEC Rule 606)</>,
-        gloss: "The quarterly report of where its orders go and what it is paid for them." }
+        gloss: "Also where its orders go." }
       : { kind: "neutral", chip: "Via another firm", text: <>Files no payment report of its own</>,
-        gloss: "Usually another firm routes its orders, so what it is paid isn't visible here." },
+        gloss: "Another firm routes its orders." },
   ];
 
   return (
-    <Card title={`Is ${firm.short} registered?`} sub="Registration and the reports it publishes"
-      foot="These are registration facts, not an endorsement: a registered broker can still get you poor prices, and that is what the rest of this page measures.">
+    <Card title={`Is ${firm.short} registered?`} sub="Regulator records"
+      foot="Not an endorsement: a registered broker can still get you poor prices.">
       <ul className="divide-y divide-line">
         {rows.map((r) => (
           <li key={r.chip + r.gloss} className="flex items-start justify-between gap-3 py-2.5">

@@ -13,7 +13,7 @@ export function FilterBar({ d, f, set, show }: { d: Data; f: Filters; set: (p: P
         {show.includes("ot") && (
           <span className="inline-flex items-center gap-1.5">
             <Segmented<Ot> label="Order type" value={f.ot} onChange={(ot) => set({ ot })} options={[["M", "Market orders"], ["ML", "Marketable limit"]]} />
-            <Info>Market orders fill right away at the best available price. Marketable limit orders set a price cap but can still fill immediately.</Info>
+            <Info>Market orders fill at once; marketable limit orders add a price cap.</Info>
           </span>
         )}
         {show.includes("b") && <Select<number> label="Order size" value={f.b} onChange={(b) => set({ b })} options={BUCKETS} />}
@@ -24,7 +24,7 @@ export function FilterBar({ d, f, set, show }: { d: Data; f: Filters; set: (p: P
         {show.includes("clearing") && (
           <span className="inline-flex items-center gap-1.5">
             <Switch label="Show Apex Clearing" checked={f.clearing} onChange={(clearing) => set({ clearing })} />
-            <Info>Apex handles orders behind the scenes for several of these brokers. You can't open an account there, so it is hidden by default.</Info>
+            <Info>Apex routes orders for several brokers; you can't open an account there.</Info>
           </span>
         )}
       </div>

@@ -21,8 +21,8 @@ const isKey = (v: string | null): v is MetricKey => !!v && (METRIC_KEYS as strin
 const isFee = (k: MetricKey | ""): boolean => k !== "" && METRICS[k].source === "published";
 // the fee group's heading also carries the date the fees were last checked (meta.feesChecked), added where it renders
 const MEASURE_GROUPS: [string, MetricKey[]][] = [
-  ["Prices and payments (from the official reports)", METRIC_KEYS.filter((k) => !isFee(k))],
-  ["Fees (from each broker's price list)", METRIC_KEYS.filter((k) => isFee(k))],
+  ["Prices and payments", METRIC_KEYS.filter((k) => !isFee(k))],
+  ["Fees", METRIC_KEYS.filter((k) => isFee(k))],
 ];
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const defaults = (d: Data): S => ({ m: "cost10k", vs: "", sp: "Y", ot: "M", b: 199999, q: d.meta.quarter, sort: "best", ex: [], paid: false, clr: false });
@@ -101,7 +101,7 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
       medians: [median(withV.map((r) => V.get(r)!)) ?? 0, med ?? 0],
     })
     : ranked(t, sorted.map((r) => ({ id: r.id, name: r.f.short, v: M.get(r)!, rows: tipRows(r) })), {
-      fmt: (v) => M.fmt(v), axis: M.axis, color: t.s[M.slot], diverging: M.diverging, median: med, foot: "Click for the broker's full report",
+      fmt: (v) => M.fmt(v), axis: M.axis, color: t.s[M.slot], diverging: M.diverging, median: med,
     })), [t, s, all]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // fee measures: a broker without a confirmed figure is left out of the chart and the sentence, never scored as zero
@@ -118,49 +118,49 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
     : rs.map((r, i) => <Fragment key={r.id}>{i > 0 && (i === rs.length - 1 ? " and " : ", ")}<b>{r.f.short}</b></Fragment>);
   let summary: ReactNode;
   if (n === 0) {
-    summary = feeMissing ? <>We haven't confirmed <b>{feeSide!.noun}</b> for any broker yet.</> : <>No broker has data for this combination.</>;
+    summary = feeMissing ? <>We haven't confirmed <b>{feeSide!.noun}</b> for any broker yet.</> : <>No data for this combination.</>;
   } else if (V && n < 4) {
-    summary = <>Only {n} of the {shown.length} brokers shown have both numbers; it takes at least four to see a pattern.</>;
+    summary = <>Only {n} of {shown.length} brokers have both numbers; at least four are needed.</>;
   } else if (V) {
     const xs = withV.map((r) => V.get(r)!), ys = withV.map((r) => M.get(r)!);
     const rho = spearman(xs, ys);
     if (rho == null) {
       const same = new Set(xs).size === 1 ? V : M; // one side has no spread at all (every commission is $0)
-      summary = <>Every broker with data has the same <b>{same.noun}</b> ({same.fmt(same.get(withV[0]))}), so there is nothing to compare it against.</>;
+      summary = <>Every broker has the same <b>{same.noun}</b> ({same.fmt(same.get(withV[0]))}): nothing to compare.</>;
     } else {
       const a = Math.abs(rho), way = rho > 0 ? "higher" : "lower";
       // wording follows the strength labels in format.ts, so the sentence never claims more than the number shows
       summary = a < 0.2
-        ? <>No clear pattern: a broker's <b>{V.noun}</b> tells you little about its <b>{M.noun}</b>.</>
+        ? <>No clear pattern between <b>{V.noun}</b> and <b>{M.noun}</b>.</>
         : a < 0.4
-          ? <>At most a weak tendency: brokers with a higher <b>{V.noun}</b> have a slightly {way} <b>{M.noun}</b>, but with only {n} brokers that could easily be chance.</>
+          ? <>A weak tendency at most: higher <b>{V.noun}</b>, slightly {way} <b>{M.noun}</b>; with {n} brokers it could be chance.</>
           : <>Brokers with a higher <b>{V.noun}</b> tend to have a {way} <b>{M.noun}</b>.</>;
       const across = (a >= 0.2 && a < 0.4) || missing ? "" : ` across ${n} brokers`; // the weak case and the note below already name the count
-      summary = <>{summary} <span className="text-muted">How closely the two move together: {rho.toFixed(2)} on a scale from −1 to 1 ({strength(rho)}){across}.</span></>;
+      summary = <>{summary} <span className="text-muted">{rho.toFixed(2)} on a −1 to 1 scale ({strength(rho)}){across}.</span></>;
     }
   } else if (n === 1) {
     summary = <>Only <b>{withV[0].f.short}</b> has this number: {M.fmt(M.get(withV[0]))}.</>;
   } else if (M.get(lo) === M.get(hi)) {
-    summary = <>All {n} brokers with data have the same <b>{M.noun}</b>: {M.fmt(M.get(lo))}.</>;
+    summary = <>All {n} brokers have the same <b>{M.noun}</b>: {M.fmt(M.get(lo))}.</>;
   } else if (M.better) {
     const bs = at(M.get(best)!), ws = at(M.get(worst)!);
-    summary = <>{who(bs)} {bs.length > 1 ? "do" : "does"} best ({M.fmt(M.get(best))}) and {who(ws)} worst ({M.fmt(M.get(worst))}). The typical broker: {M.fmt(med)}.</>;
+    summary = <>{who(bs)} best ({M.fmt(M.get(best))}), {who(ws)} worst ({M.fmt(M.get(worst))}); typical broker {M.fmt(med)}.</>;
   } else {
     // no better direction (speed, order size, payment): give the range, which reads the same way for every unit
-    summary = <>{cap(M.noun)} ranges from {M.fmt(M.get(lo))} ({who(at(M.get(lo)!))}) to {M.fmt(M.get(hi))} ({who(at(M.get(hi)!))}). The typical broker: {M.fmt(med)}.</>;
+    summary = <>{cap(M.noun)} ranges from {M.fmt(M.get(lo))} ({who(at(M.get(lo)!))}) to {M.fmt(M.get(hi))} ({who(at(M.get(hi)!))}); typical broker {M.fmt(med)}.</>;
   }
   if (n > 0 && missing > 0) {
     const what = V ? "both numbers" : isFee(s.m) ? "a confirmed fee" : "this number";
-    summary = <>{summary} <span className="text-muted">Only {n} of the {shown.length} brokers shown have {what}; the other {missing} {missing === 1 ? "is" : "are"} left out, not scored.</span></>;
+    summary = <>{summary} <span className="text-muted">{n} of {shown.length} brokers have {what}; the rest aren't scored.</span></>;
   }
 
-  const scope = `${s.sp === "Y" ? "Big-company (S&P 500)" : "Other"} stocks · ${s.ot === "M" ? "market" : "marketable limit"} orders · ${BUCKET_LABEL[s.b].toLowerCase()} · payments ${quarterLong(s.q)}`;
-  const feeScope = `fees from each broker's price list${d.meta.feesChecked ? `, checked ${dayLong(d.meta.feesChecked)}` : ""}`;
+  const scope = `${s.sp === "Y" ? "S&P 500" : "Other"} stocks · ${s.ot === "M" ? "market" : "marketable limit"} orders · ${BUCKET_LABEL[s.b].toLowerCase()} · payments ${quarterLong(s.q)}`;
+  const feeScope = `fees${d.meta.feesChecked ? ` checked ${dayLong(d.meta.feesChecked)}` : ""}`;
   const sub = isFee(s.m) && (!V || isFee(s.vs)) ? cap(feeScope) : feeOn ? `${scope} · ${feeScope}` : scope;
   const usesGap = s.m === "gap" || s.vs === "gap";
   const foot = [
-    usesGap ? "The same-trade comparison always uses market orders of every size, so it doesn't change with the order filters." : "",
-    feeOn ? "Fees come from each broker's price list, not from the reports: the stock and order filters don't change them, and a broker without a confirmed figure is left out rather than scored." : "",
+    usesGap ? "Same-trade gap: market orders of every size; the order filters don't apply." : "",
+    feeOn ? "Fees ignore the stock and order filters; a broker without a confirmed figure is left out." : "",
   ].filter(Boolean).join(" ");
   const sortOpts: [Sort, string][] = M.better ? [["best", "Best first"], ["worst", "Worst first"], ["az", "A–Z"]] : [["best", "High → low"], ["worst", "Low → high"], ["az", "A–Z"]];
   const changed = JSON.stringify(s) !== JSON.stringify(def);
@@ -196,12 +196,12 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
           ))}
         </div>
       </Group>
-      <Group title="Compare with" info="Pick a second measure to see every broker as a dot: does one measure go with the other?">
+      <Group title="Compare with" info="Plots every broker as a dot.">
         <Select full label="Compare with" value={s.vs} onChange={(vs) => set({ vs: vs as MetricKey | "" })}
           options={[["", "Nothing (ranked list)"], ...METRIC_KEYS.filter((k) => k !== s.m).map((k) => [k, METRICS[k].label + (noData(k) ? " · no data yet" : "")] as [string, string])]} />
       </Group>
-      <Group title="Stocks"><Segmented size="sm" label="Stocks" value={s.sp} onChange={(sp) => set({ sp })} options={[["Y", "Big companies (S&P 500)"], ["N", "Other stocks"]]} /></Group>
-      <Group title="Order" info="Market orders fill right away at the best available price. Marketable limit orders set a price cap but can still fill immediately.">
+      <Group title="Stocks"><Segmented size="sm" label="Stocks" value={s.sp} onChange={(sp) => set({ sp })} options={[["Y", "S&P 500"], ["N", "Other stocks"]]} /></Group>
+      <Group title="Order" info="Market orders fill at once; marketable limit orders add a price cap.">
         <div className="space-y-2.5">
           <Segmented size="sm" label="Order type" value={s.ot} onChange={(ot) => set({ ot })} options={[["M", "Market"], ["ML", "Marketable limit"]]} />
           <Select full label="Order size" value={s.b} onChange={(b) => set({ b })} options={BUCKETS} />
@@ -229,13 +229,13 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
           <Switch label="Only brokers paid for orders" checked={s.paid} onChange={(paid) => set({ paid })} />
           <div className="flex items-center gap-1.5">
             <Switch label="Show Apex Clearing" checked={s.clr} onChange={(clr) => set({ clr })} />
-            <Info>Apex handles orders behind the scenes for several of these brokers. You can't open an account there, so it is hidden by default.</Info>
+            <Info>Apex routes orders for several brokers; you can't open an account there.</Info>
           </div>
         </div>
       </Group>
       {changed && (
         <button type="button" onClick={() => setS(def)} className="mt-4 w-full rounded-xl border border-line py-2 text-[13px] font-semibold text-ink2 hover:border-accent hover:text-ink">
-          Reset everything
+          Reset
         </button>
       )}
     </Card>
@@ -244,11 +244,11 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
   return (
     <div className="rise">
       <PageHeader eyebrow="Brokers" title="Every broker, every number"
-        sub="Choose what to measure, filter and sort. The chart, the summary and the table all update as you go, and the link in your address bar saves your view." />
+        sub="The link in your address bar saves your view." />
 
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open}
         className="mb-4 inline-flex w-full items-center justify-between rounded-xl border border-line bg-surface px-4 py-3 text-[14px] font-semibold text-ink lg:hidden">
-        Measure, filters &amp; sorting<Icon name="right" size={16} className={`transition-transform ${open ? "rotate-90" : ""}`} />
+        Measure &amp; filters<Icon name="right" size={16} className={`transition-transform ${open ? "rotate-90" : ""}`} />
       </button>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
@@ -265,11 +265,11 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
             {withV.length ? (
               <EChart option={chart} height={V ? 460 : Math.max(240, sorted.length * 28 + 50)} label={`${M.label} by broker`}
                 onClick={(p) => p.data?.id && go(brokerPath(slugOf(d, p.data.id)))} />
-            ) : feeMissing ? <p className="text-[13.5px] text-muted">We haven't confirmed {feeSide!.label.toLowerCase()} for any broker yet, so there is nothing to chart. Pick another measure on the left.</p>
-              : <Empty>No broker has data for this combination. Try another order size or stock type.</Empty>}
+            ) : feeMissing ? <p className="text-[13.5px] text-muted">Pick another measure.</p>
+              : <Empty>Try another order size or stock type.</Empty>}
           </Card>
 
-          <Card title="Every number in one table" sub="Same filters as the chart · click a column to sort · click a row for the broker's report"
+          <Card title="Every number in one table" sub="Click a row for the broker's report"
             right={<a href={href(pagePath("firms"))} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent">Every firm that reports ({Object.keys(d.reporters).length})<Icon name="arrow" size={14} /></a>}>
             <DataTable key={`${s.m}-${s.sort}`} rows={shown} cols={cols} highlight={[s.m, s.vs]}
               initial={s.sort === "az" ? { key: "name", dir: 1 } : { key: s.m, dir: ((M.better ? dir : -1) * (s.sort === "worst" ? -1 : 1)) as 1 | -1 }}

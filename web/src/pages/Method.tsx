@@ -51,9 +51,9 @@ function paidAnswer(x: Tests): ReactNode {
     <p>
       <b className="font-semibold text-ink">{stays.length === x.groups.length ? "Yes, in this data." : x.confirmed ? "Partly." : "Not in any way the data can confirm."}</b>
       {none.length > 0 && <> For {names(none)}, brokers paid more do not reliably give worse prices.</>}
-      {fades.length > 0 && <> For {names(fades)}, a link does appear, but it is not statistically significant once the share price of what each broker's customers trade is held equal, so cheaper shares, not payment, are the likelier reason.</>}
-      {stays.length > 0 && <> For {names(stays)}, brokers paid more do give worse prices, and the link holds with share price held equal.</>}
-      {x.clientele && <> Who a broker's customers are predicts the price you get far better than what the broker is paid.</>}
+      {fades.length > 0 && <> For {names(fades)}, a link appears but fades once share price is held equal: cheaper shares, not payment, are the likelier reason.</>}
+      {stays.length > 0 && <> For {names(stays)}, brokers paid more do give worse prices, even at equal share price.</>}
+      {x.clientele && <> Who the customers are predicts the price far better than payment.</>}
     </p>
   );
 }
@@ -75,39 +75,39 @@ function questions(d: Data, x: Tests): [string, ReactNode][] {
 
   const items: [string, ReactNode][] = [
     ["Is my broker registered?", <>
-      <p>Every broker here publishes the official monthly price report (Rule 605), and {unmatched === 0 ? "every one is" : unmatched === 1 ? "all but one are" : `all but ${unmatched} are`} matched to a FINRA BrokerCheck record (registration, history, any disciplinary actions). Each broker's page links that record and says whether we found SIPC membership, which protects up to $500,000 of securities and cash per customer if the firm itself fails.</p>
-      <p>These are registration facts, not an endorsement: SIPC does not cover losses from the market or from a poor price, which is what the rest of this site is about. <a href={href(pagePath("brokers"))} className={LINK}>Pick a broker</a> to see its record.</p>
+      <p>Every broker here publishes the Rule 605 price report and {unmatched === 0 ? "every one is" : unmatched === 1 ? "all but one are" : `all but ${unmatched} are`} matched to a FINRA BrokerCheck record; each broker's page links it and says whether we found SIPC membership (up to $500,000 of securities and cash if the firm fails).</p>
+      <p>Registration is not an endorsement: SIPC does not cover a poor price. <a href={href(pagePath("brokers"))} className={LINK}>Pick a broker</a> to see its record.</p>
     </>],
     ["What is payment for order flow?", <>
-      <p>When you place a stock order, most brokers don't send it to an exchange. They send it to a trading firm (a market maker such as Citadel Securities or Virtu) that fills it from its own inventory and pays the broker a fraction of a cent per share for the business. Rule 606 makes those payments public every quarter.</p>
-      <p>The trading firm earns the gap between the buy and sell quotes (the spread), so the worry is that a broker paid more lets its customers keep less of that gap. Across the brokers here that link {x.confirmed ? "does show up" : "does not hold up"}: see “Does getting paid make fills worse?” below. The closest published study reached {x.confirmed ? "a different" : "the same"} answer: Schwarz, Barber, Huang, Jorion and Odean (<i>Journal of Finance</i>, 2025) placed 85,000 real trades and found payment for order flow did not explain the price differences. <a href={`${href(pagePath("brokers"))}?m=cost10k&vs=pay10k`} className={LINK}>The explorer</a> shows both sides per broker.</p>
+      <p>Most brokers send your stock order to a trading firm that fills it and pays the broker a fraction of a cent per share; Rule 606 makes those payments public.</p>
+      <p>The worry is that a broker paid more lets you keep less of the spread. Here that link {x.confirmed ? "does show up" : "does not hold up"} (see below); Schwarz, Barber, Huang, Jorion and Odean (<i>Journal of Finance</i>, 2025) reached {x.confirmed ? "a different" : "the same"} answer from 85,000 real trades. <a href={`${href(pagePath("brokers"))}?m=cost10k&vs=pay10k`} className={LINK}>The explorer</a> shows both sides.</p>
     </>],
     ["Does $0 commission mean free?", <>
-      <p>No. Almost every broker charges $0 to trade a stock, but your order is filled at a price somewhere between the best buy and the best sell quote, and that gap is a real cost that never appears on a statement. Brokers differ by more on it than on any fee: on the same stocks and order sizes, the best and worst brokers here are tens of points of the spread apart.</p>
-      <p><a href={href(pagePath("home"))} className={LINK}>The home page</a> shows that gap in dollars on a $10,000 trade; <a href={href(pagePath("calculator"))} className={LINK}>the calculator</a> adds the fees you do see: options per contract, margin interest and the interest you don't earn on idle cash.</p>
+      <p>No: your order fills somewhere between the best buy and sell quote, and that gap is a real cost that never shows on a statement. Brokers differ by more on it than on any fee.</p>
+      <p><a href={href(pagePath("home"))} className={LINK}>The home page</a> shows it in dollars; <a href={href(pagePath("calculator"))} className={LINK}>the calculator</a> adds the fees you do see.</p>
     </>],
   ];
 
   if (best) {
     const lead = best.gap == null ? null
       : gaps[0].id === best.id
-        ? <>, and the lead holds on identical trades: {pts(best.gap)} of the spread versus other brokers on the very same S&P 500 stocks and order sizes</>
-        : <>; on identical S&P 500 stocks and order sizes it is {pts(best.gap)} of the spread versus other brokers ({gaps[0].f.short} leads there, at {pts(gaps[0].gap!)})</>;
+        ? <>, and it holds on identical trades ({pts(best.gap)} vs other brokers)</>
+        : <>; on identical trades it is {pts(best.gap)} ({gaps[0].f.short} leads there at {pts(gaps[0].gap!)})</>;
     const pay = best.pay10k == null ? null
-      : best.pay10k <= 0.005 ? <> It {paidHow(best)} for sending stock orders on.</>
-        : best.pay10k < payMed ? <> It is also paid less than most brokers for sending stock orders on.</> : null;
+      : best.pay10k <= 0.005 ? <> It {paidHow(best)} for orders.</>
+        : best.pay10k < payMed ? <> It is also paid less than most brokers.</> : null;
     const why: ReactNode[] = [];
-    if (unpaid.length) why.push(<span key="u">But low payment alone doesn't explain it: {andList(unpaid.map((r) => `${r.f.short} ${paidHow(r)}`))}, {unpaid.length > 1 ? "and both get" : "yet it gets"} worse prices than most brokers on identical trades ({unpaid.map((r) => `${r.f.short} ${pts(r.gap!)}`).join(", ")}). </span>);
-    if (x.clientele) why.push(<span key="c">The strongest pattern is who the customers are: brokers whose customers place bigger orders get better prices even on orders of the same size{!x.routing && <>, and the same few trading firms that fill most brokers' orders give each broker's orders their own price</>}.</span>);
+    if (unpaid.length) why.push(<span key="u">Low payment alone doesn't explain it: {andList(unpaid.map((r) => `${r.f.short} ${paidHow(r)}`))}, {unpaid.length > 1 ? "and both get" : "yet it gets"} worse prices than most on identical trades ({unpaid.map((r) => `${r.f.short} ${pts(r.gap!)}`).join(", ")}). </span>);
+    if (x.clientele) why.push(<span key="c">The strongest pattern is clientele: brokers whose customers place bigger orders get better prices even at the same order size{!x.routing && <>, and the same trading firms price each broker's orders differently</>}.</span>);
     items.push([`Why does ${best.f.short} look best?`, <>
-      <p>{best.f.short}'s customers paid the least above the fair price of any broker here, per $10,000 of market orders in S&P 500 stocks{lead}.{pay}</p>
+      <p>{best.f.short}'s customers paid the least above the fair price per $10,000 of S&P 500 market orders{lead}.{pay}</p>
       {why.length > 0 && <p>{why}</p>}
     </>]);
   }
 
   items.push(["Which broker is best?", <>
-    <p>It depends on what and how much you trade. The price ranking covers market orders in stocks. If you trade a few times a year, a dollar or two per trade matters less than the interest on your idle cash or a transfer-out fee; if you mostly trade options, the reports don't cover your trades at all.</p>
-    <p>Put your own habits into <a href={href(pagePath("calculator"))} className={LINK}>the yearly cost calculator</a>, which adds up spread cost, commissions, options fees, idle-cash interest and margin interest per broker, then <a href={href(pagePath("compare"))} className={LINK}>compare your two finalists</a> side by side. The calculator is an estimate built from averages, not a bill.</p>
+    <p>It depends on what and how much you trade: with a few trades a year, idle-cash interest or a transfer-out fee matters more than a dollar per trade, and options aren't in the price reports at all.</p>
+    <p>Put your habits into <a href={href(pagePath("calculator"))} className={LINK}>the calculator</a>, then <a href={href(pagePath("compare"))} className={LINK}>compare your two finalists</a>. It's an estimate from averages, not a bill.</p>
   </>]);
   return items;
 }
@@ -140,58 +140,49 @@ export default function Method({ d }: { d: Data }) {
   const optShare = paid > 0 ? `about ${Math.round((100 * options) / paid)}% of` : "most of";
 
   const DEFS: [string, string][] = [
-    [METRICS.cust.short, "How much of the gap between the buy and sell quotes the customer paid, from the Rule 605 report. 0% = filled at the fair price (the midpoint of the two quotes), 100% = paid the full quoted spread. Lower is better."],
-    [METRICS.cost10k.label, "The same share of the spread in dollars per $10,000 of market orders, at the spreads each broker's customers actually faced, averaged over all order sizes under $200,000 (so a broker's largest orders weigh most)."],
-    [METRICS.payPct.short, "What trading firms pay the broker per share (from its Rule 606 report, weighted by where its orders go), turned into the same unit as the customer's cost: a share of the quoted spread. As a check, Robinhood's own report says it is paid 12.35% of the spread; our figure is 12.1–13.5%."],
-    [METRICS.gap.short, "A broker's cost minus every other broker's on exactly the same stock, order size and lot type (round, odd or fractional), weighted by dollars. Below zero = better than other brokers on identical trades."],
-    [METRICS.speed.label, `Rule 605's average time from when the broker receives a market order to when it is filled. The reports do not label the unit; we read it as ${unit} because only that fits the sizes reported.${x.slower ? " In this data slower fills went with better prices, so speed is shown but never scored: a fast fill is not the same as a good price." : " Speed is shown but never scored."}`],
-    ["Fees", `From each broker's published fee schedule for a standard self-directed account, checked on ${checked}. Cash yield is the yearly interest a broker pays on money left uninvested in your account. Paid tiers and promotions are left out, so brokers are compared on what every customer gets.`],
+    [METRICS.payPct.short, "What trading firms pay the broker (Rule 606, weighted by where its orders go), as a share of the quoted spread. Check: Robinhood's own report says 12.35%; ours gives 12.1–13.5%."],
+    [METRICS.speed.label, `Rule 605's average time from order to fill, read as ${unit} because only that fits the sizes reported (the reports don't label the unit). Shown, never scored${x.slower ? ": here slower fills went with better prices" : ""}.`],
   ];
 
   const cannot: [string, ReactNode][] = [
-    ["Options.", <>Rule 605 covers stocks only, though {optShare} what brokers are paid is for options trades; only the fee per contract is shown.</>],
-    ["Resting limit orders.", "Only orders that fill at once (market orders and marketable limit orders) are measured; one waiting at your price is a different trade."],
-    ["Your own trades.", "Everything is an average over millions of orders; yours can land better or worse, and the yearly cost calculator is an estimate built from those averages, not a bill."],
-    ["Taxes, promotions and paid tiers.", "Account types, sign-up bonuses, fee waivers and premium memberships are left out."],
+    ["Options, limit orders, your own trades.", <>Rule 605 covers stocks only (though {optShare} what brokers are paid is for options) and only orders that fill at once; everything is an average, so your own trade can land better or worse; taxes, promotions and paid tiers are left out.</>],
     ["Some payments.", <>
       {no606.length > 0 && <>{andList(no606)} file no payment report of their own (another firm routes their orders). </>}
-      {d.byId.SOFI && <>SoFi reports only part of its orders, so its payment is understated. </>}
-      {d.byId.FUTM && <>moomoo's payment is reported by its affiliate Futu Clearing.</>}
+      {d.byId.SOFI && <>SoFi reports only part of its orders. </>}
+      {d.byId.FUTM && <>moomoo's is reported by Futu Clearing.</>}
     </>],
-    ["Some brokers.", "TradeStation, Ally and a few others aren't included yet, and brokers that only handle options or crypto publish no price report at all."],
-    ["Few brokers, small differences.", <>Only {x.n ?? "a few"} brokers publish both what they are paid and the prices their customers get, so small differences cannot be told from chance. A pattern is not proof of cause.</>],
+    ["Few brokers.", <>Only {x.n ?? "a few"} brokers publish both sides (TradeStation, Ally and others aren't in yet), so small differences can't be told from chance; a pattern is not proof of cause.</>],
   ];
 
   return (
     <div className="rise">
       <PageHeader eyebrow="How we measure" title="How the numbers are measured"
-        sub={`Everything here comes from reports brokers must publish by law, read the same way for every broker. Prices: ${month} (Rule 605). Payments: ${quarter} (Rule 606).`} />
+        sub={`From the reports brokers must publish, refreshed weekly${updated ? `; last updated ${updated}` : ""}. Prices: ${month} (Rule 605). Payments: ${quarter} (Rule 606).`} />
 
       <Card title="Where the numbers come from">
         <div className={BODY}>
           <p>
-            <Ext href="https://www.ecfr.gov/current/title-17/section-242.605">Rule 605</Ext> requires larger brokers (100,000 or more accounts) to publish every month how their customers' orders were filled: how far from the fair price, how often better than quoted, and how fast. The trading firms (market makers) that fill the orders file the same report. <Ext href="https://www.ecfr.gov/current/title-17/section-242.606">Rule 606</Ext> requires brokers to publish every quarter which firms they send orders to and what those firms pay for them, known as <Ext href="https://www.investor.gov/introduction-investing/investing-basics/glossary/payment-order-flow">payment for order flow</Ext>. FINRA <Ext href="https://www.finra.org/filing-reporting/regulation-nms/sec-rule-605-reports">lists every Rule 605 report</Ext> and keeps a <Ext href="https://brokercheck.finra.org/">BrokerCheck</Ext> record on each broker.
+            <Ext href="https://www.ecfr.gov/current/title-17/section-242.605">Rule 605</Ext>: brokers with 100,000+ accounts publish monthly how their customers' orders were filled; the trading firms that fill them file the same report. <Ext href="https://www.ecfr.gov/current/title-17/section-242.606">Rule 606</Ext>: brokers publish quarterly where orders go and what they are paid (<Ext href="https://www.investor.gov/introduction-investing/investing-basics/glossary/payment-order-flow">payment for order flow</Ext>). FINRA <Ext href="https://www.finra.org/filing-reporting/regulation-nms/sec-rule-605-reports">lists every 605 report</Ext> and holds each broker's <Ext href="https://brokercheck.finra.org/">BrokerCheck</Ext> record.
           </p>
-          <p>Trading firms' shares of the market come from FINRA's weekly off-exchange volume data. Fees come from each broker's own pricing pages (see below).</p>
         </div>
       </Card>
 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card title="What “share of the spread” means">
           <div className={BODY}>
-            <p>Every stock quotes a buying price and a lower selling price. The gap is the spread; halfway across it is the fair price. Say the quotes are $99.97 to sell and $100.03 to buy: the fair price is $100.00. A buy filled at $100.01 is one cent above fair, a third of the way to the quoted $100.03, so that order paid 33% of the spread. On 100 shares, a $10,000 trade, that cent is $1.</p>
-            <p>“{METRICS.cost10k.label}” is the same share in dollars, at the spreads each broker's customers actually faced.</p>
+            <p>The gap between the best buy and sell quotes is the spread; halfway across it is the fair price. With quotes of $99.97 and $100.03, fair is $100.00; a buy at $100.01 is a cent above fair, a third of the way to $100.03, so it paid 33% of the spread ($1 on 100 shares).</p>
+            <p>“{METRICS.cost10k.label}” is that share in dollars, at the spreads each broker's customers faced.</p>
           </div>
         </Card>
         <Card title="Same stocks, same order sizes">
           <div className={BODY}>
-            <p>Averages can flatter a broker whose customers buy big, heavily traded stocks in large orders: those get good prices anywhere, and the official averages weight each order by its shares, so a broker's largest orders count most.</p>
-            <p>So each broker is also scored against the others on market orders in the same stock, lot type (fractional, odd or round) and order size, weighted by dollars. That is the “{METRICS.gap.short.toLowerCase()}”: below zero means better than other brokers on identical trades.{!x.routing && <> The gaps persist even though the same few trading firms fill most brokers' orders: they price each broker's orders differently.</>}</p>
+            <p>Averages flatter brokers whose customers trade big, liquid stocks in large orders.</p>
+            <p>So each broker is also scored against the others on market orders in the same stock, lot type and order size: the “{METRICS.gap.short.toLowerCase()}”, below zero = better on identical trades.{!x.routing && <> The gaps persist with the same trading firms filling the orders: they price each broker's flow differently.</>}</p>
           </div>
         </Card>
       </div>
 
-      <Card className="mt-5" title="Common questions" sub="Short answers in plain words.">
+      <Card className="mt-5" title="Common questions">
         <div className="divide-y divide-[var(--border)]">
           {faq.map(([q, a]) => (
             <details key={q} className="group py-2.5">
@@ -204,7 +195,7 @@ export default function Method({ d }: { d: Data }) {
         </div>
       </Card>
 
-      <Card className="mt-5" title="Key definitions" sub="The measures used across the site, in one place.">
+      <Card className="mt-5" title="Key definitions">
         <dl className="grid grid-cols-1 gap-x-8 gap-y-3 text-[13.5px] leading-relaxed sm:grid-cols-2">
           {DEFS.map(([k, v]) => (
             <div key={k}><dt className="font-semibold text-ink">{k}</dt><dd className="text-ink2">{v}</dd></div>
@@ -218,25 +209,17 @@ export default function Method({ d }: { d: Data }) {
             {cannot.map(([k, v]) => <li key={k}><b className="font-semibold text-ink">{k}</b> {v}</li>)}
           </ul>
         </Card>
-        <div className="flex flex-col gap-5">
-          <Card title="Fees, and when they were checked">
-            <div className={BODY}>
-              <p>Fees come from each broker's own published schedule for a standard self-directed account: stock commission, options fee per contract, margin interest at about $25,000 borrowed, interest on idle cash and the transfer-out fee. They were last checked on {checked} (each broker's page shows its own date) and are re-checked every quarter.</p>
-              <p>A fee that could not be confirmed is left blank and out of every total, never counted as $0; a product not offered says so. Promotions, sign-up bonuses and paid tiers (Robinhood Gold, Webull Premium and the like) are left out, so a broker can be cheaper for you than shown. Fee schedules change without notice: check the broker's own page before you decide.</p>
-            </div>
-          </Card>
-          <Card title="How often the site updates">
-            <div className={BODY}>
-              <p>The site refreshes every week from the latest filings{updated ? <>; last updated {updated}</> : null}. Price reports are monthly and payment reports quarterly, so the newest payments can be up to a quarter older than the prices. In use now: prices from {month}, payments from {quarter}.</p>
-            </div>
-          </Card>
-        </div>
+        <Card title="Fees, and when they were checked">
+          <div className={BODY}>
+            <p>Each broker's published schedule for a standard self-directed account, last checked {checked}; re-checked every quarter.</p>
+            <p>An unconfirmed fee is left blank and out of every total, never counted as $0; promotions and paid tiers are left out, so a broker can be cheaper for you than shown.</p>
+          </div>
+        </Card>
       </div>
 
-      <Card className="mt-5" title="Does getting paid make fills worse?" sub="Whether the price you get is worse at brokers that are paid more for your orders.">
+      <Card className="mt-5" title="Does getting paid make fills worse?">
         <div className={BODY}>
           {paidAnswer(x)}
-          <p>The tests behind this answer are in the card below.</p>
         </div>
       </Card>
 
@@ -244,8 +227,8 @@ export default function Method({ d }: { d: Data }) {
       <details className="group mt-5 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6" onToggle={(e) => setOpen(e.currentTarget.open)}>
         <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="text-[15.5px] font-semibold text-ink">The statistics, for readers who want them</h3>
-            <p className="mt-0.5 text-[13px] text-muted">Each dot is how strongly one thing goes with another across brokers, from −1 to 1; a line that crosses zero means it could be chance.</p>
+            <h3 className="text-[15.5px] font-semibold text-ink">The statistics</h3>
+            <p className="mt-0.5 text-[13px] text-muted">Strength from −1 to 1; a line crossing zero could be chance.</p>
           </div>
           <Icon name="right" size={18} className="mt-1 text-muted transition-transform group-open:rotate-90" />
         </summary>
@@ -273,7 +256,7 @@ export default function Method({ d }: { d: Data }) {
             </table>
           </div>
           <p className="mt-3 text-[12.5px] leading-relaxed text-muted">
-            Strength is Spearman's rank correlation (average ranks for ties); “chance it's random” is a permutation p-value from 10,000 shuffles, and the interval a 95% bootstrap from 3,000 resamples. A chance of 5% or more counts as “could be chance”. With {x.n ?? "fewer than 20"} brokers publishing both sides, every test has low power: these are correlations, not causes.
+            Spearman rank correlation; permutation p-value (10,000 shuffles); 95% bootstrap interval (3,000 resamples); 5% or more = “could be chance”. With {x.n ?? "fewer than 20"} brokers, every test has low power: correlations, not causes.
           </p>
         </div>
       </details>
