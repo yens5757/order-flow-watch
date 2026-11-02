@@ -123,7 +123,8 @@ per contract, margin rate at $25,000, interest on idle cash, full transfer-out f
 the `source_urls` they came from, a `checked_on` date (2026-11-01; the site shows the latest as "fees checked"),
 a `confidence` grade and notes. A blank cell means the figure could not be confirmed on the broker's own pages
 (several pricing pages cannot be read by scripts), and the site shows it as missing rather than guessing; `NA`
-means the broker has no such product (Stash, Cash App and Wealthfront offer no options), shown as "not offered".
+means the broker has no such product (Stash, Cash App and Wealthfront offer no options), shown as "not offered"; `VAR` means the rate depends on a balance tier, a program or a
+separate product (IBKR's tiered cash interest, Merrill's quote-only margin), shown as "varies".
 Margin rates are the standard $25,000-tier rate, never a new-account offer or a paid tier.
 To update: `python update_fees.py` lists what is still blank and the page to open; `python update_fees.py <ID>` asks
 for each cell of that broker's row and stamps `checked_on`; then run `python build_site.py`. Fees change without notice; re-check the file every quarter.

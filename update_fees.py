@@ -4,7 +4,8 @@
     python update_fees.py CHAS            asks for each cell of Schwab's row; Enter keeps what is there
     python update_fees.py CHAS --dry-run  shows the row that would be written, writes nothing
 
-Answers: a number (0, 0.65, 11.575), NA (the broker does not offer that product), - (clear the cell),
+Answers: a number (0, 0.65, 11.575), NA (the broker does not offer that product), VAR (the rate depends on a balance
+tier, a program or a separate product), - (clear the cell),
 Enter (keep). Rates are percent, for a $25,000 balance / a standard account only: no new-account offers,
 no paid tiers (Gold, Premium). Blank means "not checked", NA means "not offered"; never put 0 for unknown.
 Afterwards: python build_site.py, then git commit -am "Fees: ..." and git push.
@@ -84,7 +85,7 @@ def edit(row, dry_run):
     print(f"\n{row['reporter_id']} ({names().get(row['reporter_id'], '?')}), last checked {row['checked_on']}, confidence {row['confidence']}")
     if row["notes"]:
         print(f"notes: {row['notes']}\n")
-    print("Enter keeps the current value; NA = not offered; - = clear.\n")
+    print("Enter keeps the current value; NA = not offered; VAR = depends on a tier, a program or a separate product; - = clear.\n")
     changed = False
     for col, label in CELLS:
         while True:
@@ -94,8 +95,8 @@ def edit(row, dry_run):
             if v == "-":
                 row[col], changed = "", True
                 break
-            if v.upper() == "NA":
-                row[col], changed = "NA", True
+            if v.upper() in ("NA", "VAR"):
+                row[col], changed = v.upper(), True
                 break
             try:
                 row[col], changed = number(v), True
