@@ -35,7 +35,7 @@ export function FeesCard({ d, id }: { d: Data; id: string }) {
     ["Full transfer out", fee.transferOut == null ? na("transferOut") : money(fee.transferOut),
       "To move your whole account to another broker."],
   ] : [];
-  for (const r of rows) if (r[1] === "Varies") r[2] = "Depends on a balance tier, a program or a separate cash product: see the broker.";
+  for (const r of rows) if (r[1] === "Varies") r[2] = "Depends on order size, a balance tier or a program, or the rate isn't published: see the broker.";
   const known = rows.filter((r) => r[1] != null).length;
   // BrokerCheck lookups back the CRD, not the fees; the trust card covers that side
   const sources = (fee?.sources ?? []).filter((u) => !/brokercheck/i.test(u));

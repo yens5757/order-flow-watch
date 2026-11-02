@@ -73,12 +73,12 @@ No pandas by design: analysis is in SQL.
   (decoded from the rule, checked against the data): [M/L][marketable Y/N, X for market][beyond-midpoint]
   [IOC][stop price]; MXXNN = plain market order, LYNNN = marketable limit. Brokers' executed shares are in
   CvrdOrderExctdAwayQty (routed away); market makers' in CvrdOrderExctdQty.
-- 605 time fields (avg execution time) are treated as **milliseconds**: `TIME_UNIT = "ms"` in `build_site.py` ->
-  `meta.timeUnit`, the only place to change it; site copy reads it from there. NOT confirmed from a source
-  (1 Nov 2026): the SEC adopting release (sec.gov/files/rules/final/2024/34-99679.pdf) came back as an undecoded
-  PDF stream, NYSE's 605 page defines no unit, eCFR 242.605 redirects to an unblock page. The magnitudes fit ms
-  (Fidelity avg 463; max 4,106,215 = 68 min, which in seconds would be 47 days). Cboe/Nasdaq 605 docs and the FIF
-  fact sheet not yet checked (open issue 4).
+- 605 time fields (avg execution time) are **milliseconds**, confirmed 2 Nov 2026 from the SEC's summary-report technical
+  specification (sec.gov/files/orderexecutionsummaryreporttechnicalspecification.pdf, Sept 2026: "the share-weighted average
+  execution speed, in milliseconds"; the detailed report's time fields are "in increments of a millisecond or finer", NMS plan
+  appendix sec.gov/files/rules/sro/nms/2025/34-103939-appendix.pdf). `TIME_UNIT = "ms"` in `build_site.py` -> `meta.timeUnit` is
+  still the one place it is declared. The same spec defines bucket `199999` = $0 to <$200,000 and says the effective spread
+  "may be positive or negative" (negative = filled on the customer's side of the midpoint, SEC report-practice-preferencing).
 - The summary CSV can NOT be exactly rebuilt from the detail: dollar-weighting MXXNN rows gets within
   0.01 for S&P 500 (HOOD 0.322 vs 0.316) but not for other stocks (0.446 vs 0.539). Unknown aggregation rule.
 - Market makers' new-format reports are not on S3: Citadel (site blocks scripts; downloaded by hand into
@@ -160,9 +160,8 @@ No pandas by design: analysis is in SQL.
 2. SoFi's 606 reports only SoFi's share (Apex keeps the rest), so its payment is understated.
    Show Apex (clearing firm) separately from retail brokers.
 3. ~~Confirm Fidelity's CRD~~ Done: 7784 (BrokerCheck API: api.brokercheck.finra.org/search/firm?query=<crd>).
-4. Verify in the FIF Rule 605 fact sheet (or Cboe/Nasdaq 605 docs): bucket 199999 meaning, execution-time unit
-   (still unconfirmed 1 Nov 2026, see Format notes; the pipeline asserts ms), effective-spread sign convention
-   (Fidelity is negative).
+4. ~~Verify bucket 199999, the execution-time unit and the effective-spread sign~~ Done 2 Nov 2026 (SEC technical
+   specification; see Format notes).
 5. ~~Expand to ~20 retail brokers~~ Done Oct 2026 (12 added to firms.csv). Still open: Albert, Avenue,
    eToro, Stash, WF FiNet have no 606 in FINRA bulk data (introducing brokers? find their clearing
    firm's 606). Firstrade files 606 (CRD 16843) but has no 605 on public.s3.com. Wealthfront CRD 153407 verified.
@@ -176,7 +175,11 @@ No pandas by design: analysis is in SQL.
 9. Splitting "other stocks" further: 605/606 summaries only split S&P 500 vs other. Execution quality could be
    split by stock/price via the 605 detailed reports (per-symbol .zip, skipped by `--summary-only`); payment cannot.
 10. Still missing (file 606, but 605 not on public.s3.com - need per-firm fetchers like Virtu/Jane Street):
-   TradeStation, Alpaca, Firstrade, Ally (TKNG), Tradier, TradeUP untried. Citadel (CDRG) and Interactive Brokers
+   Found 2 Nov 2026 (FINRA directory + brokers' pages): Ally `TKNG` at ally.com/invest/disclosures/order-routing-and-payment-for-order-flow.html
+   (`TKNG<YYYYMM>.csv` + `.txt`, public); Alpaca `APCA` at alpaca.markets/disclosures (`APCA<YYYYMM>.zip`; the zip 403s to scripts);
+   Firstrade `FFSI` at firstrade.com/legal/order-routing-605 (`FFSI<YYYYMM>.csv` + `.txt`, public); TradeStation `TRAD` at
+   tradestation.com/important-information/sec-rule-606-report-rule-607-disclosure/ (page 403s to scripts); Tradier: no 605 page found.
+   A per-firm fetcher like `fetch_mm_605.py` could add Ally and Firstrade; TradeUP untried. Citadel (CDRG) and Interactive Brokers
    (IBBD = Interactive Brokers LLC, all its retail flow, $72M PFOF 2026Q2; its other 605 codes IBCO/IBFR/FRAC) both
    deliberately block scripts (IBKR's reports page interactivebrokers.com/en/index.php?f=1366 returned 403, 1 Nov 2026):
    do not retry or work around. Their route to the live site (Nov 2026): hand-download into the PRIVATE repo

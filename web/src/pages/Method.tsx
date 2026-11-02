@@ -141,7 +141,7 @@ export default function Method({ d }: { d: Data }) {
 
   const DEFS: [string, string][] = [
     [METRICS.payPct.short, "What trading firms pay the broker (Rule 606, weighted by where its orders go), as a share of the quoted spread. Check: Robinhood's own report says 12.35%; ours gives 12.1–13.5%."],
-    [METRICS.speed.label, `Rule 605's average time from order to fill, read as ${unit} because only that fits the sizes reported (the reports don't label the unit). Shown, never scored${x.slower ? ": here slower fills went with better prices" : ""}.`],
+    [METRICS.speed.label, `Rule 605's average time from order to fill, in ${unit} (the unit the SEC's report specification sets). Shown, never scored${x.slower ? ": here slower fills went with better prices" : ""}.`],
   ];
 
   const cannot: [string, ReactNode][] = [
