@@ -14,7 +14,7 @@ import { build } from "vite";
 const web = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(web, "dist");
 const ssrDir = join(web, "dist-ssr");
-const DEFAULT_SITE_URL = "https://yens5757.github.io/order-flow-watch/";
+const DEFAULT_SITE_URL = "https://fillsandfees.com/";
 const SITE_URL = (process.env.VITE_SITE_URL || DEFAULT_SITE_URL).replace(/\/*$/, "/");
 
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

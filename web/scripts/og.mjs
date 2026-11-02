@@ -19,7 +19,7 @@ const OUT = [resolve(web, "public/og.png"), resolve(web, "../docs/social-preview
 
 // keep in step with src/lib/site.ts (a TypeScript module, which node cannot import here)
 const SITE_NAME = "Fills and Fees";
-const SITE_URL = process.env.VITE_SITE_URL || "https://yens5757.github.io/order-flow-watch/";
+const SITE_URL = process.env.VITE_SITE_URL || "https://fillsandfees.com/";
 const HOST = SITE_URL.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
 // $ above the fair (midpoint) price per $10,000 traded, S&P 500 market orders under $200k, September 2026 fills

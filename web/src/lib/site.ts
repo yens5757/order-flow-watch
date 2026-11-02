@@ -6,7 +6,7 @@ export const SITE_NAME = "Fills and Fees";
 export const TAGLINE = "what your broker's trades really cost";
 export const REPO = "https://github.com/yens5757/order-flow-watch";
 
-const DEFAULT_SITE_URL = "https://yens5757.github.io/order-flow-watch/";
+const DEFAULT_SITE_URL = "https://fillsandfees.com/";
 
 /** Public URL of the deployed site, always ending with "/": VITE_SITE_URL at build time (set in
  *  .github/workflows/weekly.yml, the place to change for a custom domain) or the GitHub Pages default. */

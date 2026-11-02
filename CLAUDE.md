@@ -171,7 +171,9 @@ No pandas by design: analysis is in SQL.
 7. ~~Market-maker 605s~~ Virtu + Jane Street are fetched every month automatically; only Citadel needs a hand
    download (its site returns 403 to scripts).
 8. ~~GitHub Actions + Pages~~ Workflow written (Oct 2026). Repo: github.com/yens5757/order-flow-watch, site:
-   yens5757.github.io/order-flow-watch. Pages source must be set to GitHub Actions in repo settings (no gh CLI here).
+   fillsandfees.com (custom domain bought 2 Nov 2026 at Cloudflare Registrar, DNS-only A records to GitHub Pages + CNAME www;
+   `web/public/CNAME` + `SITE_BASE=/` + `VITE_SITE_URL` in weekly.yml; the github.io address redirects). Pages source must be set
+   to GitHub Actions in repo settings (no gh CLI here).
 9. Splitting "other stocks" further: 605/606 summaries only split S&P 500 vs other. Execution quality could be
    split by stock/price via the 605 detailed reports (per-symbol .zip, skipped by `--summary-only`); payment cannot.
 10. Still missing (file 606, but 605 not on public.s3.com - need per-firm fetchers like Virtu/Jane Street):

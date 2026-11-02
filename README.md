@@ -1,6 +1,6 @@
 # Payment for Order Flow vs Retail Execution Quality
 
-[![Fills and Fees: is your broker getting you a good price?](docs/social-preview.png)](https://yens5757.github.io/order-flow-watch/)
+[![Fills and Fees: is your broker getting you a good price?](docs/social-preview.png)](https://fillsandfees.com/)
 
 **Do retail brokers that are paid more for routing customer orders give their customers worse fills?**
 
@@ -11,7 +11,7 @@ An automated pipeline that joins two SEC disclosures, refreshed weekly and publi
 - **Rule 605**: how good the resulting fills were. Since August 2026 the amended rule requires
   large brokers to publish these reports too, which makes a broker-by-broker comparison possible.
 
-**Website:** [Fills and Fees](https://yens5757.github.io/order-flow-watch/) at yens5757.github.io/order-flow-watch. Two layers:
+**Website:** [Fills and Fees](https://fillsandfees.com/) at fillsandfees.com (the old yens5757.github.io/order-flow-watch address redirects). Two layers:
 a plain-language home page (what a $10,000 trade costs at each broker, pick-your-broker report card) for
 non-experts, and an explorer where you choose the measure, compare two, filter, sort and share the view.
 The menu is Home, Compare (`compare/`), Calculator (`calculator/`), Brokers (`brokers/`, the explorer) and
@@ -38,7 +38,7 @@ outside Rule 605, so the site compares options fees but not options fills.
 
 | Home: the easy layer | Explore: the interactive layer |
 |---|---|
-| [![Home page](docs/screenshot-home.png)](https://yens5757.github.io/order-flow-watch/) | [![Explorer](docs/screenshot-explore.png)](https://yens5757.github.io/order-flow-watch/brokers/?m=cost10k&vs=pay10k) |
+| [![Home page](docs/screenshot-home.png)](https://fillsandfees.com/) | [![Explorer](docs/screenshot-explore.png)](https://fillsandfees.com/brokers/?m=cost10k&vs=pay10k) |
 
 ## Findings so far
 

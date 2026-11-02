@@ -11,7 +11,7 @@ function normalise(base: string): string {
 
 export default defineConfig(({ isSsrBuild }) => ({
   plugins: [react()],
-  base: normalise(process.env.SITE_BASE ?? "/order-flow-watch/"),
+  base: normalise(process.env.SITE_BASE ?? "/"),
   build: {
     chunkSizeWarningLimit: 700,
     // ECharts is most of the bundle and changes rarely: ship it as its own cacheable file. Client build only: the

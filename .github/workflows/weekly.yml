@@ -30,8 +30,8 @@ jobs:
       # web/public/CNAME holding the bare domain must be added so GitHub Pages serves it there.
       # Vite reads SITE_BASE for its base path; the app, the pre-rendered pages, the canonical links
       # and sitemap.xml read VITE_SITE_URL.
-      SITE_BASE: /order-flow-watch/
-      VITE_SITE_URL: https://yens5757.github.io/order-flow-watch/
+      SITE_BASE: /
+      VITE_SITE_URL: https://fillsandfees.com/
     steps:
       - uses: actions/checkout@v4
 
