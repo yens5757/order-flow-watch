@@ -184,6 +184,12 @@ or the published site.
 - **Fees** are hand-collected from published schedules (last checked 2026-11-01), not from a regulatory filing,
   and blank where a broker's own pages could not be read.
 
+## Licence
+
+Code, design and text are © 2026 Aiken Lee, all rights reserved: readable here, runnable locally for personal
+evaluation, not for redeployment or reuse (see [LICENSE](LICENSE)). The figures are public facts from SEC Rule 605/606
+reports and brokers' published fee schedules.
+
 ## Related work
 
 Schwarz, Barber, Huang, Jorion & Odean (2025), "The 'Actual Retail Price' of Equity Trades",

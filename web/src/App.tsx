@@ -4,7 +4,7 @@ import { asData, type Data, type Filters, type Raw } from "./lib/data";
 import { dayLong, monthShort, quarterShort } from "./lib/format";
 import { fixLocation, go, navigated, onNavigate, readLocation, type Loc } from "./lib/hooks";
 import { BASE, describeRoute, href, pagePath, parseRoute, type PageName } from "./lib/routes";
-import { REPO, SITE_NAME } from "./lib/site";
+import { SITE_NAME } from "./lib/site";
 import { useTheme } from "./lib/theme";
 import AllFirms from "./pages/AllFirms";
 import BrokerProfile from "./pages/BrokerProfile";
@@ -124,8 +124,7 @@ export function AppShell({ data, path, search }: { data: Data | Raw; path: strin
           <span>From the price and payment reports US brokers must publish by law (SEC Rules 605 and 606). Updated weekly, last on {dayLong(d.meta.built.slice(0, 10))}. Not investment advice.</span>
           <span className="flex flex-wrap items-center gap-4">
             <a href={href(pagePath("how-we-measure"))} className="hover:text-ink">How we measure</a>
-            <a href={REPO} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 hover:text-ink"><Icon name="github" size={15} />Source</a>
-            <a href="https://yens5757.github.io/" className="hover:text-ink">Made by Aiken Lee</a>
+            <a href="https://yens5757.github.io/" className="hover:text-ink">© 2026 Aiken Lee</a>
           </span>
         </div>
       </footer>

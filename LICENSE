@@ -1,0 +1,19 @@
+Copyright (c) 2026 Aiken Lee. All rights reserved.
+
+This repository holds the code, design, text and images of the Fills and Fees website.
+
+You may
+- read the source and run it on your own computer for personal, non-commercial evaluation;
+- quote short excerpts with attribution and a link to the site.
+
+You may not, without written permission from the author
+- publish, deploy or host this website, or any modified version of it, in whole or in part;
+- redistribute the code, design, text or images, or use them in another product or site;
+- use any of it for a commercial purpose.
+
+The figures shown on the site come from reports that US brokers publish under SEC Rules 605 and 606
+and from the brokers' own published fee schedules. Those public facts are not claimed here, and the raw
+reports are not part of this repository.
+
+The software and the site are provided "as is", without warranty of any kind. Nothing on the site is
+investment advice.
