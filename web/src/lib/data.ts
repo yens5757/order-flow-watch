@@ -14,7 +14,7 @@ export interface ExecRow {
 }
 export interface Venue { crd: string; q: string; sp: Sp; venue: string; share: Record<Ot, number | null>; cph: Record<Ot, number | null> }
 export interface Usd { crd: string; q: string; seg: "SP500" | "OtherStocks" | "Options"; usd: number }
-export interface Money { id: string; sp: Sp; cust: number; pay: number | null; mmKeeps: number | null; sz: number | null; t: number | null; pi: number | null }
+export interface Money { id: string; sp: Sp; cust: number; pay: number | null; payQ?: string | null; mmKeeps: number | null; sz: number | null; t: number | null; pi: number | null }
 export interface Gap { id: string; sp: Sp; gap: number; own: number; peers: number; cells: number }
 export interface Implied { id: string; sp: Sp; actual: number; implied: number; coverage: number }
 export interface Evidence { claim: string; sp: Sp; expect: 1 | -1; rho: number; p: number; lo: number; hi: number; n: number }
@@ -41,6 +41,8 @@ export interface Raw {
     built: string; month: string; detailMonth: string; months: string[]; quarter: string; quarters: string[]; vix: Record<string, number>;
     /** unit of the 605 time fields (t): "ms" */
     timeUnit: string;
+    /** brokers whose payment comes from the previous quarter because they have not filed the latest one yet */
+    payFallback?: string[];
     /** date the fee facts were last checked (fees.csv), null if the file is empty */
     feesChecked: string | null;
   };

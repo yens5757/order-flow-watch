@@ -149,7 +149,8 @@ export default function Method({ d }: { d: Data }) {
     ["Some payments.", <>
       {no606.length > 0 && <>{andList(no606)} file no payment report of their own (another firm routes their orders). </>}
       {d.byId.SOFI && <>SoFi reports only part of its orders. </>}
-      {d.byId.FUTM && <>moomoo's is reported by Futu Clearing.</>}
+      {d.byId.FUTM && <>moomoo's is reported by Futu Clearing. </>}
+      {(d.meta.payFallback ?? []).length > 0 && <>{andList((d.meta.payFallback ?? []).map((id) => d.byId[id]?.short ?? id))} {(d.meta.payFallback ?? []).length > 1 ? "haven't" : "hasn't"} reported {quarterLong(d.meta.quarter)} yet, so the quarter before is used.</>}
     </>],
     ["Few brokers.", <>Only {x.n ?? "a few"} brokers publish both sides (TradeStation, Ally and others aren't in yet), so small differences can't be told from chance; a pattern is not proof of cause.</>],
   ];

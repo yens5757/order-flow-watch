@@ -166,7 +166,7 @@ export default function Home({ d }: { d: Data }) {
         </Stat>
         <Stat icon="users" label="Does getting paid hurt you?" value={paidHurts ? "Not by itself" : "Not clearly"}>
           {paidHurts
-            ? <>Paid-more brokers do slightly worse outside the S&P 500, but cheap shares explain it, not payment.</>
+            ? <>Paid-more brokers do slightly worse outside the S&P 500, but the gap shrinks to chance once share price is held equal.</>
             : rawY
               ? <>Across {rawY.n} brokers, payment doesn't reliably predict price; your choice of broker matters more.</>
               : <>Payment doesn't reliably predict price; your choice of broker matters more.</>}

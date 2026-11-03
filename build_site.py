@@ -168,7 +168,16 @@ def main():
 
     # ---- Per broker x stock group, market orders < $200k: payment % of spread, cost, market maker's margin
     base = {(r["id"], r["sp"]): r for r in exec_rows if r["m"] == month and r["ot"] == "M" and r["b"] == 199999}
-    pay_now = {(p["crd"], SEG[p["segment"]]): p["m_cph"] for p in pay if p["quarter"] == quarter}
+    # Payment per broker: the latest quarter, or the one before it for a broker that has not filed the latest yet.
+    # FINRA's first bulk file for a quarter misses late filers (2026Q3 arrived with 256 of 290 brokers: Cash App and
+    # Public were missing), and dropping them would change the sample, not the answer; a later re-download fills them in.
+    prev_q = max((p["quarter"] for p in pay if p["quarter"] < quarter), default=None)
+    pay_now, pay_q = {}, {}
+    for q in (prev_q, quarter):  # the latest quarter overwrites the fallback where both exist
+        for p in pay:
+            if q and p["quarter"] == q:
+                pay_now[(p["crd"], SEG[p["segment"]])] = p["m_cph"]
+                pay_q[(p["crd"], SEG[p["segment"]])] = q
     money = []
     for rid, f in brokers.items():
         for sp in "YN":
@@ -179,6 +188,7 @@ def main():
             pay_pct = cph / e["px"] / e["qs"] / 100 if cph is not None and e["px"] and e["qs"] else None
             mm = 100 * e["rs1"] / e["qs"] if e["rs1"] is not None and e["qs"] else None
             money.append({"id": rid, "sp": sp, "cust": rnd(100 * e["efq"], 2), "pay": rnd(pay_pct, 2),
+                          "payQ": pay_q.get((f["crd_606"], sp)) if cph is not None else None,
                           "mmKeeps": rnd(mm, 2), "sz": rnd(e["sz"], 0), "t": rnd(e["t"], 1),
                           "pi": rnd(100 * e["pi"], 2) if e["pi"] is not None else None})
 
@@ -287,6 +297,7 @@ def main():
                  "feesChecked": max((f["checked"] for f in fees), default=None),
                  "months": sorted({r["m"] for r in exec_rows}), "quarter": quarter,
                  "quarters": sorted({p["quarter"] for p in pay}),
+                 "payFallback": sorted({m["id"] for m in money if m["payQ"] and m["payQ"] != quarter}),
                  "vix": {m: round(sum(v) / len(v), 1) for m, v in sorted(vix.items()) if m >= "2024-04"}},
         "firms": [{"id": f["reporter_id"], "name": f["name"], "short": f["short_name"], "slug": s, "type": f["firm_type"],
                    "crd": f["crd_606"] or fee_crd.get(f["reporter_id"])}
