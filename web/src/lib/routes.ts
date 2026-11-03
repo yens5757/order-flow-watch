@@ -3,7 +3,8 @@
 // in the pre-render. Every page path is relative to the Vite base (import.meta.env.BASE_URL, ends with "/") and
 // ends with "/": "" home · "compare/" · "compare/<a>-vs-<b>/" · "calculator/" · "brokers/" (the explorer, its
 // state in the query string) · "brokers/<slug>/" · "trading-firms/" · "firms/" · "how-we-measure/".
-import { asData, type Data, type Firm, type Raw } from "./data";
+import { asData, brokerRows, metric, type Data, type Filters, type Firm, type Raw } from "./data";
+import { monthLong, usd2 } from "./format";
 import { METRICS, type MetricKey } from "./metrics";
 import { SITE_NAME, SITE_URL } from "./site";
 
@@ -130,22 +131,58 @@ export function describeRoute(data: Data | Raw, path: string, search: string): {
   const r = parseRoute(d, path);
   const canonical = SITE_URL + routePath(r);
   if (r.page === "home") return { title: `${SITE_NAME}: is your broker getting you a good price?`, description: HOME_DESCRIPTION, canonical };
-  let text: string;
+  // descriptions are what a search result shows under the title: each page carries its own numbers where it has them
+  const s: Filters = { sp: "Y", ot: "M", b: 199999, month: d.meta.month, quarter: d.meta.quarter, clearing: false };
+  const when = monthLong(d.meta.month);
+  const fair = (v: number) => `${usd2(Math.abs(v))} ${v < 0 ? "below" : "above"} the fair price`;
+  const cost = (f: Firm) => metric(d, f, s).cost10k;
+  let text: string, description: string;
   switch (r.page) {
     case "brokers": {
       // a linked explorer view names its measure; the bare page (and the pre-rendered one) names the page
       const m = new URLSearchParams(search).get("m");
       const M = m && m in METRICS ? METRICS[m as MetricKey] : null;
       text = M ? `${M.label}: every US broker compared` : "Compare US brokers: the prices they get you, their fees and what they are paid";
+      description = "Every US broker's trade prices, payments and fees in one sortable table, from the reports they must publish by law.";
       break;
     }
-    case "broker": text = `${r.firm.short} prices and fees: what a $10,000 trade really costs`; break;
+    case "broker": {
+      text = `${r.firm.short} prices and fees: what a $10,000 trade really costs`;
+      const c = cost(r.firm);
+      const ranked = brokerRows(d, s).filter((x) => x.cost10k != null).sort((x, y) => x.cost10k! - y.cost10k!);
+      const rank = ranked.findIndex((x) => x.id === r.firm.id) + 1;
+      description = c == null
+        ? `${r.firm.short}: its fees, who fills its orders and what it is paid for them, from the reports US brokers must publish.`
+        : `${r.firm.short} customers paid ${fair(c)} per $10,000 traded in ${when}${rank ? ` (#${rank} of ${ranked.length})` : ""}. Its fees, who fills its orders and what it is paid.`;
+      break;
+    }
     // the bare "compare/" page (the nav link) is a page of its own, not a second copy of the default pair's page
-    case "compare": text = r.explicit ? `${r.a.short} vs ${r.b.short}: prices, fees and what you'd pay` : "Compare two US brokers side by side: prices, fees and what you'd pay"; break;
-    case "calculator": text = "Brokerage cost calculator: what your broker costs you per year"; break;
-    case "trading-firms": text = "Which trading firms handle retail orders, and how good their prices are"; break;
-    case "how-we-measure": text = "How we measure brokers"; break;
-    case "firms": text = "Every firm that publishes a monthly price report (SEC Rule 605)"; break;
+    case "compare": {
+      text = r.explicit ? `${r.a.short} vs ${r.b.short}: prices, fees and what you'd pay` : "Compare two US brokers side by side: prices, fees and what you'd pay";
+      const ca = cost(r.a), cb = cost(r.b);
+      description = !r.explicit
+        ? "Pick any two of 25 US brokers and compare trade prices, fees, payment for order flow and registration side by side."
+        : ca != null && cb != null
+          ? `${when}, per $10,000 traded: ${r.a.short} customers paid ${fair(ca)}, ${r.b.short} customers ${usd2(Math.abs(cb))} ${cb < 0 ? "below" : "above"}. Fees and yearly cost compared.`
+          : `${r.a.short} vs ${r.b.short}: trade prices, fees, payment for order flow and registration side by side.`;
+      break;
+    }
+    case "calculator":
+      text = "Brokerage cost calculator: what your broker costs you per year";
+      description = "Enter how you trade and see what each US broker would cost you a year: trade prices, commissions, options fees, idle cash and margin.";
+      break;
+    case "trading-firms":
+      text = "Which trading firms handle retail orders, and how good their prices are";
+      description = "Which trading firms fill each broker's orders (Citadel, Virtu, Jane Street and others) and how good their prices are on identical trades.";
+      break;
+    case "how-we-measure":
+      text = "How we measure brokers";
+      description = "Where the numbers come from (SEC Rules 605 and 606), what share of the spread means, and what the data can't show.";
+      break;
+    case "firms":
+      text = "Every firm that publishes a monthly price report (SEC Rule 605)";
+      description = "Every firm that publishes a monthly SEC Rule 605 price report, with the share of the spread its customers paid.";
+      break;
   }
-  return { title: `${text} · ${SITE_NAME}`, description: text, canonical };
+  return { title: `${text} · ${SITE_NAME}`, description, canonical };
 }
