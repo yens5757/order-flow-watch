@@ -44,7 +44,7 @@ export const METRICS: Record<MetricKey, MetricDef> = {
   },
   payPct: {
     label: "Broker is paid, as a share of the spread", noun: "payment as a share of the spread", short: "Broker is paid (% spread)",
-    desc: "The payment in the same unit as the customer's cost, so the two compare directly.",
+    desc: "The payment as a share of the bid–ask gap. Customer pays is on the SEC's effective/quoted scale, which counts the distance from the midpoint twice, so compare the two in dollars per $10,000.",
     better: null, source: "measured", get: (r) => r.payPct, fmt: (v) => pct(v, 1), axis: (v) => `${v}%`, slot: 0,
   },
   gap: {

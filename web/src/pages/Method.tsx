@@ -140,7 +140,7 @@ export default function Method({ d }: { d: Data }) {
   const optShare = paid > 0 ? `about ${Math.round((100 * options) / paid)}% of` : "most of";
 
   const DEFS: [string, string][] = [
-    [METRICS.payPct.short, "What trading firms pay the broker (Rule 606, weighted by where its orders go), as a share of the quoted spread. Check: Robinhood's own report says 12.35%; ours gives 12.1–13.5%."],
+    [METRICS.payPct.short, "What trading firms pay the broker (Rule 606, weighted by where its orders go), as a share of the quoted spread. Check: Robinhood's own report says 12.35%; ours gives 12.1–13.5%. Customer pays uses the SEC's effective/quoted ratio, which counts the distance from the midpoint twice, so the two percentages are on different scales: compare them in dollars per $10,000."],
     [METRICS.speed.label, `Rule 605's average time from order to fill, in ${unit} (the unit the SEC's report specification sets). Shown, never scored${x.slower ? ": here slower fills went with better prices" : ""}.`],
   ];
 

@@ -105,8 +105,11 @@ No pandas by design: analysis is in SQL.
   "% price improved" alone is misleading (Webull: 94% improved, still pays ~50% of spread).
 - Payment: per-venue cents/100 shares, weighted by venue share of market orders, averaged over
   the quarter. Convert before comparing brokers: per-share payment is distorted by share price.
-  Headline metric: `payment_pct_of_spread` = payment_bps / quoted spread (bps), same unit as the
-  customer side. Rank correlations are Spearman with average ranks for ties (many brokers are paid 0).
+  Headline metric: `payment_pct_of_spread` = payment_bps / quoted spread (bps). NOT the same scale as the customer side:
+  EFQ = effective spread / quoted spread and the 605 effective spread is 2 x |price - midpoint|, so EFQ is relative to the
+  half-spread. Rank correlations are unaffected (a constant factor); the dollar measures (`cost10k` = EFQ x qs/2, `pay10k` =
+  cph / px) are on the same scale and are what to compare side by side (checked 4 Nov 2026). Older notes that compare
+  payment % with EFQ or the 1-min realized spread % ("Robinhood takes ~45% of that margin") understate the payment share 2x. Rank correlations are Spearman with average ranks for ties (many brokers are paid 0).
 
 ## Findings so far (605 Aug 2026 vs 606 Q2 2026, market orders < $200k)
 - Original 8 brokers: rank correlation payment vs customer cost 0.86 (S&P 500), 0.88 (other stocks).
