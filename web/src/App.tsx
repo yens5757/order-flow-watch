@@ -124,6 +124,7 @@ export function AppShell({ data, path, search }: { data: Data | Raw; path: strin
           <span>From the price and payment reports US brokers must publish by law (SEC Rules 605 and 606). Updated weekly, last on {dayLong(d.meta.built.slice(0, 10))}. Not investment advice.</span>
           <span className="flex flex-wrap items-center gap-4">
             <a href={href(pagePath("how-we-measure"))} className="hover:text-ink">How we measure</a>
+            <a href="mailto:hello@fillsandfees.com" className="hover:text-ink">Feedback</a>
             <a href="https://yens5757.github.io/" className="hover:text-ink">© 2026 Aiken Lee</a>
           </span>
         </div>
