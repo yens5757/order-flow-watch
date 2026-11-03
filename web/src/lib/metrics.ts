@@ -49,7 +49,7 @@ export const METRICS: Record<MetricKey, MetricDef> = {
   },
   gap: {
     label: "Same-trade gap vs other brokers", noun: "same-trade gap", short: "Same-trade gap",
-    desc: "Points of the spread on identical stocks and order sizes; below zero = better than other brokers.",
+    desc: "Points of the spread vs other brokers on the same stocks and order sizes; below zero = better.",
     better: "low", source: "measured", get: (r) => r.gap, fmt: (v) => signed(v, 1), axis: (v) => `${v > 0 ? "+" : ""}${v}`, slot: 0, diverging: true,
   },
   // no "better" direction: Webull price-improves 94% of orders yet its customers still pay about half the spread

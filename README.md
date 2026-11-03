@@ -50,30 +50,34 @@ and 8 market makers (Citadel, Virtu, GTS, G1, Jane Street, HRT, Two Sigma, Jump)
   the spread a broker is paid and the share its customers pay: +0.32 (S&P 500, p = 0.19) and +0.57 (other
   stocks, p = 0.01). Holding the share price customers trade equal, neither is statistically significant
   (+0.22 / +0.41, p = 0.38 / 0.10): the brokers paid most have customers in cheap, wide-spread stocks. The
-  other-stocks link weakens but does not vanish, so treat it as unresolved rather than ruled out. An early 8-broker version showed ~0.87;
-  that was small-sample luck.
-- **Broker differences are real on identical stocks.** Comparing brokers on the same stock × lot size × order
+  other-stocks link weakens but does not vanish, so treat it as unresolved rather than ruled out. On the same stock ×
+  lot size × order size cells (the comparison below), payment vs the same-stock gap is +0.25 (S&P 500, p = 0.30) and
+  +0.43 (other stocks, p = 0.07) across 19 brokers; without Cash App, the most influential broker (it pays its
+  wholesaler rather than being paid), +0.47 (p = 0.05) and +0.63 (p < 0.01). Full table: the statistics card at the
+  bottom of fillsandfees.com/how-we-measure/. An early 8-broker version showed ~0.87; that was small-sample luck.
+- **Broker differences are real on the same stocks.** Comparing brokers on the same stock × lot size × order
   size (detailed 605 reports): Fidelity's customers pay 15 points of the spread less than peers; Cash App's,
   eToro's, moomoo's and Coinbase's about 45 points more, and Interactive Brokers' 25 points more.
 - **Routing doesn't explain it.** A broker's mix of market makers predicts almost none of its same-stock
   gap (−0.06 on S&P 500 stocks). The same market makers fill different brokers' customers at very different prices.
 - **Clientele does.** Brokers whose customers make bigger trades get better prices on the same stocks
   (−0.65 / −0.68, p ≤ 0.001).
-- **Market makers differ too.** On identical S&P 500 trades Citadel fills 23 points of the spread better than
+- **Market makers differ too.** On the same S&P 500 stocks and order sizes Citadel fills 23 points of the spread better than
   the other market makers; Jump's retail desk 32 points worse.
 - **Most of the money is in options** (~70% of payments), which Rule 605 doesn't cover. Payments to the
   tracked brokers grew from $0.6B (2024Q2) to $1.5B a quarter (2026Q2 and Q3).
 
 ## Conclusion
 
-Brokers that are paid more for their customers' orders don't give measurably worse prices. They look worse at
+Brokers that are paid more for their customers' orders don't give reliably worse prices. They look worse at
 first only because their customers trade cheap, wide-spread stocks; compared on similarly priced stocks, the link
-weakens below statistical significance (for stocks outside the S&P 500 a weaker link may remain). Brokers still differ a lot on identical trades, and the size of their customers' orders explains that
+weakens below statistical significance (for stocks outside the S&P 500 a weaker link may remain). Brokers still differ a lot on the same stocks and order sizes, and the size of their customers' orders explains that
 far better than payment does.
 
 This agrees with [Schwarz, Barber, Huang, Jorion & Odean (2025)](https://papers.ssrn.com/abstract=4189239), who
-placed 85,000 test trades and reached the same answer. They also found that the disclosure rules of the time
-couldn't show this. The broker-level Rule 605 reports required since August 2026 can.
+placed 85,000 simultaneous market orders at five brokers and reached the same answer. They also called for more
+informative disclosure of execution quality; the broker-level Rule 605 reports required since August 2026 make this
+comparison possible from public data.
 
 ## How it works
 

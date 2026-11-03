@@ -173,7 +173,7 @@ export function describeRoute(data: Data | Raw, path: string, search: string): {
       break;
     case "trading-firms":
       text = "Which trading firms handle retail orders, and how good their prices are";
-      description = "Which trading firms fill each broker's orders (Citadel, Virtu, Jane Street and others) and how good their prices are on identical trades.";
+      description = "Which trading firms fill each broker's orders (Citadel, Virtu, Jane Street and others) and how good their prices are on the same stocks and order sizes.";
       break;
     case "how-we-measure":
       text = "How we measure brokers";

@@ -55,15 +55,15 @@ function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm
     const cv = diff > 0 ? rB.cost10k! : rA.cost10k!, dv = diff > 0 ? rA.cost10k! : rB.cost10k!;
     price.push(<>Per $10,000 of {order}s in {stocks}, <strong className="font-semibold text-ink">{cheap.short} customers pay about {usd2(Math.abs(diff))} less</strong> than {dear.short} customers: {fair(cv)} against {fair(dv)}.</>);
   }
-  // 2. does it hold on identical trades? (same stocks, same order sizes)
+  // 2. does it hold on the same stocks and order sizes?
   if (rA.gap != null && rB.gap != null) {
-    const g = rA.gap - rB.gap; // > 0: B gets the better price on identical trades
-    if (Math.abs(g) < 1) price.push(<> On identical trades the two are level.</>);
+    const g = rA.gap - rB.gap; // > 0: B gets the better price on the same stocks and sizes
+    if (Math.abs(g) < 1) price.push(<> On the same stocks and order sizes the two are level.</>);
     else {
       const same = g > 0 ? B : A;
       price.push(cheap == null || same.id === cheap.id
-        ? <> That holds on identical trades too.</>
-        : <> On identical trades, though, {same.short} comes out ahead: part of the gap is what each broker's customers trade.</>);
+        ? <> That holds on the same stocks and order sizes too.</>
+        : <> On the same stocks and order sizes, though, {same.short} comes out ahead: part of the gap is what each broker's customers trade.</>);
     }
   }
 

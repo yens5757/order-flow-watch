@@ -15,7 +15,7 @@ import { useTheme } from "../lib/theme";
 const verdict = (e: Evidence) => (e.p >= 0.05 ? "neutral" : Math.sign(e.rho) === e.expect ? "good" : "bad") as "good" | "bad" | "neutral";
 const VERDICT = { good: "Holds up", bad: "Goes the other way", neutral: "Could be chance" };
 /** a p-value as the chance the pattern is random: 0.018 -> "2%", 0.0004 -> "<0.1%" */
-const chance = (p: number) => (p < 0.001 ? "<0.1%" : `${(p * 100).toFixed(p < 0.01 ? 1 : 0)}%`);
+const chance = (p: number) => (p < 0.001 ? "<0.001" : p.toFixed(p < 0.01 ? 3 : 2));
 /** "A, B and C" */
 const andList = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 
@@ -67,7 +67,7 @@ function questions(d: Data, x: Tests): [string, ReactNode][] {
   const gaps = rows.filter((r) => r.gap != null).sort((a, b) => a.gap! - b.gap!);
   const gapMed = median(gaps.map((r) => r.gap!)) ?? 0;
   const payMed = median(rows.filter((r) => r.pay10k != null && r.pay10k > 0.005).map((r) => r.pay10k!)) ?? 0;
-  // brokers paid nothing (or paying) that still get worse prices than most on identical trades
+  // brokers paid nothing (or paying) that still get worse prices than most on the same stocks and sizes
   const unpaid = gaps.filter((r) => r.pay10k != null && r.pay10k <= 0.005 && r.gap! > gapMed).sort((a, b) => b.gap! - a.gap!).slice(0, 2);
   const pts = (v: number) => `${signed(v, 1)} points`;
   const paidHow = (r: Metric) => (r.pay10k! < -0.005 ? "actually pays its trading firm" : "is paid nothing");
@@ -91,14 +91,14 @@ function questions(d: Data, x: Tests): [string, ReactNode][] {
   if (best) {
     const lead = best.gap == null ? null
       : gaps[0].id === best.id
-        ? <>, and it holds on identical trades ({pts(best.gap)} vs other brokers)</>
-        : <>; on identical trades it is {pts(best.gap)} ({gaps[0].f.short} leads there at {pts(gaps[0].gap!)})</>;
+        ? <>, and it holds on the same stocks and order sizes ({pts(best.gap)} vs other brokers)</>
+        : <>; on the same stocks and order sizes it is {pts(best.gap)} ({gaps[0].f.short} leads there at {pts(gaps[0].gap!)})</>;
     const pay = best.pay10k == null ? null
       : best.pay10k <= 0.005 ? <> It {paidHow(best)} for orders.</>
         : best.pay10k < payMed ? <> It is also paid less than most brokers.</> : null;
     const why: ReactNode[] = [];
-    if (unpaid.length) why.push(<span key="u">Low payment alone doesn't explain it: {andList(unpaid.map((r) => `${r.f.short} ${paidHow(r)}`))}, {unpaid.length > 1 ? "and both get" : "yet it gets"} worse prices than most on identical trades ({unpaid.map((r) => `${r.f.short} ${pts(r.gap!)}`).join(", ")}). </span>);
-    if (x.clientele) why.push(<span key="c">The strongest pattern is clientele: brokers whose customers place bigger orders get better prices even at the same order size{!x.routing && <>, and the same trading firms price each broker's orders differently</>}.</span>);
+    if (unpaid.length) why.push(<span key="u">Low payment alone doesn't explain it: {andList(unpaid.map((r) => `${r.f.short} ${paidHow(r)}`))}, {unpaid.length > 1 ? "and both get" : "yet it gets"} worse prices than most on the same stocks and order sizes ({unpaid.map((r) => `${r.f.short} ${pts(r.gap!)}`).join(", ")}). </span>);
+    if (x.clientele) why.push(<span key="c">The strongest pattern is clientele: brokers whose customers place bigger orders get better prices even at the same order size{!x.routing && <>, and the same trading firms appear to price each broker's orders differently</>}.</span>);
     items.push([`Why does ${best.f.short} look best?`, <>
       <p>{best.f.short}'s customers paid the least above the fair price per $10,000 of S&P 500 market orders{lead}.{pay}</p>
       {why.length > 0 && <p>{why}</p>}
@@ -120,7 +120,7 @@ export default function Method({ d }: { d: Data }) {
   const color = (e: Evidence) => ({ good: t.good, bad: t.critical, neutral: t.muted })[verdict(e)];
   const chart = useMemo(() => forest(t, ev.map((e) => ({
     label: e.claim, rho: e.rho, lo: e.lo, hi: e.hi, color: color(e),
-    rows: [[null, "Strength", signed(e.rho, 2)], [null, "95% interval", `${signed(e.lo, 2)} to ${signed(e.hi, 2)}`], [null, "Chance it's random", chance(e.p)], [null, "Brokers", String(e.n)], [color(e), "Verdict", VERDICT[verdict(e)]]],
+    rows: [[null, "Strength", signed(e.rho, 2)], [null, "95% interval", `${signed(e.lo, 2)} to ${signed(e.hi, 2)}`], [null, "p-value (shuffle test)", chance(e.p)], [null, "Brokers", String(e.n)], [color(e), "Verdict", VERDICT[verdict(e)]]],
   }))), [t, sp]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const x = useMemo(() => tests(d), [d]);
@@ -140,7 +140,7 @@ export default function Method({ d }: { d: Data }) {
   const optShare = paid > 0 ? `about ${Math.round((100 * options) / paid)}% of` : "most of";
 
   const DEFS: [string, string][] = [
-    [METRICS.payPct.short, "What trading firms pay the broker (Rule 606, weighted by where its orders go), as a share of the quoted spread. Check: Robinhood's own report says 12.35%; ours gives 12.1–13.5%. Customer pays uses the SEC's effective/quoted ratio, which counts the distance from the midpoint twice, so the two percentages are on different scales: compare them in dollars per $10,000."],
+    [METRICS.payPct.short, "What trading firms pay the broker (Rule 606, weighted by where its orders go), as a share of the quoted spread. Check: Robinhood's own report says 12.35% of the spread in regular hours (9% after hours); our estimate is 12–15%, depending on which month's spreads it is divided by. Customer pays uses the SEC's effective/quoted ratio, which counts the distance from the midpoint twice, so the two percentages are on different scales: compare them in dollars per $10,000."],
     [METRICS.speed.label, `Rule 605's average time from order to fill, in ${unit} (the unit the SEC's report specification sets). Shown, never scored${x.slower ? ": here slower fills went with better prices" : ""}.`],
   ];
 
@@ -178,7 +178,7 @@ export default function Method({ d }: { d: Data }) {
         <Card title="Same stocks, same order sizes">
           <div className={BODY}>
             <p>Averages flatter brokers whose customers trade big, liquid stocks in large orders.</p>
-            <p>So each broker is also scored against the others on market orders in the same stock, lot type and order size: the “{METRICS.gap.short.toLowerCase()}”, below zero = better on identical trades.{!x.routing && <> The gaps persist with the same trading firms filling the orders: they price each broker's flow differently.</>}</p>
+            <p>So each broker is also scored against the others on market orders in the same stock, lot type and order size: the “{METRICS.gap.short.toLowerCase()}”, below zero = better than other brokers on the same stocks and order sizes.{!x.routing && <> The gaps persist with the same trading firms filling the orders, which suggests they price each broker's flow differently.</>}</p>
           </div>
         </Card>
       </div>
@@ -243,7 +243,7 @@ export default function Method({ d }: { d: Data }) {
             <table className="w-full text-[13.5px]">
               <thead><tr className="border-b border-line text-left text-ink2">
                 <th scope="col" className="py-2 pr-3 font-semibold">Claim</th><th scope="col" className="px-3 py-2 text-right font-semibold">Strength (−1 to 1)</th>
-                <th scope="col" className="hidden px-3 py-2 text-right font-semibold sm:table-cell">Chance it's random</th><th scope="col" className="hidden px-3 py-2 text-right font-semibold sm:table-cell">Brokers</th><th scope="col" className="py-2 pl-3 font-semibold">Verdict</th>
+                <th scope="col" className="hidden px-3 py-2 text-right font-semibold sm:table-cell">p-value</th><th scope="col" className="hidden px-3 py-2 text-right font-semibold sm:table-cell">Brokers</th><th scope="col" className="py-2 pl-3 font-semibold">Verdict</th>
               </tr></thead>
               <tbody>{ev.map((e) => (
                 <tr key={e.claim} className="border-b border-line last:border-0">

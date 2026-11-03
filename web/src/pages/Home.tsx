@@ -97,9 +97,9 @@ export default function Home({ d }: { d: Data }) {
     : me.pay10k < -0.005 ? `Pays its trading firm about ${usd2(-me.pay10k)} for that order.`
     : "Not paid for orders.";
   const gapLine = !me || me.gap == null ? "No same-trade comparison available."
-    : me.gap < -3 ? "Better prices than most brokers on identical trades."
-    : me.gap > 3 ? "Worse prices than most brokers on identical trades."
-    : "About average on identical trades.";
+    : me.gap < -3 ? "Better prices than most brokers on the same stocks and order sizes."
+    : me.gap > 3 ? "Worse prices than most brokers on the same stocks and order sizes."
+    : "About average on the same stocks and order sizes.";
   // fee facts checked by hand on the broker's own pages (fees.csv); each line only shows when the fact is verified
   const fee: Fee | undefined = me ? d.fees[me.id] : undefined;
   const cashLine = fee?.cashYield == null ? null
@@ -274,7 +274,7 @@ export default function Home({ d }: { d: Data }) {
                 : <>{topPaid.map((r) => r.f.short).join(" and ")} are paid the most, but payment only weakly predicts what customers pay.</>,
               `${pagePath("brokers")}?m=cost10k&vs=pay10k`, "See payment vs price"],
             ["scale", "Same stock, very different price",
-              <>Same trading firms, yet {gaps[0]?.f.short} customers get the best prices and {gaps[gaps.length - 1]?.f.short} the worst on identical trades.</>,
+              <>Same trading firms, yet {gaps[0]?.f.short} customers get the best prices and {gaps[gaps.length - 1]?.f.short} the worst on the same stocks and order sizes.</>,
               `${pagePath("brokers")}?m=gap`, "See every broker"],
             ["layers", "Most of the money is in options",
               <>{optPct}% of the {dollars(paid)} paid in {quarterLong(lastQ)} was for options, which the price reports don't cover.</>,

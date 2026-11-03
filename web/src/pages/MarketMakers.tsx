@@ -16,7 +16,7 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
   const [metric, setMetric] = useState<"share" | "pay">("share");
   const mmName = Object.fromEntries(d.marketMakers.map((m) => [m.id, m.name]));
 
-  // price quality on identical trades
+  // price quality on the same stock x lot x size cells
   const gaps = d.sameStock.marketMakers.filter((g) => g.sp === f.sp).sort((a, b) => a.gap - b.gap);
   const missing = d.marketMakers.filter((m) => !gaps.some((g) => g.id === m.id));
   const gapChart = useMemo(() => divergingBars(t, gaps.map((g) => ({
@@ -71,7 +71,7 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Kpi icon="coins" label="Trading firms used" value={tot.size} sub={`by brokers here, ${quarterLong(f.quarter)}`} />
-        <Kpi icon="layers" label="Trading firms compared" value={gaps.length} sub={`on identical ${SP_LABEL[f.sp]} trades, ${monthLong(d.meta.detailMonth)}`} />
+        <Kpi icon="layers" label="Trading firms compared" value={gaps.length} sub={`on the same ${SP_LABEL[f.sp]} stocks and sizes, ${monthLong(d.meta.detailMonth)}`} />
         <Kpi icon="chart" label={`Biggest by volume, ${lastQ ? quarterShort(lastQ) : ""}`} value={leadShare != null ? pct(leadShare, 0) : "–"}
           sub={lead ? `${trim(lead)}'s off-exchange share` : undefined} />
       </section>
@@ -93,7 +93,7 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card title="Price quality on the same stocks" sub={`${SP_LABEL[f.sp]} · market orders · points of the spread vs other firms`}
           info="A trading firm's score mixes its own pricing with the brokers that send it orders.">
-          {gaps.length ? <EChart option={gapChart} height={Math.max(260, gaps.length * 40 + 40)} label="Price quality on identical trades" /> : <Empty>No reports this month.</Empty>}
+          {gaps.length ? <EChart option={gapChart} height={Math.max(260, gaps.length * 40 + 40)} label="Price quality on the same stocks and order sizes" /> : <Empty>No reports this month.</Empty>}
         </Card>
         <Card title="Share of off-exchange stock trading" sub="FINRA volume data · full quarters">
           {qs.length ? <EChart option={otcChart} height={Math.max(260, gaps.length * 40 + 40)} label="Off-exchange share by quarter" /> : <Empty>No FINRA data.</Empty>}

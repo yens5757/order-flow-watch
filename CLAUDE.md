@@ -151,7 +151,17 @@ No pandas by design: analysis is in SQL.
   +0.55 (other, p 0.02); at equal share price +0.18 / +0.37 (p 0.48 / 0.14); clientele −0.65 / −0.68 (p ≤ 0.001). Same picture
   as August (Webull improved most, 49.7 → 44.9% of spread). IBKR (IBBD, Interactive Brokers LLC, all its retail flow): 31.6% of the
   spread on S&P market orders, +25pt vs peers on identical trades, Robinhood-like.
-- Validation: Robinhood's 606 states it is paid 12.35% of the spread; the pipeline reproduces 12.1-13.5%.
+- Validation: Robinhood's 606 (2026Q2 and Q3 alike) states it is paid 12.35% of the spread in regular hours, 9% extended;
+  the pipeline's estimate is 12.1-15.5% depending on which month's 605 price and spread divide the quarter's cents per
+  100 shares (Q2 cph / Aug spreads 12.1 S&P; Q3 cph / Sep spreads 15.5): a period-mismatch approximation, not exact.
+- **Email to Schwarz checked (4 Nov 2026), Sept fills, Q3 payments with Q2 fallback:** payment vs SAME-STOCK gap +0.25
+  (p 0.30) / +0.43 (p 0.07), n 19; without Cash App (most influential: negative payment, worst S&P gap) +0.47 (p 0.05) /
+  +0.63 (p 0.006); Q2-only +0.37 / +0.40; Q3-only (n 17) +0.43 / +0.63. Clientele -0.65 / -0.68 (1M perms p 0.0006 /
+  0.0003), negative in every size bucket, survives Bonferroni and holding payment fixed; open confound = order handling
+  (holding avg execution time equal: -0.34 p 0.10 / -0.41 p 0.04). August is similar (payment +0.23 / +0.44 n 18,
+  clientele -0.61 / -0.68 n 24). The paper (JF 80(5) 2025, 2507-41) uses 85,000 simultaneous market orders and calls
+  discarded trades "test trades"; its "matched trades" are literally identical orders, so the site says "same stocks and
+  order sizes", never "identical trades". Co-author Jorion died 21 Jul 2025.
 - Finding names for 605 reporter codes: FINRA's broker-dealer directory
   finra.org/filing-reporting/regulation-nms/sec-rule-605-reports/167516 (paginated, ?page=N).
   606 `broker` name field is sometimes just a code (WLTH, ALTU), so `--find` by name can miss firms;

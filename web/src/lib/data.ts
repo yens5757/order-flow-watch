@@ -145,12 +145,14 @@ export interface Filters { sp: Sp; ot: Ot; b: number; month: string; quarter: st
 export interface Metric {
   f: Firm; id: string; name: string;
   payPct: number | null; cph: number | null; cust: number | null;
+  /** the quarter the payment comes from (the one before the selected quarter when the broker has not filed it yet) */
+  payQ: string | null;
   pi: number | null; aq: number | null; sz: number | null; px: number | null; t: number | null; qsBps: number | null;
   /** $ the customer pays above the midpoint on a $10,000 trade */
   cost10k: number | null;
   /** $ the broker is paid for routing a $10,000 order: cph is cents per 100 shares, so cph/1e4 per share × 1e4/price shares */
   pay10k: number | null;
-  /** points of the spread vs other brokers on identical stock × size cells (market orders, all sizes) */
+  /** points of the spread vs other brokers on the same stock × lot × size cells (market orders, all sizes) */
   gap: number | null;
   /** average time to fill in milliseconds (meta.timeUnit); the same value as t */
   speedMs: number | null;
@@ -161,7 +163,13 @@ export interface Metric {
 export function metric(d: Data, f: Firm, s: Filters): Metric {
   const e = d.exec.get(execKey(f.id, s.month, s.sp, s.ot, s.b));
   const base = d.exec.get(execKey(f.id, s.month, s.sp, s.ot, 199999));
-  const p = f.crd ? d.pay.get(`${f.crd}|${s.quarter}|${s.sp}`) : undefined;
+  // the selected quarter's payment; on the latest quarter, the one before for a broker that has not filed it yet
+  // (build_site.py does the same for the evidence table, so every page agrees)
+  const payAt = (q: string | undefined) => (f.crd && q ? d.pay.get(`${f.crd}|${q}|${s.sp}`) : undefined);
+  const prevQ = d.meta.quarters[d.meta.quarters.indexOf(s.quarter) - 1];
+  const own = payAt(s.quarter);
+  const p = own ?? (s.quarter === d.meta.quarter ? payAt(prevQ) : undefined);
+  const payQ = own ? s.quarter : p ? prevQ : null;
   const cph = p ? p[s.ot] : null;
   const payPct = cph != null && base?.px && base?.qs ? cph / base.px / base.qs / 100 : null;
   const pct = (v: number | null | undefined) => (v == null ? null : v * 100);
@@ -169,7 +177,7 @@ export function metric(d: Data, f: Firm, s: Filters): Metric {
   const cust = pct(e?.efq);
   const fee: Fee | undefined = d.fees[f.id];
   return {
-    f, id: f.id, name: nameOf(f), payPct, cph, cust,
+    f, id: f.id, name: nameOf(f), payPct, cph, payQ, cust,
     pi: pct(e?.pi), aq: pct(e?.aq), sz: e?.sz ?? null, px: e?.px ?? null, t: e?.t ?? null, qsBps,
     cost10k: cust != null && qsBps != null ? (cust / 100) * (qsBps / 2) : null,
     pay10k: cph != null && base?.px ? cph / base.px : null,

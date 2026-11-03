@@ -110,9 +110,9 @@ export default function BrokerProfile({ d, f, set, id }: { d: Data; f: Filters; 
       </p>
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
         <Kpi label={METRICS.cust.short} info={METRICS.cust.desc} value={pct(r.cust, 0)} sub={rank ? `of the spread · #${rank} lowest of ${all.length}` : "of the spread"} />
-        <Kpi label={METRICS.payPct.short} info={METRICS.payPct.desc} value={pct(r.payPct, 1)} sub={r.cph != null ? `${cents(r.cph)} per 100 shares` : has606 ? "not in this quarter's report" : "no payment report"} />
+        <Kpi label={METRICS.payPct.short} info={METRICS.payPct.desc} value={pct(r.payPct, 1)} sub={r.cph != null ? `${cents(r.cph)} per 100 shares${r.payQ && r.payQ !== f.quarter ? ` (${quarterLong(r.payQ)}, latest filed)` : ""}` : has606 ? "not in this quarter's report" : "no payment report"} />
         <Kpi label={METRICS.gap.short} info={METRICS.gap.desc} value={gap ? signed(gap.gap, 1) : "–"} tone={gap ? (gap.gap < 0 ? "good" : "bad") : undefined}
-          sub={gap ? `points vs other brokers, identical trades` : "no detailed data"} />
+          sub={gap ? `points vs other brokers, same stocks and sizes` : "no detailed data"} />
         <Kpi label={METRICS.cost10k.short} info={METRICS.cost10k.desc} value={usd2(r.cost10k)} sub="above the fair price" />
         <Kpi label={METRICS.sz.short} info={METRICS.sz.desc} value={r.sz == null ? "–" : `$${num(r.sz)}`} sub={r.pi != null ? `${pct(r.pi, 0)} of orders beat the quoted price` : undefined} />
         <Kpi label={METRICS.speed.short} info={METRICS.speed.desc} value={time(r.t)} sub={r.t != null && medSpeed != null ? `typical broker ${time(medSpeed)}` : "no timing data"} />
