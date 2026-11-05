@@ -1,4 +1,6 @@
-export const pct = (v: number | null | undefined, d = 0) => (v == null || Number.isNaN(v) ? "–" : `${v.toFixed(d)}%`);
+/** A percentage with a proper minus sign: 30.8%, −2.8% (never "−0.0%"). */
+export const pct = (v: number | null | undefined, d = 0) =>
+  (v == null || Number.isNaN(v) ? "–" : `${v < 0 && Number(Math.abs(v).toFixed(d)) !== 0 ? "−" : ""}${Math.abs(v).toFixed(d)}%`);
 export const signed = (v: number | null | undefined, d = 1, unit = "") =>
   v == null ? "–" : `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(d)}${unit}`;
 /** Cents with one decimal and a proper minus sign: 223.2¢, −12.5¢ (never "−0.0¢"). */

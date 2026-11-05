@@ -56,6 +56,10 @@ export function gapOf(A: Firm, B: Firm, rA: Metric, rB: Metric): Gap {
 /** The gap as money, from the shown cents: $0.91. */
 export const gapMoney = (c: number) => money(Math.abs(c) / 100);
 
+/** Below this many points of the spread apart, the two brokers' same-stock gaps are "level": the short answer says so and
+ *  the side-by-side table's rank row marks neither as better. */
+export const SAME_LEVEL = 1;
+
 /* ---------- the short answer ---------- */
 
 /** First paragraph: who paid less and by how much, then whether that holds on the same stocks and order sizes. */
@@ -78,7 +82,7 @@ export function priceText(d: Data, f: Filters, A: Firm, B: Firm, rA: Metric, rB:
     const s = rA.gap - rB.gap; // > 0: B gets the better price on the same stocks and sizes
     const ml = f.ot === "ML";
     const on = ml ? "For market orders on the same stocks and order sizes" : "On the same stocks and order sizes";
-    if (Math.abs(s) < 1) out.push(`${on}, the two are level.`);
+    if (Math.abs(s) < SAME_LEVEL) out.push(`${on}, the two are level.`);
     else {
       const ahead = s > 0 ? B : A;
       out.push(!g.cheap

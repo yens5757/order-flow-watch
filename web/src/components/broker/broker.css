@@ -73,11 +73,13 @@ html.js .bp-def-note:not(.open) { display: none; }
 .bp-rows { margin-top: 16px; }
 .bp-rows > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; padding: 8px 0; border-top: 1px solid var(--border); }
 .bp-rows dt { line-height: 1.3; }
-.bp-rows dt small { display: block; margin-top: 2px; font-size: var(--fs-1); color: var(--ink-2); }
+.bp-rows dt small { display: block; margin-top: 2px; font-size: var(--fs-1); color: var(--ink-2); text-wrap: pretty; }
 .bp-rows dd { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
 .bp-rows dd.unknown { font-weight: 600; color: var(--ink-2); }
 .bp-yr-rank { margin-top: 20px; font-weight: 700; line-height: 1.4; text-wrap: balance; }
 .bp-note { margin-top: 14px; color: var(--ink-2); }
+/* the priced line (cash interest, moving out): its words in secondary ink, its figures in ink like every other figure */
+.bp-cash strong { color: var(--ink); }
 .bp-act { margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding-top: 18px; border-top: 1px solid var(--border); }
 .bp-act p { flex: 1 1 13rem; color: var(--ink-2); line-height: 1.45; }
 

@@ -17,6 +17,19 @@ export const cents = (v: number) => Math.sign(v) * Math.round(Math.abs(v) * 100)
 /** Dollars as shown in cents: −$0.09, $0.82, $0.00 (never "−$0.00"). */
 export const money = (v: number) => usd2(cents(v) / 100);
 
+/** A price per $10,000 against the fair price as the plain pages show it, on the whole cents shown: "$0.82", or "$0.09"
+ *  and the word "below" rather than a minus sign, so no "−$0.09" sits beside "above the fair price" (tables, scale
+ *  captions, the gap line's brackets). The explorer keeps the sign. */
+export function fairParts(v: number): { amt: string; below: boolean } {
+  return { amt: money(Math.abs(v)), below: cents(v) < 0 };
+}
+/** fairParts as one string: "$0.82", "$0.09 below" (a no-break space: a narrow scale caption wraps before the figure,
+ *  never between it and its word). */
+export const fairText = (v: number) => {
+  const { amt, below } = fairParts(v);
+  return below ? `${amt}${String.fromCharCode(0xa0)}below` : amt;
+};
+
 /* ---------- where a broker ranks ---------- */
 
 export interface Place {
@@ -153,7 +166,7 @@ export const isExchange = (venue: string) => EXCHANGE.test(venue);
 export type PayKind = "paid" | "zero" | "pays" | "fees" | "missing" | "none";
 export interface Pay {
   kind: PayKind;
-  /** dollars per $10,000 order; null when this month's price report is missing (so no share price to convert with) */
+  /** dollars per $10,000 of orders; null when this month's price report is missing (so no share price to convert with) */
   v: number | null;
   /** cents per 100 shares, the 606's own unit */
   cph: number | null;
@@ -284,7 +297,7 @@ export interface Group {
   /** the rank on the same stocks and order sizes (the answer card's second line, sameStockWords); null for a clearing
    *  firm, without a price or without a same-stock figure (the card then says nothing) */
   same: SameRank | null;
-  /** "$0.91 more than the cheapest" + "Fidelity, −$0.09" */
+  /** "$0.91 more than the cheapest" + "Fidelity, $0.09 below" */
   diff: GapLine | null;
   /** graded by `rank` and `same` (priceSentence), so it never contradicts them */
   sentence: string | null;
@@ -303,12 +316,12 @@ function gapLine(places: Place[], m: Metric, clearing: boolean): GapLine | null 
   const lowest = places.filter((p) => cents(p.m.cost10k!) === low && p.m.id !== m.id);
   const named = (ps: Place[]) => (ps.length > 3 ? `${ps.slice(0, 3).map((p) => p.m.f.short).join(", ")} and others` : andList(ps.map((p) => p.m.f.short)));
   const by = (n: number) => usd2(Math.abs(n) / 100);
-  const cheapest = `${named(lowest)}, ${money(places[0].m.cost10k!)}`;
+  const cheapest = `${named(lowest)}, ${fairText(places[0].m.cost10k!)}`;
   if (c < low) return { lead: `${by(low - c)} less than the cheapest broker`, who: cheapest };
   if (c === low) {
     if (lowest.length) return { lead: `Level with ${named(lowest)} at the lowest price`, who: null };
     const next = places.find((p) => cents(p.m.cost10k!) > c);
-    return next ? { lead: `${by(cents(next.m.cost10k!) - c)} less than the next cheapest`, who: `${next.m.f.short}, ${money(next.m.cost10k!)}` } : null;
+    return next ? { lead: `${by(cents(next.m.cost10k!) - c)} less than the next cheapest`, who: `${next.m.f.short}, ${fairText(next.m.cost10k!)}` } : null;
   }
   return { lead: `${by(c - low)} more than the cheapest${clearing ? " broker" : ""}`, who: cheapest };
 }

@@ -14,7 +14,7 @@ import { dayLong, ms, pct } from "../../lib/format";
 import { fairText, METRICS, type MetricKey } from "../../lib/metrics";
 import { brokerPath, href, pagePath } from "../../lib/routes";
 import { Card, Icon, Info } from "../ui";
-import { capital, feeBlank, feeDollars, feeRate, gapWords, ordersWord, pairFilters, placesFor, roundOrder, stocksWord } from "./pair";
+import { capital, feeBlank, feeDollars, feeRate, gapWords, ordersWord, pairFilters, placesFor, roundOrder, SAME_LEVEL, stocksWord } from "./pair";
 
 interface Row {
   key: string; label: string; note?: string; info?: string;
@@ -58,10 +58,12 @@ export function SideBySide({ d, f, A, B, rA, rB, feeA, feeB, monthName }: {
   const same: [SameRank | null, SameRank | null] = [sameStockRank(d, A.id, f.sp), sameStockRank(d, B.id, f.sp)];
   const pool = same[0] ?? same[1];
   const unranked = (F: Firm) => (F.type === "clearing_firm" ? "Not ranked" : "Not enough data");
+  // two gaps within a point are "level" in the short answer above, so neither rank gets the tick then
+  const level = rA.gap != null && rB.gap != null && Math.abs(rA.gap - rB.gap) < SAME_LEVEL;
   const sameRow: Row = {
     key: "same", label: "On the same stocks and order sizes", topic: "the same stocks and order sizes", note: `rank, cheapest first${ml ? ` · ${ml}` : ""}`,
     info: pool ? sameStockNote(d, pool, placesFor(d, { ...pairFilters(f), ot: "M" }).length) : undefined,
-    better: "low", v: [same[0]?.rank ?? null, same[1]?.rank ?? null], fmt: (_, i) => capital(sameStockWords(same[i]!)),
+    better: level ? null : "low", v: [same[0]?.rank ?? null, same[1]?.rank ?? null], fmt: (_, i) => capital(sameStockWords(same[i]!)),
     blank: [unranked(A), unranked(B)],
   };
 
@@ -81,7 +83,7 @@ export function SideBySide({ d, f, A, B, rA, rB, feeA, feeB, monthName }: {
         fee("optionsFee", METRICS.optionsFee.label, feeDollars, "low"),
         fee("marginRate", METRICS.marginRate.label, feeRate, "low", { note: "on a $25,000 loan" }),
         fee("cashYield", METRICS.cashYield.label, feeRate, "high", { note: "standard account" }),
-        fee("transferOut", "Transfer-out fee", feeDollars, "low", { note: "your whole account" }),
+        fee("transferOut", "Transfer-out fee", feeDollars, "low", { note: "moving your whole account out" }),
       ],
     },
   ];
@@ -89,7 +91,7 @@ export function SideBySide({ d, f, A, B, rA, rB, feeA, feeB, monthName }: {
   // three figures with no better direction (the speed row has no tick: slower orders got better prices)
   const more: Row[] = [
     measured("cust", (v) => pct(v, 1)),
-    measured("gap", gapWords, { blank: ["Not enough data", "Not enough data"], note: ml }),
+    measured("gap", gapWords, { blank: ["Not enough data", "Not enough data"], note: ml, ...(level ? { better: null } : {}) }),
     measured("pi", (v) => pct(v, 0)),
     measured("sz", roundOrder),
     measured("speed", ms),

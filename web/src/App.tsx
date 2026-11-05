@@ -16,6 +16,9 @@ import MarketMakers from "./pages/MarketMakers";
 import Method from "./pages/Method";
 import NotFound from "./pages/NotFound";
 
+/** A no-break space: the footer's "605 and 606" never parts at a line end. */
+const NB = String.fromCharCode(0xa0);
+
 // "How we measure" stays a page but lives in the footer and in card links, not in the nav
 const NAV: [PageName, string][] = [["home", "Home"], ["compare", "Compare"], ["calculator", "Calculator"], ["brokers", "Brokers"], ["trading-firms", "Trading firms"]];
 
@@ -106,7 +109,7 @@ export function AppShell({ data, path, search }: { data: Data | Raw; path: strin
 
       <footer className="foot">
         <div className="wrap">
-          <p>From the reports US brokers must publish by law (SEC Rules 605 and 606) and each broker's own price list. No ads, no affiliate links, no money from brokers. Checked for new reports every week, last on {dayLong(d.meta.built.slice(0, 10))}. Not investment advice.</p>
+          <p>From the reports US brokers must publish by law (SEC Rules 605{NB}and{NB}606) and each broker's own price list. No ads, no affiliate links, no money from brokers. Checked for new reports every week, last on <time dateTime={d.meta.built.slice(0, 10)}>{dayLong(d.meta.built.slice(0, 10))}</time>. Not investment advice.</p>
           <ul>
             <li><a href={href(pagePath("how-we-measure"))}>How we measure</a></li>
             <li><a href="mailto:admin@fillsandfees.com">Feedback</a></li>

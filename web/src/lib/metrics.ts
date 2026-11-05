@@ -2,7 +2,6 @@
 // Every page names a measure through METRICS[k].label / .short, so one noun per measure holds across the site:
 // "Customer pays" (share of the spread, or "per $10,000 traded" in dollars), "Broker is paid", "Same-stock gap" (never
 // "same trade": brokers are compared on the same stocks and order sizes, not on identical trades).
-import { cents, money } from "./broker";
 import type { Metric } from "./data";
 import { ms, num, pct, signed, usd2, usdSigned, usdTick } from "./format";
 
@@ -11,16 +10,10 @@ export const FAIR_PRICE = "the fair price (midpoint of the best buy and sell quo
 
 /** The plain-language tables' price column (Home's ranking, a broker's "Where it sits", Compare's tables). */
 export const FAIR_COL = "Above fair price";
-/** A price per $10,000 as those tables show it under FAIR_COL, on the whole cents shown: "$0.82", or "$0.09" and the word
- *  "below", never "−$0.09" under "above". The explorer keeps the sign (usdSigned). */
-export function fairParts(v: number): { amt: string; below: boolean } {
-  return { amt: money(Math.abs(v)), below: cents(v) < 0 };
-}
-/** fairParts as one string: "$0.82", "$0.09 below". */
-export const fairText = (v: number) => {
-  const { amt, below } = fairParts(v);
-  return below ? `${amt} below` : amt;
-};
+/** A price per $10,000 as those tables show it under FAIR_COL: "$0.82", or "$0.09 below", never "−$0.09" under "above"
+ *  (defined in lib/broker.ts, beside money(), so the broker page's own words use them too). The explorer keeps the sign
+ *  (usdSigned). */
+export { fairParts, fairText } from "./broker";
 
 export type MetricKey = "cost10k" | "cust" | "pay10k" | "payPct" | "gap" | "pi" | "sz" | "speed" | "fract" | "commission" | "optionsFee" | "marginRate" | "cashYield";
 

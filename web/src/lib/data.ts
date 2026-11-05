@@ -150,7 +150,7 @@ export interface Metric {
   pi: number | null; aq: number | null; sz: number | null; px: number | null; t: number | null; qsBps: number | null;
   /** $ the customer pays above the midpoint on a $10,000 trade */
   cost10k: number | null;
-  /** $ the broker is paid for routing a $10,000 order: cph is cents per 100 shares, so cph/1e4 per share × 1e4/price shares */
+  /** $ the broker is paid per $10,000 of orders it routes: cph is cents per 100 shares, so cph/1e4 per share × 1e4/price shares */
   pay10k: number | null;
   /** points of the spread vs other brokers on the same stock × lot × size cells (market orders, all sizes) */
   gap: number | null;

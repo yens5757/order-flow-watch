@@ -6,8 +6,9 @@
 // its own dot, and names that would run into each other stacked in rows (judged for the narrowest phone until the page
 // has measured the scale's real width). A page that re-renders the scale with new values (React state, not the CSS
 // switch) sees every dot glide to its new place.
-import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { scalePositions, type ScaleData } from "../../lib/broker";
+import { useBrowserLayoutEffect } from "../../lib/hooks";
 import "./scale.css";
 
 type G = "sp" | "ot";
@@ -20,16 +21,6 @@ const dotShift = (a: Align) => (a === "center" ? "-50%" : a === "start" ? "calc(
 const tickShift = (a: Align) => (a === "center" ? "-50%" : a === "start" ? "0%" : "-100%");
 const pct = (v: number) => `${v.toFixed(2)}%`;
 
-/** One set's positions as custom properties; `suffix` names the stock group on a scale that follows the switch. */
-function vars(s: ScaleData, suffix: string): Record<string, string> {
-  const p = scalePositions(s);
-  const you = p.you ?? 50;
-  return {
-    [`--lo${suffix}`]: pct(p.lo), [`--hi${suffix}`]: pct(p.hi), [`--typ${suffix}`]: pct(p.typ), [`--you${suffix}`]: pct(you),
-    [`--youx${suffix}`]: dotShift(alignOf(you)), [`--typx${suffix}`]: tickShift(alignOf(p.typ)),
-  };
-}
-
 /** Every named dot of a set (`you` first, then the marks) with its position. */
 function dotsOf(s: ScaleData): { name: string; v: number; p: number }[] {
   const p = scalePositions(s);
@@ -39,6 +30,23 @@ function dotsOf(s: ScaleData): { name: string; v: number; p: number }[] {
 /** The width the names are judged against before the page has measured the scale (and in the pre-render): a scale about
  *  250px wide, on a 320px phone, so names placed side by side clear each other on every screen. */
 const NARROWEST = 250;
+
+/** How near a dot can sit to the typical tick before its ring would cut the tick into a stray "[" beside it: the dot's
+ *  radius, its 3px ring and half the tick (11 + 3 + 2, or 9 + 3 + 2 on the small scale), and a pixel to spare. */
+const clearance = (small?: boolean) => (small ? 15 : 17);
+
+/** One set's positions as custom properties; `suffix` names the stock group on a scale that follows the switch. `--tn`
+ *  is 1 when a dot covers the typical tick on a scale `w` pixels wide: the tick then hangs from the rail's lower edge
+ *  down towards its "Typical" label, clear of the dot, instead of showing as a sliver beside it (scale.css). */
+function vars(s: ScaleData, suffix: string, w: number, small?: boolean): Record<string, string> {
+  const p = scalePositions(s);
+  const you = p.you ?? 50;
+  const near = dotsOf(s).some((d) => (Math.abs(d.p - p.typ) * w) / 100 < clearance(small));
+  return {
+    [`--lo${suffix}`]: pct(p.lo), [`--hi${suffix}`]: pct(p.hi), [`--typ${suffix}`]: pct(p.typ), [`--you${suffix}`]: pct(you),
+    [`--youx${suffix}`]: dotShift(alignOf(you)), [`--typx${suffix}`]: tickShift(alignOf(p.typ)), [`--tn${suffix}`]: near ? "1" : "0",
+  };
+}
 
 /** How far a name reaches along a scale `w` pixels wide, in percent of it, from where its alignment anchors it: a
  *  700-weight character about 9.25px, 7.5px to spare, and an end name starting 11px outside its dot. */
@@ -62,11 +70,11 @@ function rowsOf(dots: { name: string; p: number }[], w: number): number[] {
   return rows;
 }
 
-/** "From cheapest to most expensive: Fidelity −$0.09, Robinhood $0.82, typical broker $0.96, eToro $1.77." */
-function describe(s: ScaleData, fmt: (v: number) => string, typFmt: (v: number) => string): string {
+/** "From cheapest to most expensive: Fidelity $0.09 below, Robinhood $0.82, typical broker $0.96, eToro $1.77." */
+function describe(s: ScaleData, fmt: (v: number) => string): string {
   const items: { v: number; text: string }[] = [
     { v: s.lo.v, text: `${s.lo.name} ${fmt(s.lo.v)}` },
-    { v: s.typ, text: `typical broker ${typFmt(s.typ)}` },
+    { v: s.typ, text: `typical broker ${fmt(s.typ)}` },
     { v: s.hi.v, text: `${s.hi.name} ${fmt(s.hi.v)}` },
   ];
   for (const m of [...(s.you ? [s.you] : []), ...(s.marks ?? [])]) {
@@ -79,28 +87,37 @@ function describe(s: ScaleData, fmt: (v: number) => string, typFmt: (v: number) 
 export interface ScaleSet { g?: G; data: ScaleData }
 
 /** One set: a fixed scale. Two sets (sp, then ot): one scale whose marks move with the broker page's stock switch.
- *  `fmt` writes a broker's value, `typFmt` the typical one; `small` is the secondary cards' size. */
-export function Scale({ sets: given, fmt, typFmt = fmt, small }: {
-  sets: ScaleSet[]; fmt: (v: number) => string; typFmt?: (v: number) => string; small?: boolean;
+ *  `fmt` writes every figure on it, the typical one too (one format per scale: "Typical $8.40" beside "Webull $21.34"),
+ *  `small` is the secondary cards' size. */
+export function Scale({ sets: given, fmt, small }: {
+  sets: ScaleSet[]; fmt: (v: number) => string; small?: boolean;
 }) {
   // a lone mark is drawn as `you` (one dot, centred name)
   const sets = given.map((s) => (!s.data.you && s.data.marks?.length === 1 ? { ...s, data: { ...s.data, you: s.data.marks[0], marks: undefined } } : s));
   const follows = sets.length === 2;
-  const style: Record<string, string> = follows ? { ...vars(sets[0].data, "-sp"), ...vars(sets[1].data, "-ot") } : vars(sets[0].data, "");
   const each = (render: (s: ScaleData) => string) => sets.map((s, i) => <span key={s.g ?? i} data-g={follows ? s.g : undefined}>{render(s.data)}</span>);
   const many = sets.some((s) => dotsOf(s.data).length > 1);
 
-  // several names: once in the browser, judge them against the scale's real width (kept current as it resizes), so names
-  // that fit side by side on a wide card share a row; the pre-render and the first paint use the narrowest phone's
+  // once in the browser, judge names and the typical tick against the scale's real width (kept current as it resizes), so
+  // names that fit side by side on a wide card share a row and the tick hangs only where a dot really covers it; the
+  // pre-render and the first paint use the narrowest phone's
   const rail = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(NARROWEST);
-  useEffect(() => {
+  const [live, setLive] = useState(false);
+  useBrowserLayoutEffect(() => {
     const el = rail.current;
-    if (!many || !el) return;
-    const ro = new ResizeObserver(() => { if (el.clientWidth > 0) setW(Math.max(120, Math.round(el.clientWidth))); });
+    if (!el) return;
+    const measure = () => { if (el.clientWidth > 0) setW(Math.max(120, Math.round(el.clientWidth))); };
+    measure(); // before the first paint after a client-side navigation
+    const ro = new ResizeObserver(measure);
     ro.observe(el);
-    return () => ro.disconnect();
-  }, [many]);
+    // the tick's drop below the rail glides only once the measured scale has been drawn, so no page opens with it moving
+    let raf = requestAnimationFrame(() => { raf = requestAnimationFrame(() => setLive(true)); });
+    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
+  }, []);
+  const style: Record<string, string> = follows
+    ? { ...vars(sets[0].data, "-sp", w, small), ...vars(sets[1].data, "-ot", w, small) }
+    : vars(sets[0].data, "", w, small);
 
   let dots: ReactNode;
   if (!many) {
@@ -128,7 +145,7 @@ export function Scale({ sets: given, fmt, typFmt = fmt, small }: {
 
   return (
     <>
-      <div className={`scale${follows ? " sw" : ""}${small ? " sm" : ""}${many ? " many" : ""}`} style={style as CSSProperties} aria-hidden="true">
+      <div className={`scale${follows ? " sw" : ""}${small ? " sm" : ""}${many ? " many" : ""}${live ? " live" : ""}`} style={style as CSSProperties} aria-hidden="true">
         <div ref={rail} className="sc-rail">
           <span className="sc-track" />
           <span className="sc-end" />
@@ -136,13 +153,13 @@ export function Scale({ sets: given, fmt, typFmt = fmt, small }: {
           <span className="sc-typ" />
           {dots}
         </div>
-        <div className="sc-mid"><span className="sc-typ-l">Typical <b>{each((s) => typFmt(s.typ))}</b></span></div>
+        <div className="sc-mid"><span className="sc-typ-l">Typical <b>{each((s) => fmt(s.typ))}</b></span></div>
         <div className="sc-ends">
           <p className="sc-lab"><small>Cheapest</small>{each((s) => `${s.lo.name} ${fmt(s.lo.v)}`)}</p>
           <p className="sc-lab r"><small>Most expensive</small>{each((s) => `${s.hi.name} ${fmt(s.hi.v)}`)}</p>
         </div>
       </div>
-      {sets.map((s, i) => <p key={s.g ?? i} className="sr-only" data-g={follows ? s.g : undefined}>{describe(s.data, fmt, typFmt)}</p>)}
+      {sets.map((s, i) => <p key={s.g ?? i} className="sr-only" data-g={follows ? s.g : undefined}>{describe(s.data, fmt)}</p>)}
     </>
   );
 }

@@ -164,6 +164,12 @@
   .tf-key tr > :first-child { padding-left: 0; }
   .tf-key tr > :last-child { padding-right: 0; }
 }
+/* phones under 400px: the broker select takes its own row and "Show" goes under it, so the longest name ("Edward Jones")
+   shows whole instead of "W…" */
+@media (max-width: 399px) {
+  .tf-pick { flex-wrap: wrap; }
+  .tf-pick .sel { flex-basis: 100%; }
+}
 /* the smallest phones: the key's four columns a little closer, so they fit before the box has to scroll */
 @media (max-width: 359px) {
   .tf-key th, .tf-key td { padding-inline: 5px; }

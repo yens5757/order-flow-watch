@@ -82,7 +82,7 @@ function questions(d: Data): [string, ReactNode][] {
         <p>
           {unpaid.length > 0 && <>
             Low payment alone doesn't explain it: {andList(unpaid.map((r) => `${r.f.short} ${paidHow(r)}`))}, yet{" "}
-            {unpaid.length > 1 ? "both get" : "it gets"} worse prices than most on the same stocks and order sizes
+            {unpaid.length > 1 ? "both get" : "it gets"} worse prices than the typical broker on the same stocks and order sizes
             ({unpaid.map((r) => `${r.f.short} ${pts(r.gap!)}`).join(", ")}).{" "}
           </>}
           {clientele && <>The clearest pattern is who the customers are: brokers whose customers place bigger orders get better prices, even at the same order size.</>}

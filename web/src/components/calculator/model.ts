@@ -243,6 +243,3 @@ export function whyWords(d: Data, l: CostLine): string[] {
   }
   return out;
 }
-
-/** The typical (median) year on the scale, rounded: it is no broker's own figure. */
-export const about = (v: number) => `about ${Math.abs(v) < 1 ? usd2(v) : `${v < 0 ? "−" : ""}$${num(Math.round(Math.abs(v)))}`}`;

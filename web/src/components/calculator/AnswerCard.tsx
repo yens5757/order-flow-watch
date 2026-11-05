@@ -9,7 +9,7 @@ import type { Data } from "../../lib/data";
 import { monthLong } from "../../lib/format";
 import { Scale } from "../broker/Scale";
 import { Icon, Info, Select } from "../ui";
-import { about, gapLine, headline, partRows, pool, poolClause, rankWords, scopeLine, usd, whyWords, type Ranked } from "./model";
+import { gapLine, headline, partRows, pool, poolClause, rankWords, scopeLine, usd, whyWords, type Ranked } from "./model";
 
 export function AnswerCard({ d, lines, ranked, me, pick, inp, onPick }: {
   d: Data; lines: CostLine[]; ranked: Ranked; me: CostLine | undefined; pick: string; inp: CostInputs; onPick: (id: string) => void;
@@ -34,7 +34,9 @@ export function AnswerCard({ d, lines, ranked, me, pick, inp, onPick }: {
   const rank = rankWords(ranked, me, clause);
   const gap = gapLine(ranked, me);
   const ranked1 = ranked.ranks.has(me.id);
-  const scale = ranked.complete.length >= 2
+  // no scale when every broker shows the same figure (no stock trades): it would name a "cheapest" and a "most expensive" at $0
+  const ends = ranked.complete.length >= 2 ? [ranked.complete[0].total, ranked.complete[ranked.complete.length - 1].total] : null;
+  const scale = ends && yearSaid(ends[0]) !== yearSaid(ends[1])
     ? scaleOf(ranked.complete.map((c) => ({ name: c.short, v: c.total })), ranked1 ? { name: me.short, v: me.total } : null)
     : null;
   const why = whyWords(d, me);
@@ -68,7 +70,7 @@ export function AnswerCard({ d, lines, ranked, me, pick, inp, onPick }: {
         <a className="go" href="#breakdown">See all {lines.length}<Icon name="down" size={20} /></a>
       </div>
       {gap && <p className="calc-diff">{gap.lead}{gap.who && <> <span className="calc-nw">({gap.who})</span></>}</p>}
-      {scale && <Scale sets={[{ data: scale }]} fmt={yearSaid} typFmt={about} />}
+      {scale && <Scale sets={[{ data: scale }]} fmt={yearSaid} />}
       {why.map((w) => <p key={w} className="calc-note">{w}</p>)}
     </section>
   );

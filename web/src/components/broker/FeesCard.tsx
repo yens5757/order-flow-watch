@@ -3,6 +3,7 @@
 // offered", a rate that depends on a tier or a program "Varies": never $0 for something unknown.
 import type { Data, Fee, FeeKey, Firm } from "../../lib/data";
 import { dayLong, pct } from "../../lib/format";
+import { METRICS } from "../../lib/metrics";
 import { Icon } from "../ui";
 
 /** Fee dollars: whole amounts without cents ($0, $75), otherwise two decimals ($0.65, $49.95). */
@@ -24,12 +25,14 @@ const ownSite = (u: string, firm: Firm) => { const x = site(u); return !!x && x.
 /** A source URL as a short label: "robinhood.com/us/en/support/articles/…". */
 const label = (u: string) => { const s = u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""); return s.length > 44 ? `${s.slice(0, 42)}…` : s; };
 
+/** The fees in Compare's words (lib/metrics.ts labels; compare/SideBySide.tsx), so a fee has one name on every page; the
+ *  transfer-out note uses the yearly card's words for it ("Moving out: $100"). */
 const ROWS: { key: FeeKey; name: string; note?: string; fmt: (v: number) => string }[] = [
-  { key: "commission", name: "Commission per stock trade", fmt: dollars },
-  { key: "optionsFee", name: "Options, per contract", fmt: dollars },
-  { key: "marginRate", name: "Margin rate", note: "about a $25,000 balance", fmt: rate },
-  { key: "cashYield", name: "Interest on idle cash", note: "standard account", fmt: rate },
-  { key: "transferOut", name: "Full transfer out", fmt: dollars },
+  { key: "commission", name: METRICS.commission.label, fmt: dollars },
+  { key: "optionsFee", name: METRICS.optionsFee.label, fmt: dollars },
+  { key: "marginRate", name: METRICS.marginRate.label, note: "on a $25,000 loan", fmt: rate },
+  { key: "cashYield", name: METRICS.cashYield.label, note: "standard account", fmt: rate },
+  { key: "transferOut", name: "Transfer-out fee", note: "moving your whole account out", fmt: dollars },
 ];
 
 const CONFIDENCE: Record<Fee["confidence"], string | null> = {

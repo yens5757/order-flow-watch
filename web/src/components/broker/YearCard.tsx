@@ -11,13 +11,10 @@ import { calcSearch } from "../../lib/cost";
 import { HABIT, scaleOf, SP_GAP, yearHeadline, yearly, yearPool, yearRankWords, type Year } from "../../lib/broker";
 import { cashLine, yearSaid, type PricedLine } from "../../lib/cash";
 import type { Data, Firm } from "../../lib/data";
-import { num, usd2 } from "../../lib/format";
+import { num } from "../../lib/format";
 import { href, pagePath } from "../../lib/routes";
 import { Icon, Info } from "../ui";
 import { Scale } from "./Scale";
-
-/** The typical (median) year, rounded: it is no broker's own figure. */
-const about = (v: number) => `about ${Math.abs(v) < 1 ? usd2(v) : `$${num(Math.round(v))}`}`;
 
 /** A priced line (lib/cash.ts) as text: its figures in bold, its (i) kept on one line with the word before it (`nw` is the
  *  page's no-wrap class). The broker page and Compare both render theirs with it. */
@@ -82,7 +79,7 @@ export function YearCard({ d, firm, y, at }: { d: Data; firm: Firm; y: Year; at:
         </div>
       </dl>
       <p className="bp-yr-rank">{ranked ?? `Not ranked: only ${yearPool(y.complete.length)} are.`}</p>
-      {scale && <Scale sets={[{ data: scale }]} fmt={yearSaid} typFmt={about} small />}
+      {scale && <Scale sets={[{ data: scale }]} fmt={yearSaid} small />}
       {why.map((w) => <p key={w} className="bp-note">{w}</p>)}
       {cash && <p className="bp-note bp-cash"><PricedText line={cash} nw="nw" /></p>}
       <div className="bp-act">

@@ -26,6 +26,8 @@ Placement (reconsidered Nov 2026, kept): one order at every width, the DOM's, ne
 
 Memorable moment: as the visitor types, picks a mix or answers a question, their broker's dot glides along the scale among the brokers and the figure restates itself in words ("About $9 a year", "At least $9.80 a year", "About $3 ahead a year").
 
+Polish (Nov 2026, the final pass after the three fixes): the scale writes its typical figure like its ends ("Typical $44.00" beside "Public $56.11"; no "about $0.00" at 0 trades), and a scale whose cheapest and most expensive show the same figure (no stock trades) is left out rather than naming a "cheapest" and a "most expensive" at $0. A broker that pays no interest on cash (fees.csv NA) is "cash yield (not offered)" in lib/cost.ts, so the table's Idle cash cell says "Not offered" like the answer card, never "Not confirmed".
+
 ## Direction contract
 
 THESIS: The calculator is one calm answer the visitor shapes: what a year of their own trading costs at their broker, in dollars and words, and where that sits among the brokers. It refuses the category defaults: a wall of equal input boxes with the result below the fold, a pre-filled assumption that writes the headline, and a red/green league table.

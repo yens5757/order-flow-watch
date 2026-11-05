@@ -3,7 +3,7 @@
 // by the two ranks, all generated from the data, for both stock groups at once (the page's switch shows one; see
 // broker.css).
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { cents, money, sameStockNote, sameStockWords, SP_GAP, type Group } from "../../lib/broker";
+import { cents, fairText, money, sameStockNote, sameStockWords, SP_GAP, type Group } from "../../lib/broker";
 import type { Data } from "../../lib/data";
 import { monthLong } from "../../lib/format";
 import { href, pagePath } from "../../lib/routes";
@@ -113,9 +113,10 @@ export function PriceCard({ d, views, onSeeAll }: { d: Data; views: Group[]; onS
       <h2 id="price-h" className="sr-only">Prices in {month}</h2>
       {views.map((v) => <div key={v.g} data-g={v.g}>{block(v)}</div>)}
       {/* one scale for both groups when both are priced, so the dot glides when the switch flips */}
+      {/* the ends in words too: "Fidelity $0.09 below", never "−$0.09" */}
       {priced.length === 2
-        ? <Scale sets={priced.map((v) => ({ g: v.g, data: v.scale! }))} fmt={money} />
-        : priced.map((v) => <div key={v.g} data-g={v.g}><Scale sets={[{ data: v.scale! }]} fmt={money} /></div>)}
+        ? <Scale sets={priced.map((v) => ({ g: v.g, data: v.scale! }))} fmt={fairText} />
+        : priced.map((v) => <div key={v.g} data-g={v.g}><Scale sets={[{ data: v.scale! }]} fmt={fairText} /></div>)}
       <p className="bp-say">{views.map((v) => v.sentence && <span key={v.g} data-g={v.g}>{v.sentence}</span>)}</p>
     </section>
   );

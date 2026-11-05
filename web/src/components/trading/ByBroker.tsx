@@ -112,7 +112,10 @@ export function ByBroker({ d, f, firm, slot }: { d: Data; f: Filters; firm: Firm
     values: qs.map((q) => d.usd.filter((u) => u.crd === firm.crd && u.q === q && u.seg === k).reduce((a, u) => a + Math.max(0, u.usd), 0)),
   }));
   const usdTotal = usd.reduce((a, s) => a + s.values.reduce((x, y) => x + y, 0), 0);
-  const paysOut = d.usd.some((u) => u.crd === firm.crd && u.usd < 0); // it pays its trading firm (Cash App)
+  // money out goes to a trading firm only when a trading firm's own rate was below zero (Cash App → Virtu, lib/broker.ts
+  // payment); otherwise what it pays is exchange fees
+  const paysOut = d.usd.some((u) => u.crd === firm.crd && u.usd < 0);
+  const paysFirm = d.venues.some((v) => v.crd === firm.crd && !isExchange(v.venue) && [v.cph.M, v.cph.ML].some((c) => c != null && c < 0));
   const usdChart = useMemo(() => ({
     ...stackedColumns(t, qs.map(quarterShort), usd, dollars),
     legend: { show: false }, // the key is HTML above the chart
@@ -186,7 +189,8 @@ export function ByBroker({ d, f, firm, slot }: { d: Data; f: Filters; firm: Firm
             <ChartTable caption={`Payments to ${firm.short} per quarter, in dollars`} head={["Quarter", ...usd.map((s) => s.name), "Total"]}
               rows={qs.map((q, i) => [quarterLong(q), ...usd.map((s) => dollars(s.values[i])), dollars(usd.reduce((a, s) => a + s.values[i], 0))])} />
           </>
-        ) : <Empty>{paysOut ? `${firm.short} pays its trading firm rather than being paid, so it received nothing.` : "No dollar amounts reported."}</Empty>}
+        ) : <Empty>{!paysOut ? "No dollar amounts reported."
+          : `${firm.short} pays ${paysFirm ? "its trading firm" : "exchange fees"} rather than being paid, so it received nothing.`}</Empty>}
       </div>
     </div>
   );

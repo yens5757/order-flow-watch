@@ -16,8 +16,6 @@ import { PricedText } from "../broker/YearCard";
 import { Scale } from "../broker/Scale";
 import { Icon } from "../ui";
 
-/** The typical (median) year, rounded: it is no broker's own figure. */
-const about = (v: number) => `about ${Math.abs(v) < 1 ? usd2(v) : `$${num(Math.round(v))}`}`;
 /** The part that is counted, as its row shows it, never rounded up: "At least $8.95". */
 const atLeast = (l: CostLine) => `At least ${l.total <= 0 ? "$0" : l.total < 100 ? usd2(l.total) : `$${Math.floor(l.total).toLocaleString("en-US")}`}`;
 
@@ -81,7 +79,7 @@ export function YearPair({ d, A, B, years, at }: { d: Data; A: Firm; B: Firm; ye
           </div>
         ))}
       </dl>
-      {scale && <Scale sets={[{ data: scale }]} fmt={yearSaid} typFmt={about} small />}
+      {scale && <Scale sets={[{ data: scale }]} fmt={yearSaid} small />}
       {ranked.length > 0 && <p className="cmp-note">Ranked among {yearPool(pool.length)}.</p>}
       {notes.map((n) => <p key={n} className="cmp-note">{n}</p>)}
       {cash && <p className="cmp-note cmp-cash"><PricedText line={cash} nw="cmp-nw" /></p>}

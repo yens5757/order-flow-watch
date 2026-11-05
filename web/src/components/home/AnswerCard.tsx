@@ -4,7 +4,7 @@
 // comparison. Every figure comes from lib/broker.ts (the broker page's Group), so the two pages never disagree. Picking
 // another broker re-renders the card: the scale's dot glides to the new broker's place (scale.css), and nothing moves
 // under reduced motion.
-import { cents, money, sameStockNote, sameStockWords, SP_GAP, type Group } from "../../lib/broker";
+import { cents, fairText, money, sameStockNote, sameStockWords, SP_GAP, type Group } from "../../lib/broker";
 import type { Data, Firm } from "../../lib/data";
 import { monthLong } from "../../lib/format";
 import { brokerPath, comparePath, href } from "../../lib/routes";
@@ -60,7 +60,7 @@ export function AnswerCard({ d, g, onSeeAll }: { d: Data; g: Group; onSeeAll: ()
             </div>
           )}
           {g.diff && <p className="bp-diff">{g.diff.lead}{g.diff.who && <> <span className="nw">({g.diff.who})</span></>}</p>}
-          {g.scale && <Scale sets={[{ data: g.scale }]} fmt={money} />}
+          {g.scale && <Scale sets={[{ data: g.scale }]} fmt={fairText} />}
           {g.sentence && <p className="bp-say">{g.sentence}</p>}
         </>
       )}

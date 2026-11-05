@@ -22,6 +22,8 @@ An opening with room (owner's request, Nov 2026: "the main page just needs some 
 
 The ranking in plain units (Nov 2026, from the critique's second P1): the broker page's two cells, word for word ("$0.09 below" rather than a minus sign under "Above fair price"; "Not paid", "Pays $0.07" over "to its trading firm", "Pays $0.01" over "in exchange fees"; its brief has the rules). In the right column's copy, 448px wide from 1200px, the columns sit 8px from each other's edges (12px at the row ends, the Here row's rounded ends kept) so the four columns and the payment's words fit; there the two brokers below the fair price on S&P 500 stocks (Fidelity, J.P. Morgan) show "below" under the figure, and the price heading takes two lines, "Above fair / price" (three at the first pass's 10px). Below 560px a long name may wrap beside a price that says "below".
 
+Polish (Nov 2026, the final pass after the three fixes): the answer card's scale captions and the gap line's bracket say "Fidelity $0.09 below", never "−$0.09", as on the broker page and Compare (lib/broker.ts fairText), and the status line announced after a pick or a flip names both ranks ("…, 10th cheapest of 25; 13th of 25 on the same stocks and order sizes").
+
 ## Direction contract
 
 THESIS: Home is the broker page's answer with the broker left open: ask the question, let the visitor name their broker, and answer it in the same calm card, with all 25 brokers beside it as proof. It refuses the landing-page defaults the old page used: stat tiles, icon cards, numbered steps, teal bands and an embedded calculator.
