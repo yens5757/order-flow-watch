@@ -25,7 +25,7 @@ function amount(p: Pay): string {
 function note(p: Pay): string | null {
   const late = p.fallback ? `from ${payWhen(p)}` : null;
   switch (p.kind) {
-    case "pays": return `pays its trading firm rather than being paid${late ? `; ${late}` : ""}`;
+    case "pays": return `to its trading firm, rather than being paid${late ? `; ${late}` : ""}`;
     case "fees": return `pays about ${payAmount(p)} in exchange fees${late ? `; ${late}` : ""}`;
     case "missing": return "not in this quarter's payment report for these orders";
     case "none": return "files no payment report of its own (another firm routes its orders)";

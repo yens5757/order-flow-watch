@@ -65,6 +65,8 @@ html:has(.cmp-tbl) { scroll-padding-top: 72px; }
 .cmp-rank .tbl tr.here > :first-child { border-radius: 14px 0 0 14px; }
 .cmp-rank .tbl tr.here > :last-child { border-radius: 0 14px 14px 0; }
 .cmp-rank .tbl tr.here + tr > * { border-top-color: transparent; }
+/* a price below the fair price says "below", lighter than its figure, as in the ranking tables (broker.css) */
+.cmp-rank .fair-w { font-weight: 500; color: var(--ink-2); }
 
 /* ---------- a typical year at each ---------- */
 .cmp-year { display: flex; flex-direction: column; }
@@ -94,6 +96,17 @@ html:has(.cmp-tbl) { scroll-padding-top: 72px; }
 .cmp-nm:hover { text-decoration-thickness: 3px; }
 .cmp-sbs .card-foot p + p { margin-top: 6px; }
 .cmp-tick { display: inline; margin-right: 2px; vertical-align: -3px; color: var(--ink-2); }
+/* "More measures": the analyst's rows wait behind a teal disclosure in the "Show as a table" look; without a script the
+   button is hidden and the rows show */
+.cmp-tbl .c-tog td { padding: 6px 0 0; }
+.cmp-more-btn {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--accent); font-weight: 600; cursor: pointer;
+  text-underline-offset: 4px; transition: color .2s;
+}
+.cmp-more-btn:hover { color: var(--accent-hover); text-decoration: underline; }
+.cmp-more-btn svg { transition: transform .35s var(--ease-out); }
+.cmp-more-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+html.js .cmp-tbl .c-more:not(.open) { display: none; }
 
 /* ---------- what each is paid; registration ---------- */
 .cmp-pay-rows dd { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0 14px; }
@@ -163,6 +176,7 @@ html:has(.cmp-tbl) { scroll-padding-top: 72px; }
   .cmp-tbl thead tr { padding: 0 0 2px; }
   .cmp-tbl tbody tr { padding: 10px 0 12px; border-top: 1px solid var(--border); }
   .cmp-tbl tbody tr.c-grp-row { padding: 22px 0 4px; border-top: 0; }
+  .cmp-tbl tbody.c-tog tr { padding: 4px 0 2px; }
   .cmp-tbl tbody:first-of-type tr.c-grp-row { padding-top: 12px; }
   .cmp-tbl .c-grp { flex: 1 1 100%; padding: 0; }
   .cmp-tbl .c-grp span { display: block; margin: 2px 0 0; }
@@ -193,5 +207,5 @@ html:has(.cmp-tbl) { scroll-padding-top: 72px; }
 
 /* nothing turns for anyone who asked for less motion (index.css stops every transition too) */
 @media (prefers-reduced-motion: reduce) {
-  .cmp-every > summary svg { transition: none; }
+  .cmp-every > summary svg, .cmp-more-btn svg { transition: none; }
 }

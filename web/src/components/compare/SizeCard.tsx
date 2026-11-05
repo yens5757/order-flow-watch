@@ -4,9 +4,11 @@
 // don't flatten the rest of the chart. The key is HTML above the chart, and "Show as a table" gives every number.
 import { useMemo, useState } from "react";
 import { EChart } from "../../charts/EChart";
+import { tip } from "../../charts/kit";
 import { lines } from "../../charts/options";
 import { money } from "../../lib/broker";
 import { BUCKET_LABEL, execKey, SIZE_STEPS, type Data, type Filters, type Firm } from "../../lib/data";
+import { fairText } from "../../lib/metrics";
 import { useTheme } from "../../lib/theme";
 import { Card, ChartTable, Empty, Legend, Segmented } from "../ui";
 import { capital, ordersWord, stocksWord } from "./pair";
@@ -20,6 +22,9 @@ export function SizeCard({ d, f, A, B, monthName }: { d: Data; f: Filters; A: Fi
   const { t } = useTheme();
   const [unit, setUnit] = useState<Unit>("usd");
   const fmt = unit === "usd" ? money : (v: number) => `${v.toFixed(0)}%`;
+  // a figure for a reader (the tooltip, the table, the foot): in dollars, "$0.12 below" rather than a minus sign; the
+  // axis keeps the sign, where the zero line shows it
+  const show = unit === "usd" ? fairText : fmt;
   // dollars above the midpoint on a $10,000 trade (the share of the spread × half the quoted spread), or the share itself
   const value = (F: Firm, bk: number): number | null => {
     const e = d.exec.get(execKey(F.id, f.month, f.sp, f.ot, bk));
@@ -31,7 +36,9 @@ export function SizeCard({ d, f, A, B, monthName }: { d: Data; f: Filters; A: Fi
 
   const option = useMemo(() => {
     const o = lines(t, STEPS.map((bk) => SHORT[bk]), [A, B].map((F, i) => ({ name: F.short, color: t.s[i], dashed: i === 1, values: vals[i] })), { fmt });
-    return { ...o, legend: { show: false }, grid: { ...(o.grid as object), top: 12 } };
+    const words = (ps: { value: number | null; color: string; seriesName: string; axisValue: string }[]) =>
+      tip(ps[0].axisValue, ps.filter((p) => p.value != null).map((p) => [p.color, p.seriesName, show(p.value!)] as [string, string, string]));
+    return { ...o, legend: { show: false }, grid: { ...(o.grid as object), top: 12 }, tooltip: { ...(o.tooltip as object), formatter: words } };
   }, [t, A.id, B.id, f.month, f.sp, f.ot, unit]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // at how many sizes each one's customers paid less, on the figures as shown
@@ -53,7 +60,7 @@ export function SizeCard({ d, f, A, B, monthName }: { d: Data; f: Filters; A: Fi
   const big = [A, B].map((F) => [F, value(F, BIG)] as const).filter(([, v]) => v != null);
   const unitWords = unit === "usd" ? "per $10,000 traded" : "of the spread";
   const foot = big.length
-    ? `Orders of $200,000 and over are left out of the chart: ${big.map(([F, v]) => `${fmt(v!)} at ${F.short}`).join(" and ")} ${unitWords}.`
+    ? `Orders of $200,000 and over are left out of the chart: ${big.map(([F, v]) => `${show(v!)} at ${F.short}`).join(" and ")} ${unitWords}.`
     : null;
   const label = `Cost by order size, ${A.short} and ${B.short}, ${unit === "usd" ? "dollars above the fair price per $10,000 traded" : "share of the spread paid"}`;
 
@@ -67,7 +74,7 @@ export function SizeCard({ d, f, A, B, monthName }: { d: Data; f: Filters; A: Fi
           <Legend items={[{ color: t.s[0], label: A.short }, { color: t.s[1], label: B.short, dashed: true }]} />
           <EChart option={option} height={260} label={label} />
           <ChartTable caption={label} head={["Order size", A.short, B.short]}
-            rows={STEPS.map((bk, i) => [BUCKET_LABEL[bk], ...vals.map((v) => (v[i] == null ? "–" : fmt(v[i]!)))])} />
+            rows={STEPS.map((bk, i) => [BUCKET_LABEL[bk], ...vals.map((v) => (v[i] == null ? "–" : show(v[i]!)))])} />
         </>
       ) : <Empty>No price figures by order size for these orders in {monthName}.</Empty>}
     </Card>

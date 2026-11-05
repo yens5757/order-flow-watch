@@ -5,8 +5,10 @@
 import { useRef } from "react";
 import { money, rankWords, scaleOf, type Pay, type Place } from "../../lib/broker";
 import type { Data, Fee, Filters, Firm, Metric } from "../../lib/data";
+import { FAIR_COL, fairText } from "../../lib/metrics";
 import { brokerPath, href, pagePath } from "../../lib/routes";
 import { Scale } from "../broker/Scale";
+import { FairCell } from "../broker/WhereSits";
 import { Icon, Info, useSideScroll } from "../ui";
 import { capital, gapMoney, gapOf, moneyText, noPrice, ordersWord, priceText, sideOf, stocksWord } from "./pair";
 
@@ -27,7 +29,7 @@ function RankTable({ places, A, B, caption }: { places: Place[]; A: Firm; B: Fir
         <table className="tbl">
           <caption className="sr-only">{caption}</caption>
           <thead>
-            <tr><th scope="col">Rank</th><th scope="col">Broker</th><th scope="col" className="num">Above fair price</th></tr>
+            <tr><th scope="col">Rank</th><th scope="col">Broker</th><th scope="col" className="num">{FAIR_COL}</th></tr>
           </thead>
           <tbody>
             {places.map((p) => (
@@ -38,7 +40,7 @@ function RankTable({ places, A, B, caption }: { places: Place[]; A: Firm; B: Fir
                     ? <>{p.m.f.short}<span className="sr-only"> (compared here)</span></>
                     : <a href={href(brokerPath(p.m.f.slug))}>{p.m.f.short}</a>}
                 </th>
-                <td className="num">{money(p.m.cost10k!)}</td>
+                <td className="num"><FairCell v={p.m.cost10k!} /></td>
               </tr>
             ))}
           </tbody>
@@ -92,7 +94,8 @@ export function AnswerCard({ d, f, A, B, rA, rB, pA, pB, feeA, feeB, places, mon
         ))}
       </dl>
 
-      {scale && <Scale sets={[{ data: scale }]} fmt={money} />}
+      {/* the ends in words too: "Fidelity $0.09 below", never "−$0.09" */}
+      {scale && <Scale sets={[{ data: scale }]} fmt={fairText} />}
       {places.length > 0 && marks.length > 0 && (
         <RankTable places={places} A={A} B={B}
           caption={`Brokers by price above the fair price per $10,000 traded, ${stocksWord(f.sp)}, ${orders}, ${monthName}`} />

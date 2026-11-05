@@ -103,9 +103,21 @@ html.js .bp-def-note:not(.open) { display: none; }
 .bp-tbl thead th { padding-top: 6px; padding-bottom: 10px; border-top: 0; font-size: var(--fs-1); font-weight: 600; line-height: 1.3; color: var(--ink-2); vertical-align: bottom; white-space: normal; }
 .bp-tbl .c-rk { width: 3.25rem; text-align: left; color: var(--ink-2); }
 .bp-tbl .c-nm { text-align: left; font-weight: 600; white-space: normal; }
+/* where the table has columns a name stays on one line: a narrow table drops "below" under its figure instead */
+@media (min-width: 560px) {
+  .bp-tbl .c-nm { white-space: nowrap; }
+}
 .bp-tbl .c-pr { font-weight: 700; }
+/* a price below the fair price says so in a word, lighter than the figure (Here row included); in a narrow column the
+   word drops under the figure rather than widening the table */
+.bp-tbl .c-pr { white-space: normal; }
+.bp-tbl .c-pr .fair-a { white-space: nowrap; }
+.bp-tbl .c-pr .fair-w { font-weight: 500; color: var(--ink-2); }
 .bp-tbl .c-lm, .bp-tbl .c-pd { color: var(--ink-2); }
 .bp-tbl .c-pd .word { font-weight: 500; }
+/* who a broker that pays is paying: "Pays $0.07" over "to its trading firm" (or "in exchange fees") in the label size */
+.bp-tbl .pd-amt, .bp-tbl .pd-to { display: block; }
+.bp-tbl .pd-to { font-size: var(--fs-1); font-weight: 500; line-height: 1.35; }
 .bp-tbl .k { display: none; }
 /* each other broker's row opens its page: the name is the link, stretched over the row */
 .bp-tbl tbody tr { position: relative; }
@@ -193,6 +205,8 @@ html.js .bp-where:not(.all) .bp-fn.far { display: none; }
 
 @media (max-width: 374px) {
   .bp-tbl .c-pd { grid-column: 2 / -1; grid-row: 3; text-align: left; }
+  /* "below" under its figure, so the name and "Last month" keep the width */
+  .bp-tbl .c-pr .fair-w { display: block; }
 }
 
 /* a forced-colours theme drops fills: the broker's own row keeps an outline (the scale's own rules are in scale.css) */

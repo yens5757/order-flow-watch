@@ -89,7 +89,7 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
           <div className="cmp-col">
             <AnswerCard d={d} f={f} A={A} B={B} rA={rA} rB={rB} pA={pA} pB={pB} feeA={feeA} feeB={feeB} places={places} monthName={monthName} />
             <YearPair d={d} A={A} B={B} years={years} at="flow" />
-            <SideBySide f={f} A={A} B={B} rA={rA} rB={rB} feeA={feeA} feeB={feeB} monthName={monthName} />
+            <SideBySide d={d} f={f} A={A} B={B} rA={rA} rB={rB} feeA={feeA} feeB={feeB} monthName={monthName} />
           </div>
           <div className="cmp-col">
             <SizeCard d={d} f={f} A={A} B={B} monthName={monthName} />

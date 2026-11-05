@@ -1,7 +1,8 @@
 export const pct = (v: number | null | undefined, d = 0) => (v == null || Number.isNaN(v) ? "–" : `${v.toFixed(d)}%`);
 export const signed = (v: number | null | undefined, d = 1, unit = "") =>
   v == null ? "–" : `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(d)}${unit}`;
-export const cents = (v: number | null | undefined) => (v == null ? "–" : `${v.toFixed(1)}¢`);
+/** Cents with one decimal and a proper minus sign: 223.2¢, −12.5¢ (never "−0.0¢"). */
+export const cents = (v: number | null | undefined) => (v == null ? "–" : `${v <= -0.05 ? "−" : ""}${Math.abs(v).toFixed(1)}¢`);
 export const num = (v: number | null | undefined, d = 0) =>
   v == null ? "–" : v.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
 export const dollars = (v: number | null | undefined) => {
@@ -24,6 +25,9 @@ export const strength = (r: number) => {
 };
 /** Dollars and cents with a proper minus sign: −$0.10, $2.04. */
 export const usd2 = (v: number | null | undefined) => (v == null ? "–" : `${v < 0 ? "−" : ""}$${Math.abs(v).toFixed(2)}`);
+/** Dollars and cents with the sign always written, for a figure measured against a reference: +$0.82, −$0.09 (a figure
+ *  that rounds to zero still reads "+$0.00" here: the explorer's tidy() drops that sign). */
+export const usdSigned = (v: number | null | undefined) => (v == null ? "–" : `${v < 0 ? "−" : "+"}$${Math.abs(v).toFixed(2)}`);
 /** FINRA lists many firm names in capitals; show them in title case, keeping short suffixes like LLC. */
 export const titleCase = (s: string) =>
   s === s.toUpperCase()

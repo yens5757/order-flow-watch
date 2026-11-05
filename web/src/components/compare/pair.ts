@@ -113,7 +113,7 @@ export function moneyText(A: Firm, B: Firm, pA: Pay, pB: Pay, feeA: Fee | undefi
     : late.length === 2 && late[0][1].quarter === late[1][1].quarter ? ` (both from ${quarterLong(late[0][1].quarter!)}, the latest they have filed)`
       : ` (${late.map(([F, p]) => `${F.short}: ${payWhen(p)}`).join("; ")})`;
   if (pA.kind === "paid" && pB.kind === "paid" && pA.v != null && pB.v != null) {
-    out.push(`Trading firms paid ${A.short} about ${money(pA.v)} and ${B.short} about ${money(pB.v)} per $10,000 order${when}.`);
+    out.push(`Trading firms paid ${A.short} about ${money(pA.v)} and ${B.short} about ${money(pB.v)} per $10,000 of orders${when}.`);
   } else {
     out.push(`${capital(paidPhrase(A, pA))}; ${paidPhrase(B, pB)}${when}.`);
   }
@@ -150,3 +150,6 @@ export const feeBlank = (fee: Fee | undefined, k: FeeKey) =>
   fee?.notOffered.includes(k) ? "Not offered" : fee?.varies.includes(k) ? "Varies" : "Not confirmed";
 /** An average order in round money (the report's $10,001 is false precision): nearest $100 from $1,000, else nearest $10. */
 export const roundOrder = (v: number) => `$${num(v >= 1000 ? Math.round(v / 100) * 100 : Math.round(v / 10) * 10)}`;
+/** The same-stock gap (Metric.gap, points of the spread against other brokers) in words rather than a sign, as the
+ *  trading-firms page says it: "15.2 points less", "24.4 points more", "about the same" (rounds to 0.0). */
+export const gapWords = (v: number) => (Math.abs(v) < 0.05 ? "about the same" : `${Math.abs(v).toFixed(1)} points ${v < 0 ? "less" : "more"}`);

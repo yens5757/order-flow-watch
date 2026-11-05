@@ -2,11 +2,25 @@
 // Every page names a measure through METRICS[k].label / .short, so one noun per measure holds across the site:
 // "Customer pays" (share of the spread, or "per $10,000 traded" in dollars), "Broker is paid", "Same-stock gap" (never
 // "same trade": brokers are compared on the same stocks and order sizes, not on identical trades).
+import { cents, money } from "./broker";
 import type { Metric } from "./data";
-import { ms, num, pct, signed, usd2, usdTick } from "./format";
+import { ms, num, pct, signed, usd2, usdSigned, usdTick } from "./format";
 
 /** The reference price, glossed the same way wherever it is first used on a page. */
 export const FAIR_PRICE = "the fair price (midpoint of the best buy and sell quotes)";
+
+/** The plain-language tables' price column (Home's ranking, a broker's "Where it sits", Compare's tables). */
+export const FAIR_COL = "Above fair price";
+/** A price per $10,000 as those tables show it under FAIR_COL, on the whole cents shown: "$0.82", or "$0.09" and the word
+ *  "below", never "−$0.09" under "above". The explorer keeps the sign (usdSigned). */
+export function fairParts(v: number): { amt: string; below: boolean } {
+  return { amt: money(Math.abs(v)), below: cents(v) < 0 };
+}
+/** fairParts as one string: "$0.82", "$0.09 below". */
+export const fairText = (v: number) => {
+  const { amt, below } = fairParts(v);
+  return below ? `${amt} below` : amt;
+};
 
 export type MetricKey = "cost10k" | "cust" | "pay10k" | "payPct" | "gap" | "pi" | "sz" | "speed" | "fract" | "commission" | "optionsFee" | "marginRate" | "cashYield";
 
@@ -28,19 +42,21 @@ export interface MetricDef {
 }
 
 export const METRICS: Record<MetricKey, MetricDef> = {
+  // signed in the explorer, which is the one page that keeps signs: its column says what the sign is measured against
+  // ("Vs fair price"), positive figures carry a "+", and the chart's zero line and the scatter's zero tick read "Fair price"
   cost10k: {
-    label: "Extra cost per $10,000 traded", noun: "extra cost per $10,000 traded", short: "Extra cost / $10k",
-    desc: `Dollars paid above ${FAIR_PRICE} per $10,000 of market orders, all sizes under $200,000 averaged (largest orders weigh most); lower is better.`,
-    better: "low", source: "measured", get: (r) => r.cost10k, fmt: usd2, axis: usdTick, slot: 1,
+    label: "Extra cost per $10,000 traded", noun: "extra cost per $10,000 traded", short: "Vs fair price / $10k",
+    desc: `Dollars above (+) or below (−) ${FAIR_PRICE} per $10,000 traded, all sizes under $200,000 averaged (largest orders weigh most); lower is better.`,
+    better: "low", source: "measured", get: (r) => r.cost10k, fmt: usdSigned, axis: (v) => (v === 0 ? "Fair price" : usdTick(v)), slot: 1,
   },
   cust: {
     label: "Customer pays, as a share of the spread", noun: "share of the spread its customers pay", short: "Customer pays (% spread)",
-    desc: "0% = you got the fair price, 100% = you traded at the quoted price; lower is better.",
+    desc: "0% = you got the fair price, 100% = you traded at the quoted price, below 0% = better than the fair price; lower is better.",
     better: "low", source: "measured", get: (r) => r.cust, fmt: (v) => pct(v, 1), axis: (v) => `${v}%`, slot: 1,
   },
   pay10k: {
-    label: "Broker is paid, per $10,000 order", noun: "payment per $10,000 order", short: "Broker is paid / $10k",
-    desc: "What trading firms pay the broker for a $10,000 order (payment for order flow).",
+    label: "Broker is paid, per $10,000 of orders", noun: "payment per $10,000 of orders", short: "Broker is paid / $10k",
+    desc: "What trading firms pay the broker per $10,000 of its customers' orders (payment for order flow). Below zero, the broker pays: its trading firm, or exchange fees.",
     better: null, source: "measured", get: (r) => r.pay10k, fmt: usd2, axis: usdTick, slot: 0,
   },
   payPct: {
@@ -50,7 +66,7 @@ export const METRICS: Record<MetricKey, MetricDef> = {
   },
   gap: {
     label: "Same-stock gap vs other brokers", noun: "same-stock gap", short: "Same-stock gap",
-    desc: "Points of the spread vs other brokers on the same stocks and order sizes; below zero = better.",
+    desc: "Points of the spread its customers paid compared with other brokers' customers on the same stocks and order sizes; less (below zero) is better.",
     better: "low", source: "measured", get: (r) => r.gap, fmt: (v) => signed(v, 1), axis: (v) => `${v > 0 ? "+" : ""}${v}`, slot: 0, diverging: true,
   },
   // no "better" direction: Webull price-improves 94% of orders yet its customers still pay about half the spread

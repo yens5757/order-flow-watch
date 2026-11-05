@@ -50,8 +50,12 @@
 
 /* ---------- every broker ranked: the broker page's table (bp-tbl); the picked broker's row is the Here row ---------- */
 .hm-rank .card-head { margin-bottom: 4px; }
-/* names stay on one line (the column headings wrap instead), so every row keeps one height */
-.hm-rank .bp-tbl .c-nm { white-space: nowrap; }
+/* (names stay on one line where the table has columns: broker.css) the right column's copy, 448px wide from 1200px,
+   holds four columns and the payment's words: a little less room between columns, the Here row's rounded ends kept;
+   "below" still drops under its figure in this column */
+.hm-rank-side .bp-tbl :is(th, td) { padding-inline: 10px; }
+.hm-rank-side .bp-tbl tr > :first-child { padding-left: 12px; }
+.hm-rank-side .bp-tbl tr > :last-child { padding-right: 12px; }
 .hm-cap-near { display: none; }
 .hm-more { margin-top: 18px; }
 .hm-more svg { transition: transform .35s var(--ease-out); }

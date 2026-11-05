@@ -1121,7 +1121,7 @@
       {
         "name": "chevron",
         "value": "rotate(180deg) over .35s ease-out",
-        "purpose": "Disclosure chevrons (See all, more sources)."
+        "purpose": "Disclosure chevrons (See all, more sources, More measures)."
       },
       {
         "name": "theme",
@@ -1148,7 +1148,7 @@
       {
         "name": "narrow",
         "value": "max-width: 374px",
-        "purpose": "A restacked table row moves its payment to a third line; the answer card's \"See all\" goes under its two ranks."
+        "purpose": "A restacked table row moves its payment to a third line and drops \"below\" under its price; the answer card's \"See all\" goes under its two ranks."
       },
       {
         "name": "table-stack",
@@ -1226,7 +1226,7 @@
       "kind": "custom",
       "refersTo": "table-row-here",
       "description": "Every comparison as a real table; the page's own broker on a Here-tinted row with 14px ends.",
-      "html": "<table class=\"ds-tbl\"><thead><tr><th class=\"ds-l\">Rank</th><th class=\"ds-l\">Broker</th><th>Above fair price</th><th>Broker is paid</th></tr></thead><tbody><tr><td class=\"ds-l ds-2\">9</td><th class=\"ds-l\"><a href=\"#\">E*TRADE</a></th><td class=\"ds-b\">$0.59</td><td class=\"ds-2\">$0.06</td></tr><tr class=\"ds-you\"><td class=\"ds-l\">10</td><th class=\"ds-l\">Robinhood</th><td>$0.82</td><td>$0.83</td></tr><tr><td class=\"ds-l ds-2\">11</td><th class=\"ds-l\"><a href=\"#\">UBS Wealth</a></th><td class=\"ds-b\">$0.84</td><td class=\"ds-2\">$0.00</td></tr></tbody></table>",
+      "html": "<table class=\"ds-tbl\"><thead><tr><th class=\"ds-l\">Rank</th><th class=\"ds-l\">Broker</th><th>Above fair price</th><th>Broker is paid</th></tr></thead><tbody><tr><td class=\"ds-l ds-2\">9</td><th class=\"ds-l\"><a href=\"#\">E*TRADE</a></th><td class=\"ds-b\">$0.59</td><td class=\"ds-2\">$0.06</td></tr><tr class=\"ds-you\"><td class=\"ds-l\">10</td><th class=\"ds-l\">Robinhood</th><td>$0.82</td><td>$0.83</td></tr><tr><td class=\"ds-l ds-2\">11</td><th class=\"ds-l\"><a href=\"#\">UBS Wealth</a></th><td class=\"ds-b\">$0.84</td><td class=\"ds-2\">Not paid</td></tr></tbody></table>",
       "css": ".ds-tbl { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; width: 520px; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; color: var(--ink, #374642); background: var(--surface, #FFFFFF); } .ds-tbl th, .ds-tbl td { padding: 13px 12px; border-top: 1px solid var(--border, #E1E8E5); text-align: right; white-space: nowrap; } .ds-tbl thead th { border-top: 0; font-size: .875rem; font-weight: 600; color: var(--ink-2, #55615C); } .ds-tbl .ds-l { text-align: left; } .ds-tbl tbody th { font-weight: 600; } .ds-tbl .ds-2 { color: var(--ink-2, #55615C); } .ds-tbl .ds-b { font-weight: 700; } .ds-tbl a { color: var(--ink, #374642); text-decoration: none; } .ds-tbl a:hover { text-decoration: underline 2px var(--accent, #0F7B6C); text-underline-offset: 5px; } .ds-tbl a:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; } .ds-tbl tr.ds-you > * { background: var(--here, #E6F0EC); border-top-color: transparent; font-weight: 700; } .ds-tbl tr.ds-you > :first-child { border-radius: 14px 0 0 14px; } .ds-tbl tr.ds-you > :last-child { border-radius: 0 14px 14px 0; } .ds-tbl tr.ds-you + tr > * { border-top-color: transparent; }"
     },
     {
@@ -1281,7 +1281,7 @@
       },
       {
         "name": "The Words-Not-Colour Rule",
-        "body": "Good and bad are stated in words (\"below the fair price\", \"11th cheapest of 20\", \"Pays $0.01\", \"Not confirmed\"), never by colouring a figure red or green. Prices, ranks and payments are all ink.",
+        "body": "Good and bad are stated in words (\"below the fair price\", \"11th cheapest of 20\", \"Not paid\", \"Pays $0.07 to its trading firm\", \"Not confirmed\"), never by colouring a figure red or green. Outside the explorer a figure below its reference is said in words too (\"$0.09 below\", never \"−$0.09\"). Prices, ranks and payments are all ink.",
         "section": "colors"
       },
       {

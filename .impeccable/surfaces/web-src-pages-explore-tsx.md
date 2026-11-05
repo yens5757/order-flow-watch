@@ -22,6 +22,8 @@ Desktop: one column of full-width cards under the controls, never a board: the t
 
 Memorable moment: the ranked chart is the broker page's price scale given to every broker, one grey rail per row with an ink dot at the broker's value and the typical tick lined up through every row; change the measure or the order and the rows re-sort in place while each dot glides along its rail to its new value.
 
+Signs said plainly (Nov 2026, from the critique's second P1): the explorer is the one page that keeps signed figures, so the price measure says what its sign is measured against. Its column reads "Vs fair price / $10k" with the sign always written (+$0.82, −$0.09; a figure that rounds to zero has none), the ranked rails' zero line and the scatter's zero tick read "Fair price", and its (i) says above (+) or below (−). The payment measure is "per $10,000 of orders" (was "per $10,000 order") and its (i) says what below zero means (the broker pays: its trading firm, or exchange fees). The scatter's labels are untouched (left for a later round).
+
 ## Direction contract
 
 THESIS: One working explorer that answers "which brokers lead on this measure, and does it go with that one?" in a generated sentence, a ranked rail chart or a named scatter, and a full table, all from one set of controls whose state is the link. It refuses the category defaults: a dense trading dashboard of tiles and colour-coded bars, and a filter sidebar that scrolls inside itself.

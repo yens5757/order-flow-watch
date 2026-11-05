@@ -125,8 +125,12 @@
 .tf-sub { margin: 4px 0 14px; font-size: var(--fs-1); line-height: 1.45; color: var(--ink-2); }
 .tf-where { container-type: inline-size; }
 .tf-ring { display: grid; grid-template-columns: 14.5rem minmax(0, 1fr); align-items: center; gap: 8px 40px; }
-.tf-key { max-width: 36rem; }
+.tf-key-box { min-width: 0; max-width: 36rem; }
 .tf-key tbody th { white-space: normal; }
+/* under the key: what a rate below zero means, in the broker pages' words */
+.tf-key-note { margin-top: 8px; font-size: var(--fs-1); line-height: 1.45; color: var(--ink-2); }
+/* the rate over time is the one payment left in cents: why, in a second line close under the first */
+.tf-sub.tf-cents { margin-top: -12px; }
 /* the swatch centred on the name's first line, so a name that wraps keeps it beside its start */
 .tf-swrow { display: inline-flex; align-items: flex-start; gap: 10px; }
 .tf-sw {
@@ -159,6 +163,12 @@
   .tf-key th, .tf-key td { padding-inline: 8px; }
   .tf-key tr > :first-child { padding-left: 0; }
   .tf-key tr > :last-child { padding-right: 0; }
+}
+/* the smallest phones: the key's four columns a little closer, so they fit before the box has to scroll */
+@media (max-width: 359px) {
+  .tf-key th, .tf-key td { padding-inline: 5px; }
+  .tf-key tbody :is(th, td) { font-size: var(--fs-1); }
+  .tf-swrow { gap: 7px; }
 }
 
 /* ---------- a forced-colours theme drops fills: the rails in system colours, the heatmap keeps its numbers ---------- */
