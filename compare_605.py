@@ -21,6 +21,8 @@ from pathlib import Path
 
 import duckdb
 
+from months import latest_month
+
 DB = Path("data/pfof.duckdb")
 FIRMS = Path("firms.csv")
 OUT = Path("reports")
@@ -40,8 +42,7 @@ def print_table(cols, rows):
 
 def main():
     con = duckdb.connect(str(DB), read_only=True)
-    month = sys.argv[1] if len(sys.argv) > 1 else con.execute(
-        "SELECT max(report_month) FROM summary_605").fetchall()[0][0]
+    month = sys.argv[1] if len(sys.argv) > 1 else latest_month(con, "summary_605", FIRMS)
 
     firms = f"read_csv('{FIRMS.as_posix()}', header=true, all_varchar=true)"
     query = f"""

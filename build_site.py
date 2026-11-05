@@ -22,6 +22,7 @@ import duckdb
 
 import same_stock
 import stats
+from months import latest_month
 from parse_606 import canonical_venue
 
 DB = Path("data/pfof.duckdb")
@@ -116,17 +117,19 @@ def main():
     directory = {r["reporter_id"]: r for r in read_csv(REPORTERS)}
     fees = fee_rows()
     fee_crd = {f["id"]: f["crd"] for f in fees if f["crd"]}  # fills a CRD firms.csv lacks (brokers with no 606 of their own)
-    month = con.execute("SELECT max(report_month) FROM summary_605").fetchall()[0][0]
+    # the newest month nearly every tracked broker has filed, not max(): firms that post a month early would give a
+    # month with no broker in it (months.py); rows from a later month stay out of the site until it counts
+    month = latest_month(con, "summary_605", FIRMS)
     quarter = con.execute("SELECT max(quarter) FROM routing_606").fetchall()[0][0]
-    detail_month = con.execute("SELECT max(report_month) FROM detail_605").fetchall()[0][0]
+    detail_month = latest_month(con, "detail_605", FIRMS)
 
-    # ---- Rule 605 summary rows, all firms (drives the filters in the explorer)
-    exec_rows = rows(con, """
+    # ---- Rule 605 summary rows, all firms (drives the filters in the explorer), up to the site's month
+    exec_rows = rows(con, f"""
         SELECT reporter_id AS id, report_month AS m, sp500 AS sp, order_type AS ot, order_size_bucket AS b,
                effective_over_quoted AS efq, pct_price_improved AS pi, pct_at_quote_or_better AS aq,
                quoted_spread_pct AS qs, avg_order_dollars AS sz, avg_midpoint_price AS px,
                avg_execution_time AS t, realized_spread_pct_1m AS rs1
-        FROM summary_605 WHERE order_type IN ('M', 'ML')""")
+        FROM summary_605 WHERE order_type IN ('M', 'ML') AND report_month <= '{month}'""")
     exec_cols = ["id", "m", "sp", "ot", "b", "efq", "pi", "aq", "qs", "sz", "px", "t", "rs1"]
     exec_out = [[r[c] if c in ("id", "m", "sp", "ot", "b") else rnd(r[c], 6) for c in exec_cols] for r in exec_rows]
 

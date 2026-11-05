@@ -21,6 +21,8 @@ from pathlib import Path
 
 import duckdb
 
+from months import latest_month
+
 DB = Path("data/pfof.duckdb")
 OUT = Path("reports")
 
@@ -71,7 +73,7 @@ def main():
     args = ap.parse_args()
 
     con = duckdb.connect(str(DB), read_only=True)
-    month = args.month or con.execute("SELECT max(report_month) FROM summary_605").fetchall()[0][0]
+    month = args.month or latest_month(con, "summary_605")
     quarter = args.quarter or con.execute("SELECT max(quarter) FROM routing_606").fetchall()[0][0]
     pay_csv = OUT / f"pfof_vs_execution_{month}_{quarter}.csv"
     if not pay_csv.exists():

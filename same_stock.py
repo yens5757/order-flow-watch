@@ -21,6 +21,8 @@ from pathlib import Path
 
 import duckdb
 
+from months import latest_month
+
 DB = Path("data/pfof.duckdb")
 FIRMS = Path("firms.csv")
 OUT = Path("reports")
@@ -66,7 +68,7 @@ def scores(con, month, ids):
 
 def main():
     con = duckdb.connect(str(DB), read_only=True)
-    month = con.execute("SELECT max(report_month) FROM detail_605").fetchall()[0][0]
+    month = latest_month(con, "detail_605", FIRMS)
     quarter = con.execute("SELECT max(quarter) FROM routing_606").fetchall()[0][0]
     with open(FIRMS, encoding="utf-8") as f:
         brokers = {r["reporter_id"]: r["short_name"] for r in csv.DictReader(f) if r["firm_type"] == "broker"}

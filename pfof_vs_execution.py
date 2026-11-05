@@ -34,6 +34,8 @@ from pathlib import Path
 
 import duckdb
 
+from months import latest_month
+
 DB = Path("data/pfof.duckdb")
 FIRMS = Path("firms.csv")
 OUT = Path("reports")
@@ -247,7 +249,7 @@ def main():
     args = ap.parse_args()
 
     con = duckdb.connect(str(DB), read_only=True)
-    month = args.month or con.execute("SELECT max(report_month) FROM summary_605").fetchall()[0][0]
+    month = args.month or latest_month(con, "summary_605", FIRMS)
     quarter = args.quarter or con.execute("SELECT max(quarter) FROM routing_606").fetchall()[0][0]
 
     cur = con.execute(build(con, month, quarter))
@@ -266,6 +268,9 @@ def main():
     for r in rows:
         print("  ".join(("" if v is None else str(v)).ljust(w) for v, w in zip(r, widths)))
 
+    if not rows:  # no tracked broker has this month (only with --month): a chart would have no rows to draw
+        print(f"\nSaved {stem}.csv; no chart: no tracked broker has a 605 report for {month}")
+        return
     chart(rows, cols, f"{stem}.png", month, quarter)
     print(f"\nSaved {stem}.csv and {stem}.png")
     if month[:4] + "Q" + str((int(month[4:]) - 1) // 3 + 1) != quarter:
