@@ -24,7 +24,7 @@ The broker page's board for two: the answer card leads (the gap between the two 
 
 THESIS: A comparison page is one calm answer about two brokers: a soft card stating which one's customers paid less above the fair price per $10,000 and by how much, with both brokers placed on the same neutral scale among all brokers. It refuses the category defaults: a scoreboard of coloured winners, a versus-graphic, and the review site's star ratings and Open-account buttons.
 
-OWN-WORLD: The established world, exactly as DESIGN.md records it and the broker page renders it: soft white cards (24px, 20px on phones) on the teal-tinted Sage Ground (dark: dim sage with darker cards), Figtree on the seven-step rem scale with tabular numerals, sage-grey ink, one action teal only on pressable things and focus, the Lift shadow, pill controls with 44px targets, the one ease-out curve; no gradients, glow, icon tiles, kickers or numbered circles.
+OWN-WORLD: The established world, exactly as DESIGN.md records it and the broker page renders it: soft white cards (24px, 20px on phones) on the teal-tinted Sage Ground (dark: dim sage with lighter cards), Figtree on the seven-step rem scale with tabular numerals, sage-grey ink, one action teal only on pressable things and focus, the Lift shadow, pill controls with 44px targets, the one ease-out curve; no gradients, glow, icon tiles, kickers or numbered circles.
 
 STORY: The visitor reads the gap in dollars and the two places on the scale in one screen, sees what a typical year costs at each, checks the table, payment and registration if they doubt it, and moves on to another pair or to the calculator with their own numbers.
 

@@ -117,6 +117,7 @@ rounded:
   panel: "20px"
   card: "24px"
   card-phone: "20px"
+  switch-wrap: "26px"
   pill: "999px"
 spacing:
   gutter: "24px"
@@ -209,6 +210,63 @@ components:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.panel}"
+  page-header:
+    textColor: "{colors.ink}"
+    typography: "{typography.headline}"
+    padding: "40px 0 0"
+  segmented-track:
+    backgroundColor: "{colors.surface}"
+    rounded: "{rounded.switch-wrap}"
+    padding: "2px"
+  select:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body}"
+    rounded: "{rounded.pill}"
+    padding: "0 44px 0 20px"
+    height: "48px"
+  select-hover:
+    backgroundColor: "{colors.accent-soft}"
+  info-button:
+    textColor: "{colors.accent}"
+    rounded: "{rounded.pill}"
+    size: "44px"
+  info-button-hover:
+    backgroundColor: "{colors.accent-soft}"
+    textColor: "{colors.accent-hover}"
+  info-button-open:
+    backgroundColor: "{colors.accent}"
+    textColor: "{colors.on-accent}"
+  tip-panel:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.ink-2}"
+    typography: "{typography.label}"
+    rounded: "{rounded.row}"
+    padding: "10px 14px"
+  toggle:
+    backgroundColor: "{colors.surface}"
+    rounded: "{rounded.pill}"
+    width: "46px"
+    height: "28px"
+  toggle-on:
+    backgroundColor: "{colors.accent}"
+  status-chip:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.ink}"
+    typography: "{typography.label}"
+    rounded: "{rounded.pill}"
+    padding: "3px 12px 3px 8px"
+  empty-state:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.ink-2}"
+    rounded: "{rounded.row}"
+    padding: "24px"
+  table-cell:
+    textColor: "{colors.ink}"
+    padding: "13px 12px"
+  filter-bar:
+    backgroundColor: "{colors.page}"
+    padding: "12px"
 ---
 
 # Design System: Fills and Fees
@@ -224,7 +282,7 @@ Density is low and deliberate: one idea per card, cards stacked in columns, expl
 Light is the default; dark follows the system until the visitor picks a theme, and both themes are tuned separately rather than auto-inverted. The world rejects gradients, glow, icon tiles, uppercase kickers, colour-coded verdicts, ratings and "Open account" buttons.
 
 **Key Characteristics:**
-- Soft white cards (24px corners, 20px on phones) on a teal-tinted neutral ground (light page, dark page with darker cards).
+- Soft white cards (24px corners, 20px on phones) on a teal-tinted neutral ground (light page; in dark, a dim sage page with lighter cards).
 - One typeface, Figtree, weight 800 for headings and the big figure, tabular numerals for every number.
 - One action colour, teal, reserved for pressable things; everything else is ink and tinted greys.
 - The neutral price scale as the signature visual; tables for every comparison.
@@ -300,6 +358,9 @@ The other pages use the same board or one column of full-width cards:
 - **Calculator:** the answer on the left, "How you trade" on the right; the ranking, every broker's table and "How it adds up" at full width beneath.
 - **How we measure:** the reading column on the left, "On this page" in the right column (straight after the first card below 1024px); the evidence card at full width last.
 - **Brokers (explorer), Trading firms, All firms:** one column of full-width cards under the page's controls.
+- **Not found:** the page header and one card of three soft pills (Home, Brokers, Compare), at the 44rem reading width.
+
+Every page opens with the same page header under the site header: the h1 at Headline size and, when it needs one, one Lead-size intro line in secondary ink (max 62ch, the text block at most 44rem), with an optional slot on the right for the page's own control that wraps beneath on narrow screens. It sits 40px below the header and 24px above the first card (26px and 16px on phones). A page below the top level puts a breadcrumb above it: the way up as an ink link underlined 2px in teal, a chevron, then the current page in 600 secondary ink.
 
 A card needed in two places (the broker page's and Compare's yearly card, Home's ranking) is rendered twice and CSS shows one, so the order on screen is the reading order at every width.
 
@@ -323,7 +384,7 @@ Depth is lift, not layering: cards float on the ground with a soft, low, tinted 
 
 ## Shapes
 
-Soft and round. Cards have 24px corners (20px on phones), the menu panel 20px, highlighted table rows and menu items 14px, and every control (buttons, pills, switch, nav links, round buttons) is a full pill (999px). Cards carry no border; controls carry a 2px teal outline when they are secondary. The scale is built from circles (11px radius dot, 10px end dots) and a 4px-wide tick with 2px corners on an 8px round-ended rail. Icons are 2px-stroke line icons with round caps, 14–22px, inline SVG, beside a word or as the face of a round control, never inside a coloured tile.
+Soft and round. Cards have 24px corners (20px on phones), the menu panel 20px, highlighted table rows and menu items 14px, and every control (buttons, pills, switch, nav links, round buttons, selects, fields, the toggle) is a full pill (999px); a pill switch that may wrap its options onto a second row keeps a 26px outer corner around its pill options. Tooltip panels and empty states take the 14px row corner. Cards carry no border; controls carry a 2px teal outline when they are secondary. The scale is built from circles (11px radius dot, 10px end dots) and a 4px-wide tick with 2px corners on an 8px round-ended rail. Icons are 2px-stroke line icons with round caps, 14–22px, inline SVG, beside a word or as the face of a round control, never inside a coloured tile.
 
 ## Components
 
@@ -347,7 +408,8 @@ The page's one control: a native radio group drawn as a two-option pill with a 2
 - **Shadow Strategy:** Lift at rest; a card that is wholly pressable (a one-line card with a link) takes Pop on hover and scales to 0.985 on press.
 - **Border:** none.
 - **Internal Padding:** 30px 32px (20px on phones); one-line cards 18px 24px 18px 28px.
-- **Heading:** Title style, then a secondary-ink sub-line for scope and date.
+- **Heading:** Title style, then a secondary-ink sub-line for scope and date (6px below), 18px above the content (14px on phones). A card's (i) sits beside its title, never inside it; a card's own control (a switch, a select, a "See all") sits in a right-hand slot that wraps under the titles and takes the full width on phones.
+- **Foot:** an optional ruled foot (1px hairline, 22px above, 18px inside) in label size and secondary ink for sources, notes and the "How we measure" link.
 
 ### Rows and Tables
 - **Value rows:** label left (with an optional 0.875rem secondary note), value right in 700 tabular ink, hairline above, 52px minimum. An unknown value reads "Not confirmed", "Not offered" or "Varies" in 600 secondary ink, never $0.
@@ -368,14 +430,24 @@ An (i) icon button (44px circle, teal icon; hover Soft Teal; expanded filled tea
 Everywhere else the shared (i) sits beside a heading or a term, never inside a heading, and is named "About <topic>". Hover, focus or a press shows its one plain line in a raised panel (Raised Tint, 14px corners, Pop, label size) under the icon, or over it when there is no room, 12px clear of every edge of the window, so no card or scroll box clips it. The pointer can move onto the panel; Escape, a press elsewhere or focus leaving closes it. Plain text only. Without a script the line shows under the icon on hover or focus.
 
 ### Controls and pickers
-- **Select:** a native select as a teal-outlined pill (48px, 1rem text at every width so phones don't zoom), its label shown beside it. It only reports the pick; nothing navigates on change. Home's "Your broker" changes the answer card in place (the dot slides, the tinted row moves) and a status line announces the new price and rank. Compare's two selects are followed by a ghost "Compare" link that opens the pair; picking in one box the broker the other shows swaps them, announced. Trading firms' broker select is followed by a solid "Show".
-- **Pill switch:** the stock switch's look for any small set of options: one Tab stop, the arrows, Home and End move and pick; the whole switch takes the ring; on phones it spans the width and wraps inside itself. A small variant sets the options in the label size, still 44px tall.
+- **Select:** a native select as a teal-outlined pill (48px, 0 44px 0 20px, 600 ink, 1rem text at every width so phones don't zoom) with a teal down chevron at the right, hover Soft Teal; its label shown beside it in label size, 600 secondary ink (or kept for screen readers when the select fills a row). It only reports the pick; nothing navigates on change. Home's "Your broker" changes the answer card in place (the dot slides, the tinted row moves) and a status line announces the new price and rank. Compare's two selects are followed by a ghost "Compare" link that opens the pair; picking in one box the broker the other shows swaps them, announced. Trading firms' broker select is followed by a solid "Show".
+- **Pill switch:** the stock switch's look for any small set of options (buttons with radio roles): one Tab stop, the arrows, Home and End move and pick; the whole switch takes the ring; its outer edge is 26px so it can wrap onto a second row inside itself; on phones it spans the width with equal options. A small variant sets the options in the label size (0 16px), still 44px tall. In forced colours the checked option takes the system highlight.
+- **Toggle:** an on/off setting ("Show Apex Clearing") as a 46x28px pill track with an 18px knob, the whole label the 44px target. Off: a 2px Mark Grey edge and knob on Card White, Soft Teal on hover. On: teal track and edge, an on-teal knob slid 18px over 0.3s on the system curve.
 - **Text field:** a pill with a 2px Mark Grey edge (3:1), 1rem text, the ring on the whole field; a search field's clear button is a teal cross.
 - **Number box (calculator):** the text field 10.5rem wide at the end of a value row (under its label at 359px and below). A mistake keeps what was typed and gets aria-invalid, an Error Ink edge, an alert icon and one line naming the problem and the value still in use ("Enter $1,000,000 or less. Counting $2,000 for now.").
 - **Question (calculator):** No or Yes on the pill switch, No first and the default; its amount box appears only after Yes, so a cost counts only once the visitor says they have it.
 - **Filter chips (explorer):** checkboxes drawn as 44px pills. Shown: Soft Teal fill, Deep Teal text, a 2px teal edge and a check icon. Hidden: Card White, ink text, a 2px Mark Grey edge, no icon. The ring sits on the pill.
 - **Bottom sheet (explorer, below 1024px):** a native modal dialog from the bottom edge: Card White, 20px top corners, Pop, the page dimmed behind it (rgb(16 40 34 / .42); dark rgb(0 0 0 / .6)) with at least 56px of it still visible. A ruled head (a Title-size h2 and a round close button), a body that scrolls inside, a ruled foot with the solid result button ("Show 25 brokers"). Escape, the close button or a tap on the dimmed page closes it, and focus returns to its opener. On a desktop the same controls sit on the ground in rows of labelled fields (label above, 0.875rem 600 secondary ink).
 - **Copy link:** a ghost button with the link icon; what happened is said in a status line beside it.
+- **Filter bar:** the page's controls (stock and order-type switches, size, month and quarter selects, the clearing toggle, each (i) beside its control) in one wrapping row on the ground, 12px 20px gaps, 22px above the first card. From 1024px it sticks to the top of the window on the page ground, gaining a Rule hairline under it once stuck, but only while it fits one row; a bar that wraps scrolls away like any content, and the page's scroll padding follows its measured height. On phones every item takes the full width.
+
+### Small shared pieces
+- **Status chip:** a word with a line icon (check, cross or dash in secondary ink) on a Raised Tint pill, label size 600 ink, 3px 12px 3px 8px. The word carries the meaning; the chip is never coloured by it.
+- **Empty state:** a Raised Tint block with 14px corners, at least 12rem tall, one centred line of secondary ink announced as a status.
+- **Waiting line:** a page opened from a link that carries its view in the query shows one secondary-ink line while the pre-rendered default figures stay hidden, so another broker's numbers never flash; if the data cannot load, one quiet label-size line sits above the pre-rendered page.
+
+### Not-found page
+Any address the site has no page for gets the page header ("Page not found" and one intro line) and a single card, labelled as navigation, of three soft pills in a row from 640px (one column below): Home, Brokers, Compare, each with its chevron. No illustration, no apology copy, no search.
 
 ### Figures and answers
 - **The yearly answer (calculator, Compare):** the dollar amount at Display size set inline in the headline's own words ("About $9 a year"), the rest at Title size; each cost part a value row with the rate behind it; unknowns in words, and "At least $X" with the reason when a part is missing.
@@ -395,7 +467,9 @@ Everywhere else the shared (i) sits beside a heading or a term, never inside a h
 ### Tables beyond the ranked table
 - **Comparison table (Compare):** two value columns under a sticky row of the two names. A neutral ink check marks the better value (before it, after it on phones) with a screen-reader "better:"; rows without one are context, not a score. Unknowns in words; the (i)s in their own column so row headings stay clean.
 - **Heat table (Trading firms):** the routing matrix as a real table, each cell shaded in one of four sequential steps with 2px card-coloured borders as gaps and its number written in it; the first column is pinned while the table scrolls sideways, broker names link to their section below, and the broker shown there is on the Here tint.
-- **Sortable table:** column headings are 44px buttons with aria-sort, the ring inset and clear of the label; rows without a value stay last in their given order whichever way a column sorts. Charts rank only complete figures; a broker missing a part is named under the chart and shown "at least" in the table.
+- **Data table (the shared sortable table):** an optional bar above it holds a search field (16-24rem, full width on phones) and a ghost "Download CSV" button with the download icon; a status line under the bar says "8 of 25 shown" while a search is on. The table sits in its own scroll box that scrolls sideways inside the card, never the page; headings stay on one line and stick to the top of a box given a height; the name column is pinned and gains a Rule hairline on its edge once the table has scrolled. Column headings are 44px buttons with aria-sort, the sort arrow in Mark Grey shown on hover or focus and teal on the sorted column (whose heading turns 700 ink), the ring inset and clear of the label; rows without a value stay last in their given order whichever way a column sorts. Each row opens through its name, a real link (or a button for an in-page action) in 600 ink that underlines 2px in teal when the row is hovered; a press anywhere on the row does the same, and keyboard focus rings the whole row (inset, 14px corners). The page's own row is on the Here tint; columns can be Here-tinted too. A search that finds nothing says so in one centred secondary-ink line. Charts rank only complete figures; a broker missing a part is named under the chart and shown "at least" in the table.
+- **Chart and table:** every chart is followed by a teal "Show as a table" disclosure (600, 44px, a down chevron that turns over 0.35s on the system curve; "Hide the table" when open) holding the same figures as a real table, first column as row headings and pinned while it scrolls sideways. The chart's key is an HTML legend beside it: label-size secondary ink, 10px swatches with 3px corners, an 18px dashed line for a reference line.
+- **Chart styling:** Figtree at the label size (0.875rem, at the reader's root size), secondary-ink text, axis labels in Muted, no axis lines or ticks on value axes, Grid hairlines, the Baseline on category axes, thin marks, a 700ms ease-out entry that is off under reduced motion. The chart tooltip is the raised panel (Raised Tint, a 1px hairline edge, 14px corners, Pop, 10px 14px) and can be hovered; Escape hides it.
 - **Contents (How we measure):** "On this page" as a card of rows that jump to each section, each ending in the go arrow (a down chevron means "opens in place"), the section being read on the Here tint. A teal disclosure (a summary with a chevron, like "Show as a table") holds anything longer than a line.
 
 ## Do's and Don'ts
@@ -410,6 +484,7 @@ Everywhere else the shared (i) sits beside a heading or a term, never inside a h
 - **Do** use the one curve `cubic-bezier(.22, 1, .36, 1)` for every movement and turn all motion off under reduced motion.
 - **Do** name unknowns plainly ("Not confirmed", "Not offered", "Varies") in secondary ink.
 - **Do** let a select or switch only report a pick; anything that opens another page is a real link or button beside it.
+- **Do** open every page with the shared page header (Headline h1, at most one Lead-size intro line) and put a card's own control in its right-hand slot.
 - **Do** give every chart its table and its key in HTML, and draw rankings and scales in CSS rather than loading a chart library for them.
 
 ### Don't:

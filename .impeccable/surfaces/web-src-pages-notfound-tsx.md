@@ -24,7 +24,7 @@ The h1 "Page not found" with one plain line under it ("There's no page at this a
 
 THESIS: A dead end that is not a dead end: name the problem in plain words and put the way back right under it. It refuses the category defaults: a joke illustration, a giant "404", a search box with nothing to search.
 
-OWN-WORLD: The established world in DESIGN.md, unchanged: soft white card on the teal-tinted Sage Ground (dark: dim sage with a darker card), Figtree, sage-grey ink, the action teal only on pressable things (the pills are Deep Teal on Soft Teal, as the broker page's "Compare with" pills), Lift shadow, the one ease-out curve on press.
+OWN-WORLD: The established world in DESIGN.md, unchanged: soft white card on the teal-tinted Sage Ground (dark: dim sage with a lighter card), Figtree, sage-grey ink, the action teal only on pressable things (the pills are Deep Teal on Soft Teal, as the broker page's "Compare with" pills), Lift shadow, the one ease-out curve on press.
 
 STORY: The visitor sees at once that the address has no page, picks Home, Brokers or Compare, and is back in the site in one press.
 

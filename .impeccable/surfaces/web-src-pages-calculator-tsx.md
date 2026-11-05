@@ -2,12 +2,12 @@
 version: 1
 slug: "web-src-pages-calculator-tsx"
 primary_target: "web/src/pages/Calculator.tsx"
-related_targets: ["web/src/components/Estimator.tsx"]
+related_targets: ["web/src/components/calculator/AnswerCard.tsx"]
 ---
 
 ## Scope and visitor mode
 
-The calculator page (`/calculator/`, bare or opened from a link that carries inputs: `?n=24&s=2000&mix=50&o=10&c=5000&m=0&b=<slug>`), plus the compact estimator Home embeds (`components/Estimator.tsx`, `compact`). Mode: operate. The visitor came to put in their own habits and get one figure back; the world lends type, palette, density and the price scale, never the controls.
+The calculator page (`/calculator/`, bare or opened from a link that carries inputs: `?n=24&s=2000&mix=50&o=10&c=5000&m=0&b=<slug>`). Home no longer embeds a compact estimator (it links here with its yearly one-liner). Mode: operate. The visitor came to put in their own habits and get one figure back; the world lends type, palette, density and the price scale, never the controls.
 
 ## Audience, job, proof, constraints
 
@@ -28,7 +28,7 @@ Memorable moment: as the visitor types, picks a mix or answers a question, their
 
 THESIS: The calculator is one calm answer the visitor shapes: what a year of their own trading costs at their broker, in dollars and words, and where that sits among the brokers. It refuses the category defaults: a wall of equal input boxes with the result below the fold, a pre-filled assumption that writes the headline, and a red/green league table.
 
-OWN-WORLD: The established world in DESIGN.md, by reference: soft white cards (24px, 20px on phones) on the teal-tinted Sage Ground (dark: dim sage with darker cards), Figtree at the seven rem steps, sage-grey ink, the one action teal only on pressable things and focus, Lift shadows, value rows with hairlines, the neutral price scale as the signature, a real table for every chart, words not colour for good and bad. Series colours appear only inside the chart and its key.
+OWN-WORLD: The established world in DESIGN.md, by reference: soft white cards (24px, 20px on phones) on the teal-tinted Sage Ground (dark: dim sage with lighter cards), Figtree at the seven rem steps, sage-grey ink, the one action teal only on pressable things and focus, Lift shadows, value rows with hairlines, the neutral price scale as the signature, a real table for every chart, words not colour for good and bad. Series colours appear only inside the chart and its key.
 
 STORY: The visitor sees their broker's yearly cost before any input, changes their trades and answers the three questions, watches the figure and the dot respond, checks the parts and the rank, compares every broker in the bars and the table, and copies a link that opens on exactly these numbers.
 

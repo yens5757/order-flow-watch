@@ -24,7 +24,7 @@ The question as the h1 with one plain line under it, then one control row: "Your
 
 THESIS: Home is the broker page's answer with the broker left open: ask the question, let the visitor name their broker, and answer it in the same calm card, with all 25 brokers beside it as proof. It refuses the landing-page defaults the old page used: stat tiles, icon cards, numbered steps, teal bands and an embedded calculator.
 
-OWN-WORLD: The established world in DESIGN.md, unchanged: soft white cards on the teal-tinted Sage Ground (dark: dim sage with darker cards), Figtree at the seven rem steps, sage-grey ink, the action teal only on pressable things, words not colour for good and bad, the neutral price scale, real tables with the Here row, Lift shadows, the one ease-out curve.
+OWN-WORLD: The established world in DESIGN.md, unchanged: soft white cards on the teal-tinted Sage Ground (dark: dim sage with lighter cards), Figtree at the seven rem steps, sage-grey ink, the action teal only on pressable things, words not colour for good and bad, the neutral price scale, real tables with the Here row, Lift shadows, the one ease-out curve.
 
 STORY: The visitor reads the question, names their broker, sees in one card what its customers paid above the fair price and where that ranks among 25, glances at the full ranking and what the reports show (with their caveats), and leaves for the broker's page, a comparison or the calculator.
 

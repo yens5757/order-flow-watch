@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-05T11:50:03+00:00",
+  "generatedAt": "2026-11-05T15:42:59+00:00",
   "title": "Design System: Fills and Fees",
   "extensions": {
     "colorMeta": {
@@ -544,6 +544,156 @@
           "#F0F4F3"
         ]
       },
+      "critical-ink": {
+        "role": "error",
+        "displayName": "Error Ink",
+        "canonical": "#B42F2F",
+        "tonalRamp": [
+          "#331919",
+          "#602727",
+          "#913030",
+          "#C73535",
+          "#CE6868",
+          "#D79999",
+          "#E4C6C6",
+          "#F6EFEF"
+        ]
+      },
+      "critical-ink-dark": {
+        "role": "error",
+        "displayName": "Error Ink (dark theme)",
+        "canonical": "#EA7A7A",
+        "tonalRamp": [
+          "#361616",
+          "#672020",
+          "#9D2525",
+          "#D82323",
+          "#DA5B5B",
+          "#DE9292",
+          "#E7C3C3",
+          "#F7EEEE"
+        ]
+      },
+      "seq-0": {
+        "role": "sequential",
+        "displayName": "Heat step 0",
+        "canonical": "#eef4fd",
+        "tonalRamp": [
+          "#152338",
+          "#1D3C6A",
+          "#1F54A2",
+          "#1B6AE0",
+          "#568DE0",
+          "#8FB0E1",
+          "#C1D1E9",
+          "#EEF1F7"
+        ]
+      },
+      "seq-1": {
+        "role": "sequential",
+        "displayName": "Heat step 1",
+        "canonical": "#b7d3f6",
+        "tonalRamp": [
+          "#152438",
+          "#1E3F69",
+          "#2059A1",
+          "#1D73DF",
+          "#5793DF",
+          "#8FB3E1",
+          "#C2D3E9",
+          "#EEF2F7"
+        ]
+      },
+      "seq-3": {
+        "role": "sequential",
+        "displayName": "Heat step 3",
+        "canonical": "#256abf",
+        "tonalRamp": [
+          "#172535",
+          "#234064",
+          "#295B98",
+          "#2A75D2",
+          "#6095D6",
+          "#95B4DB",
+          "#C4D3E6",
+          "#EEF2F6"
+        ]
+      },
+      "seq-4": {
+        "role": "sequential",
+        "displayName": "Heat step 4",
+        "canonical": "#104281",
+        "tonalRamp": [
+          "#152438",
+          "#1E3F69",
+          "#2059A1",
+          "#1D73DF",
+          "#5793DF",
+          "#8FB3E1",
+          "#C2D3E9",
+          "#EEF2F7"
+        ]
+      },
+      "seq-0-dark": {
+        "role": "sequential",
+        "displayName": "Heat step 0 (dark theme)",
+        "canonical": "#162238",
+        "tonalRamp": [
+          "#1D2330",
+          "#2E3D58",
+          "#3D5684",
+          "#476EB4",
+          "#7590C1",
+          "#A1B1CF",
+          "#CAD2E0",
+          "#F0F1F5"
+        ]
+      },
+      "seq-1-dark": {
+        "role": "sequential",
+        "displayName": "Heat step 1 (dark theme)",
+        "canonical": "#184f95",
+        "tonalRamp": [
+          "#162436",
+          "#203F66",
+          "#25599C",
+          "#2473D8",
+          "#5C93DA",
+          "#92B3DE",
+          "#C3D3E7",
+          "#EEF2F6"
+        ]
+      },
+      "seq-3-dark": {
+        "role": "sequential",
+        "displayName": "Heat step 3 (dark theme)",
+        "canonical": "#6da7ec",
+        "tonalRamp": [
+          "#152537",
+          "#1E4069",
+          "#215BA0",
+          "#1E75DE",
+          "#5895DE",
+          "#90B4E0",
+          "#C2D3E8",
+          "#EEF2F7"
+        ]
+      },
+      "seq-4-dark": {
+        "role": "sequential",
+        "displayName": "Heat step 4 (dark theme)",
+        "canonical": "#b7d3f6",
+        "tonalRamp": [
+          "#152438",
+          "#1E3F69",
+          "#2059A1",
+          "#1D73DF",
+          "#5793DF",
+          "#8FB3E1",
+          "#C2D3E9",
+          "#EEF2F7"
+        ]
+      },
       "series-1": {
         "role": "series",
         "displayName": "Chart series 1",
@@ -783,6 +933,96 @@
           "#E7C3C3",
           "#F6EEEE"
         ]
+      },
+      "ramp-1": {
+        "role": "neutral-ramp",
+        "displayName": "Neutral ramp 1",
+        "canonical": "#374642",
+        "tonalRamp": [
+          "#242927",
+          "#3E4946",
+          "#576A65",
+          "#6F8D85",
+          "#90A5A0",
+          "#B2BEBB",
+          "#D2D8D7",
+          "#F2F3F3"
+        ]
+      },
+      "ramp-2": {
+        "role": "neutral-ramp",
+        "displayName": "Neutral ramp 2",
+        "canonical": "#5E6B66",
+        "tonalRamp": [
+          "#252827",
+          "#404744",
+          "#5B6662",
+          "#768680",
+          "#95A09C",
+          "#B5BBB9",
+          "#D3D7D5",
+          "#F2F3F2"
+        ]
+      },
+      "ramp-3": {
+        "role": "neutral-ramp",
+        "displayName": "Neutral ramp 3",
+        "canonical": "#83908B",
+        "tonalRamp": [
+          "#252727",
+          "#414644",
+          "#5C6562",
+          "#77857F",
+          "#96A09C",
+          "#B5BBB9",
+          "#D4D6D5",
+          "#F2F3F2"
+        ]
+      },
+      "ramp-1-dark": {
+        "role": "neutral-ramp",
+        "displayName": "Neutral ramp 1 (dark theme)",
+        "canonical": "#EAF1EE",
+        "tonalRamp": [
+          "#222B27",
+          "#3A4D45",
+          "#507163",
+          "#659781",
+          "#89AC9D",
+          "#AEC2B9",
+          "#D0DAD6",
+          "#F1F3F2"
+        ]
+      },
+      "ramp-2-dark": {
+        "role": "neutral-ramp",
+        "displayName": "Neutral ramp 2 (dark theme)",
+        "canonical": "#A5B3AE",
+        "tonalRamp": [
+          "#242827",
+          "#3F4745",
+          "#5A6763",
+          "#738881",
+          "#93A29D",
+          "#B4BCB9",
+          "#D3D7D6",
+          "#F2F3F2"
+        ]
+      },
+      "ramp-3-dark": {
+        "role": "neutral-ramp",
+        "displayName": "Neutral ramp 3 (dark theme)",
+        "canonical": "#76837E",
+        "tonalRamp": [
+          "#252727",
+          "#414644",
+          "#5C6562",
+          "#77847F",
+          "#969F9C",
+          "#B5BBB9",
+          "#D4D6D5",
+          "#F2F3F2"
+        ]
       }
     },
     "typographyMeta": {
@@ -792,7 +1032,7 @@
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "The page h1, the broker's name."
+        "purpose": "The page h1 on every page (the shared page header); on a broker page the broker's name."
       },
       "headline-sm": {
         "displayName": "Headline small",
@@ -921,6 +1161,11 @@
         "purpose": "16px gutter, 20px card padding and corner, full-width switch, 64px header."
       },
       {
+        "name": "board-wide",
+        "value": "min-width: 1200px",
+        "purpose": "Home's board moves from two equal columns to 648:448."
+      },
+      {
         "name": "desktop",
         "value": "min-width: 1024px",
         "purpose": "Two-column card board and nav pills; below it the nav folds into Menu and reading pages narrow to 44rem."
@@ -958,7 +1203,7 @@
       "refersTo": "switch-option-checked",
       "description": "The page's one control: a native radio group drawn as a two-option teal-outlined pill.",
       "html": "<fieldset class=\"ds-seg\"><input type=\"radio\" name=\"ds-sg\" id=\"ds-sp\" checked><label for=\"ds-sp\">S&amp;P 500 stocks</label><input type=\"radio\" name=\"ds-sg\" id=\"ds-ot\"><label for=\"ds-ot\">Other stocks</label></fieldset>",
-      "css": ".ds-seg { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; display: inline-flex; padding: 2px; margin: 0; border: 2px solid var(--accent, #0F7B6C); border-radius: 999px; background: var(--surface, #FFFFFF); color: var(--ink, #17201D); } .ds-seg input { position: absolute; opacity: 0; width: 1px; height: 1px; } .ds-seg label { display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 999px; font-weight: 600; cursor: pointer; transition: transform .5s cubic-bezier(.22,1,.36,1), background-color .2s, color .2s; } .ds-seg label:hover { background: var(--accent-soft, #E3F1ED); } .ds-seg input:checked + label { background: var(--accent, #0F7B6C); color: var(--on-accent, #FFFFFF); box-shadow: 0 8px 18px -10px rgb(12 32 27 / .45); } .ds-seg label:active { transform: scale(.95); } .ds-seg:has(input:focus-visible) { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; }"
+      "css": ".ds-seg { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; display: inline-flex; padding: 2px; margin: 0; border: 2px solid var(--accent, #0F7B6C); border-radius: 999px; background: var(--surface, #FFFFFF); color: var(--ink, #374642); } .ds-seg input { position: absolute; opacity: 0; width: 1px; height: 1px; } .ds-seg label { display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 999px; font-weight: 600; cursor: pointer; transition: transform .5s cubic-bezier(.22,1,.36,1), background-color .2s, color .2s; } .ds-seg label:hover { background: var(--accent-soft, #E3F1ED); } .ds-seg input:checked + label { background: var(--accent, #0F7B6C); color: var(--on-accent, #FFFFFF); box-shadow: 0 8px 18px -10px rgb(12 32 27 / .45); } .ds-seg label:active { transform: scale(.95); } .ds-seg:has(input:focus-visible) { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; }"
     },
     {
       "name": "Card",
@@ -966,7 +1211,7 @@
       "refersTo": "card",
       "description": "One idea per card: white, 24px corners, lift shadow, no border; Title heading, a secondary sub-line, hairline value rows.",
       "html": "<section class=\"ds-card\"><h2>Fees</h2><p class=\"ds-sub\">Checked Nov 2, 2026</p><dl class=\"ds-rows\"><div><dt>Commission per stock trade</dt><dd>$0</dd></div><div><dt>Margin rate<small>about a $25,000 balance</small></dt><dd>5.25%</dd></div><div><dt>Interest on idle cash</dt><dd class=\"ds-unknown\">Not confirmed</dd></div></dl></section>",
-      "css": ".ds-card { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; max-width: 420px; background: var(--surface, #FFFFFF); color: var(--ink, #17201D); border-radius: 24px; padding: 30px 32px; box-shadow: 0 1px 2px rgb(16 40 34 / .05), 0 14px 30px -18px rgb(16 40 34 / .28); } .ds-card h2 { margin: 0; font-size: 1.375rem; line-height: 1.25; font-weight: 800; letter-spacing: -.015em; } .ds-sub { margin: 6px 0 0; color: var(--ink-2, #55615C); } .ds-rows { margin: 16px 0 0; } .ds-rows > div { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 52px; padding: 8px 0; border-top: 1px solid var(--border, #E1E8E5); } .ds-rows dt small { display: block; margin-top: 2px; font-size: .875rem; color: var(--ink-2, #55615C); } .ds-rows dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; } .ds-rows dd.ds-unknown { font-weight: 600; color: var(--ink-2, #55615C); }"
+      "css": ".ds-card { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; max-width: 420px; background: var(--surface, #FFFFFF); color: var(--ink, #374642); border-radius: 24px; padding: 30px 32px; box-shadow: 0 1px 2px rgb(16 40 34 / .05), 0 14px 30px -18px rgb(16 40 34 / .28); } .ds-card h2 { margin: 0; font-size: 1.375rem; line-height: 1.25; font-weight: 800; letter-spacing: -.015em; } .ds-sub { margin: 6px 0 0; color: var(--ink-2, #55615C); } .ds-rows { margin: 16px 0 0; } .ds-rows > div { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 52px; padding: 8px 0; border-top: 1px solid var(--border, #E1E8E5); } .ds-rows dt small { display: block; margin-top: 2px; font-size: .875rem; color: var(--ink-2, #55615C); } .ds-rows dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; } .ds-rows dd.ds-unknown { font-weight: 600; color: var(--ink-2, #55615C); }"
     },
     {
       "name": "Price Scale",
@@ -974,7 +1219,7 @@
       "refersTo": "card",
       "description": "The signature: a neutral rail placing this broker's ink dot between cheapest and most expensive, with the typical tick.",
       "html": "<div class=\"ds-scale\" style=\"--lo:0%;--hi:100%;--typ:57%;--you:49%\"><div class=\"ds-rail\"><span class=\"ds-track\"></span><span class=\"ds-end\"></span><span class=\"ds-end ds-r\"></span><span class=\"ds-typ\"></span><b class=\"ds-you-l\">Robinhood</b><span class=\"ds-you\"></span></div><div class=\"ds-mid\"><span class=\"ds-typ-l\">Typical <b>$0.96</b></span></div><div class=\"ds-ends\"><p><small>Cheapest</small>Fidelity &minus;$0.09</p><p class=\"ds-r\"><small>Most expensive</small>eToro $1.77</p></div></div>",
-      "css": ".ds-scale { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; width: 520px; padding: 8px 16px; color: var(--ink, #17201D); background: var(--surface, #FFFFFF); } .ds-rail { position: relative; height: 62px; } .ds-track { position: absolute; left: 0; right: 0; top: 41px; height: 8px; border-radius: 999px; background: var(--track, #E1E9E6); } .ds-end { position: absolute; left: var(--lo); top: 40px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--mark, #7C8984); box-shadow: 0 0 0 2px var(--surface, #FFFFFF); } .ds-end.ds-r { left: var(--hi); } .ds-typ { position: absolute; left: var(--typ); top: 34px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--mark, #7C8984); box-shadow: 0 0 0 2px var(--surface, #FFFFFF); } .ds-you { position: absolute; left: var(--you); top: 34px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; background: var(--ink, #17201D); box-shadow: 0 0 0 3px var(--surface, #FFFFFF), 0 3px 8px rgb(16 40 34 / .25); transition: left .8s cubic-bezier(.22,1,.36,1); } .ds-you-l { position: absolute; left: var(--you); top: 6px; transform: translateX(-50%); white-space: nowrap; font-weight: 700; } .ds-mid { position: relative; height: 1.6rem; margin-top: 4px; } .ds-typ-l { position: absolute; left: var(--typ); transform: translateX(-50%); white-space: nowrap; font-size: .875rem; color: var(--ink-2, #55615C); } .ds-typ-l b { font-size: 1rem; color: var(--ink, #17201D); } .ds-ends { display: flex; justify-content: space-between; margin-top: 6px; } .ds-ends p { margin: 0; font-weight: 700; line-height: 1.35; } .ds-ends small { display: block; font-size: .875rem; font-weight: 500; color: var(--ink-2, #55615C); } .ds-ends .ds-r { text-align: right; }"
+      "css": ".ds-scale { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; width: 520px; padding: 8px 16px; color: var(--ink, #374642); background: var(--surface, #FFFFFF); } .ds-rail { position: relative; height: 62px; } .ds-track { position: absolute; left: 0; right: 0; top: 41px; height: 8px; border-radius: 999px; background: var(--track, #E1E9E6); } .ds-end { position: absolute; left: var(--lo); top: 40px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--mark, #7C8984); box-shadow: 0 0 0 2px var(--surface, #FFFFFF); } .ds-end.ds-r { left: var(--hi); } .ds-typ { position: absolute; left: var(--typ); top: 34px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--mark, #7C8984); box-shadow: 0 0 0 2px var(--surface, #FFFFFF); } .ds-you { position: absolute; left: var(--you); top: 34px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; background: var(--ink, #374642); box-shadow: 0 0 0 3px var(--surface, #FFFFFF), 0 3px 8px rgb(16 40 34 / .25); transition: left .8s cubic-bezier(.22,1,.36,1); } .ds-you-l { position: absolute; left: var(--you); top: 6px; transform: translateX(-50%); white-space: nowrap; font-weight: 700; } .ds-mid { position: relative; height: 1.6rem; margin-top: 4px; } .ds-typ-l { position: absolute; left: var(--typ); transform: translateX(-50%); white-space: nowrap; font-size: .875rem; color: var(--ink-2, #55615C); } .ds-typ-l b { font-size: 1rem; color: var(--ink, #374642); } .ds-ends { display: flex; justify-content: space-between; margin-top: 6px; } .ds-ends p { margin: 0; font-weight: 700; line-height: 1.35; } .ds-ends small { display: block; font-size: .875rem; font-weight: 500; color: var(--ink-2, #55615C); } .ds-ends .ds-r { text-align: right; }"
     },
     {
       "name": "Ranked Table",
@@ -982,7 +1227,7 @@
       "refersTo": "table-row-here",
       "description": "Every comparison as a real table; the page's own broker on a Here-tinted row with 14px ends.",
       "html": "<table class=\"ds-tbl\"><thead><tr><th class=\"ds-l\">Rank</th><th class=\"ds-l\">Broker</th><th>Above fair price</th><th>Broker is paid</th></tr></thead><tbody><tr><td class=\"ds-l ds-2\">9</td><th class=\"ds-l\"><a href=\"#\">E*TRADE</a></th><td class=\"ds-b\">$0.59</td><td class=\"ds-2\">$0.06</td></tr><tr class=\"ds-you\"><td class=\"ds-l\">10</td><th class=\"ds-l\">Robinhood</th><td>$0.82</td><td>$0.83</td></tr><tr><td class=\"ds-l ds-2\">11</td><th class=\"ds-l\"><a href=\"#\">UBS Wealth</a></th><td class=\"ds-b\">$0.84</td><td class=\"ds-2\">$0.00</td></tr></tbody></table>",
-      "css": ".ds-tbl { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; width: 520px; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; color: var(--ink, #17201D); background: var(--surface, #FFFFFF); } .ds-tbl th, .ds-tbl td { padding: 13px 12px; border-top: 1px solid var(--border, #E1E8E5); text-align: right; white-space: nowrap; } .ds-tbl thead th { border-top: 0; font-size: .875rem; font-weight: 600; color: var(--ink-2, #55615C); } .ds-tbl .ds-l { text-align: left; } .ds-tbl tbody th { font-weight: 600; } .ds-tbl .ds-2 { color: var(--ink-2, #55615C); } .ds-tbl .ds-b { font-weight: 700; } .ds-tbl a { color: var(--ink, #17201D); text-decoration: none; } .ds-tbl a:hover { text-decoration: underline 2px var(--accent, #0F7B6C); text-underline-offset: 5px; } .ds-tbl a:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; } .ds-tbl tr.ds-you > * { background: var(--here, #E6F0EC); border-top-color: transparent; font-weight: 700; } .ds-tbl tr.ds-you > :first-child { border-radius: 14px 0 0 14px; } .ds-tbl tr.ds-you > :last-child { border-radius: 0 14px 14px 0; } .ds-tbl tr.ds-you + tr > * { border-top-color: transparent; }"
+      "css": ".ds-tbl { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; width: 520px; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; color: var(--ink, #374642); background: var(--surface, #FFFFFF); } .ds-tbl th, .ds-tbl td { padding: 13px 12px; border-top: 1px solid var(--border, #E1E8E5); text-align: right; white-space: nowrap; } .ds-tbl thead th { border-top: 0; font-size: .875rem; font-weight: 600; color: var(--ink-2, #55615C); } .ds-tbl .ds-l { text-align: left; } .ds-tbl tbody th { font-weight: 600; } .ds-tbl .ds-2 { color: var(--ink-2, #55615C); } .ds-tbl .ds-b { font-weight: 700; } .ds-tbl a { color: var(--ink, #374642); text-decoration: none; } .ds-tbl a:hover { text-decoration: underline 2px var(--accent, #0F7B6C); text-underline-offset: 5px; } .ds-tbl a:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; } .ds-tbl tr.ds-you > * { background: var(--here, #E6F0EC); border-top-color: transparent; font-weight: 700; } .ds-tbl tr.ds-you > :first-child { border-radius: 14px 0 0 14px; } .ds-tbl tr.ds-you > :last-child { border-radius: 0 14px 14px 0; } .ds-tbl tr.ds-you + tr > * { border-top-color: transparent; }"
     },
     {
       "name": "Header Navigation",
@@ -990,7 +1235,23 @@
       "refersTo": "nav-link-current",
       "description": "Nav pills on the ground; the current page is a white pill with teal text and lift.",
       "html": "<nav class=\"ds-nav\"><a href=\"#\">Home</a><a href=\"#\">Compare</a><a href=\"#\">Calculator</a><a href=\"#\" aria-current=\"page\">Brokers</a><a href=\"#\">Trading firms</a></nav>",
-      "css": ".ds-nav { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; display: flex; gap: 2px; padding: 12px; background: var(--page, #EDF2F0); } .ds-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; font-weight: 600; color: var(--ink, #17201D); text-decoration: none; transition: background-color .2s, color .2s; } .ds-nav a:hover { background: var(--surface, #FFFFFF); } .ds-nav a[aria-current=page] { background: var(--surface, #FFFFFF); color: var(--accent, #0F7B6C); box-shadow: 0 1px 2px rgb(16 40 34 / .05), 0 14px 30px -18px rgb(16 40 34 / .28); } .ds-nav a:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; }"
+      "css": ".ds-nav { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; display: flex; gap: 2px; padding: 12px; background: var(--page, #EDF2F0); } .ds-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; font-weight: 600; color: var(--ink, #374642); text-decoration: none; transition: background-color .2s, color .2s; } .ds-nav a:hover { background: var(--surface, #FFFFFF); } .ds-nav a[aria-current=page] { background: var(--surface, #FFFFFF); color: var(--accent, #0F7B6C); box-shadow: 0 1px 2px rgb(16 40 34 / .05), 0 14px 30px -18px rgb(16 40 34 / .28); } .ds-nav a:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; }"
+    },
+    {
+      "name": "Select",
+      "kind": "input",
+      "refersTo": "select",
+      "description": "A native select as a teal-outlined pill with a teal chevron; its label beside it. It only reports the pick.",
+      "html": "<label class=\"ds-sel\"><span class=\"ds-sel-l\">Order size</span><span class=\"ds-sel-box\"><select><option>$1,000 to $4,999</option><option>Under $250</option></select><svg class=\"ds-sel-i\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 9l6 6 6-6\"/></svg></span></label>",
+      "css": ".ds-sel { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; display: inline-flex; align-items: center; gap: 6px 10px; } .ds-sel-l { font-size: .875rem; font-weight: 600; color: var(--ink-2, #55615C); } .ds-sel-box { position: relative; display: inline-flex; } .ds-sel select { min-height: 48px; padding: 0 44px 0 20px; border: 2px solid var(--accent, #0F7B6C); border-radius: 999px; background: var(--surface, #FFFFFF); color: var(--ink, #374642); font: inherit; font-size: 1rem; font-weight: 600; appearance: none; -webkit-appearance: none; cursor: pointer; transition: background-color .2s; } .ds-sel select:hover { background: var(--accent-soft, #E3F1ED); } .ds-sel select:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; } .ds-sel-i { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--accent, #0F7B6C); pointer-events: none; }"
+    },
+    {
+      "name": "Info Tooltip",
+      "kind": "custom",
+      "refersTo": "info-button",
+      "description": "The (i) beside a heading or term: a 44px teal icon button; its one plain line in a raised panel.",
+      "html": "<span class=\"ds-tip\"><button class=\"ds-info\" type=\"button\" aria-describedby=\"ds-tt\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v5M12 8h.01\"/></svg><span class=\"ds-sr\">About order types</span></button><span class=\"ds-pop\" id=\"ds-tt\" role=\"tooltip\">Market orders fill at once; marketable limit orders add a price cap.</span></span>",
+      "css": ".ds-tip { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; position: relative; display: inline-flex; } .ds-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .ds-info { display: inline-grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--accent, #0F7B6C); cursor: pointer; transition: transform .5s cubic-bezier(.22,1,.36,1), background-color .2s, color .2s; } .ds-info:hover { background: var(--accent-soft, #E3F1ED); color: var(--accent-hover, #0B6155); } .ds-info:active { transform: scale(.95); } .ds-info:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; } .ds-pop { display: none; position: absolute; top: calc(100% + 8px); left: -12px; width: max-content; max-width: 20rem; padding: 10px 14px; border-radius: 14px; background: var(--surface-2, #E6F0EC); box-shadow: 0 2px 6px rgb(16 40 34 / .08), 0 24px 48px -20px rgb(16 40 34 / .4); color: var(--ink-2, #55615C); font-size: .875rem; font-weight: 500; line-height: 1.5; } .ds-tip:hover .ds-pop, .ds-tip:focus-within .ds-pop { display: block; }"
     },
     {
       "name": "Go Link",
@@ -1005,7 +1266,7 @@
     "northStar": "The Calm Answer",
     "overview": "Every page is one soft card stating one answer in plain words, laid on a pale ground tinted from the action teal. The system is a warm consumer app, not a trading dashboard: white cards with generous corners and a shadow you notice only as lift, Figtree for everything, the number first and set big, and a single teal that appears only on things you can press. Nothing on the page sells, celebrates or alarms. Meaning is carried by words (\"above the fair price\", \"10th cheapest of 25\", \"Not confirmed\"), never by a red or green figure.\n\nDensity is low and deliberate: one idea per card, cards stacked in columns, explanations one click away behind an (i) or a \"How we measure\" link. The product's signature is the neutral price scale, a grey rail that places one broker's ink dot between the cheapest and the most expensive with a tick at the typical broker, drawn in CSS and gliding when the stock switch flips. Every comparison that the scale summarises is also given as a real table.\n\nLight is the default; dark follows the system until the visitor picks a theme, and both themes are tuned separately rather than auto-inverted. The world rejects gradients, glow, icon tiles, uppercase kickers, colour-coded verdicts, ratings and \"Open account\" buttons.",
     "keyCharacteristics": [
-      "Soft white cards (24px corners, 20px on phones) on a teal-tinted neutral ground (light page, dark page with darker cards).",
+      "Soft white cards (24px corners, 20px on phones) on a teal-tinted neutral ground (light page; in dark, a dim sage page with lighter cards).",
       "One typeface, Figtree, weight 800 for headings and the big figure, tabular numerals for every number.",
       "One action colour, teal, reserved for pressable things; everything else is ink and tinted greys.",
       "The neutral price scale as the signature visual; tables for every comparison.",
@@ -1057,7 +1318,10 @@
       "Do keep text at 4.5:1 or more and marks at 3:1 or more in both themes; put Deep Teal, not Action Teal, on Soft Teal.",
       "Do give every control a 44px minimum hit area and the 3px teal focus ring 3px clear.",
       "Do use the one curve `cubic-bezier(.22, 1, .36, 1)` for every movement and turn all motion off under reduced motion.",
-      "Do name unknowns plainly (\"Not confirmed\", \"Not offered\", \"Varies\") in secondary ink."
+      "Do name unknowns plainly (\"Not confirmed\", \"Not offered\", \"Varies\") in secondary ink.",
+      "Do let a select or switch only report a pick; anything that opens another page is a real link or button beside it.",
+      "Do open every page with the shared page header (Headline h1, at most one Lead-size intro line) and put a card's own control in its right-hand slot.",
+      "Do give every chart its table and its key in HTML, and draw rankings and scales in CSS rather than loading a chart library for them."
     ],
     "donts": [
       "Don't use gradients, glow, coloured shadows or the old gradient text and hero glow.",
@@ -1067,7 +1331,9 @@
       "Don't add ratings, stars, badges, \"Open account\" buttons or cheerleading copy.",
       "Don't build a dashboard of equal KPI tiles; one idea per card.",
       "Don't introduce a second typeface or px font sizes outside the seven-step scale.",
-      "Don't use series colours outside charts."
+      "Don't use series colours outside charts and the routing heat table.",
+      "Don't make a table row a Tab stop; the row opens through the real link in its name.",
+      "Don't stick more than one short row to the top of a page."
     ]
   }
 }
