@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Option } from "../../charts/EChart";
 import { base, catAxis, label, tip, tooltip, valueAxis } from "../../charts/kit";
-import { yearly } from "../../lib/broker";
+import { yearSaid } from "../../lib/cash";
 import type { CostLine, PARTS } from "../../lib/cost";
 import { num, usd2 } from "../../lib/format";
 import type { Tokens } from "../../lib/theme";
@@ -22,7 +22,7 @@ export function stackedBars(t: Tokens, rows: CostLine[], hl: string | undefined,
   // the zero line, so it lands in that row's empty right half rather than over the broker names
   const labelOn = (r: CostLine) => { const k = edge(r, r.total < 0 ? -1 : 1); return k < 0 ? parts.length - 1 : k; };
   const hlName = rows.find((r) => r.id === hl)?.short;
-  const cell = (r: CostLine, p: Part) => { const f = missingFact(r, p.key); return f && p.key !== "spread" ? unknownWord(f) : yearly(r[p.key]); };
+  const cell = (r: CostLine, p: Part) => { const f = missingFact(r, p.key); return f && p.key !== "spread" ? unknownWord(f) : yearSaid(r[p.key]); };
   // a few small negatives (prices better than the fair price) get a little room on the left, not a whole tick
   const lo = Math.min(0, ...rows.map((r) => parts.reduce((a, p) => a + Math.min(0, r[p.key]), 0)));
   const min = lo < 0 ? lo * 1.25 : 0;

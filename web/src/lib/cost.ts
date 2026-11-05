@@ -108,7 +108,8 @@ export function annualCost(d: Data, inp: CostInputs): CostLine[] {
     };
     const commissions = part(trades, fee?.commission ?? null, "commission");
     const optionsFees = part(options, fee?.optionsFee ?? null, fee?.notOffered.includes("optionsFee") ? "options (not offered)" : "options fee");
-    const cashDrag = part(idleCash, bestYield != null && fee?.cashYield != null ? (bestYield - fee.cashYield) / 100 : null, fee?.varies.includes("cashYield") ? "cash yield (varies)" : "cash yield");
+    const cashDrag = part(idleCash, bestYield != null && fee?.cashYield != null ? (bestYield - fee.cashYield) / 100 : null,
+      fee?.notOffered.includes("cashYield") ? "cash yield (not offered)" : fee?.varies.includes("cashYield") ? "cash yield (varies)" : "cash yield");
     const marginInterest = part(margin, fee?.marginRate != null ? fee.marginRate / 100 : null, fee?.varies.includes("marginRate") ? "margin rate (varies)" : "margin rate");
     lines.push({
       id: f.id, name: f.name, short: f.short,

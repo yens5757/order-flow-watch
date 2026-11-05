@@ -2,9 +2,14 @@
 // window, no React), so the pre-render and the browser say the same thing. One rule throughout: a figure on the page is
 // the one the arithmetic used, and anything left out is named in words, never shown as $0.
 import { andList, cents, SP_GAP, yearHeadline, yearly } from "../../lib/broker";
+import { bestYield, yearSaid } from "../../lib/cash";
 import { PARTS, type CostInputs, type CostLine, type PartKey } from "../../lib/cost";
 import type { Data } from "../../lib/data";
 import { num, ordinal, pct, usd2 } from "../../lib/format";
+
+/** The broker that pays the most interest on cash, which sets the bar idle cash is measured against (lib/cash.ts, which
+ *  the yearly cards' priced line uses too). */
+export { bestYield };
 
 /* ---------- the boxes the visitor types in ---------- */
 
@@ -120,15 +125,9 @@ export function unknownWord(fact: string): string {
   return "Not confirmed";
 }
 
-/** The broker that pays the most interest on cash, which sets the bar idle cash is measured against. */
-export function bestYield(d: Data): { short: string; rate: number } | null {
-  let best: { short: string; rate: number } | null = null;
-  for (const b of d.brokers) {
-    const r = d.fees[b.id]?.cashYield;
-    if (r != null && (!best || r > best.rate)) best = { short: b.short, rate: r };
-  }
-  return best;
-}
+/** A broker that pays no interest on cash (fees.csv NA): lib/cost.ts names its missing rate "cash yield (not offered)",
+ *  so every table, card and note says "Not offered" for it, never "Not confirmed". */
+const paysNone = (fact: string) => fact === "cash yield (not offered)";
 
 /** A rate as the broker publishes it: 5.25%, 11.575% (two decimals, three when it has three). */
 const rate = (v: number) => pct(v, Math.min(3, Math.max(2, (String(v).split(".")[1] ?? "").length)));
@@ -147,14 +146,16 @@ export function partRows(d: Data, l: CostLine, i: CostInputs): Row[] {
     // a price group with no report leaves the other one counted: the row shows what was counted and says what wasn't
     const unknown = fact != null && !priceGap;
     let note: string | null = null;
-    if (p.key === "spread") note = priceGap ? `${fact === "S&P 500 prices" ? `S&P${SP_GAP}500` : "Other-stock"} prices not reported` : `above the fair price, on ${usd(i.size)} orders`;
-    else if (unknown) note = null;
+    if (p.key === "spread") {
+      note = priceGap ? `${fact === "S&P 500 prices" ? `S&P${SP_GAP}500` : "Other-stock"} prices not reported`
+        : `${cents(l.spread) < 0 ? "below" : "above"} the fair price, on ${usd(i.size)} orders`;
+    } else if (unknown) note = null;
     else if (p.key === "commissions") note = `${said(i.trades, SPECS.trades)} at ${fee(f!.commission!)}`;
     else if (p.key === "optionsFees") note = `${said(i.options, SPECS.options)} at ${fee(f!.optionsFee!)}`;
     else if (p.key === "cashDrag" && best && f?.cashYield != null)
       note = f.cashYield >= best.rate ? `earns ${rate(f.cashYield)}, the most of any broker` : `earns ${rate(f.cashYield)}; ${best.short} pays ${rate(best.rate)}`;
     else if (p.key === "marginInterest") note = `${usd(i.margin)} at ${rate(f!.marginRate!)} a year`;
-    return { key: p.key, label: p.label, note, value: unknown ? unknownWord(fact!) : yearly(l[p.key]), unknown };
+    return { key: p.key, label: p.label, note, value: unknown ? unknownWord(fact!) : yearSaid(l[p.key]), unknown };
   });
 }
 
@@ -168,8 +169,9 @@ export function headline(l: CostLine): { text: string; pre: string; fig: string;
   return m ? { text, pre: m[1], fig: m[2], post: m[3] } : { text, pre: "", fig: text, post: "" };
 }
 
-/** "at least $9.80" for a line missing a part (what was counted, never rounded up), its own figure otherwise. */
-export const totalWords = (l: CostLine) => (l.gaps.length ? `at least ${l.total <= 0 ? "$0" : yearly(l.total)}` : yearly(l.total));
+/** "at least $9.80" for a line missing a part (what was counted, never rounded up), its own figure otherwise, a figure
+ *  below zero in words ("$0.22 ahead"). */
+export const totalWords = (l: CostLine) => (l.gaps.length ? `at least ${l.total <= 0 ? "$0" : yearly(l.total)}` : yearSaid(l.total));
 
 export interface Ranked {
   /** the brokers whose every part the visitor uses is confirmed, cheapest first: the only ones ranked */
@@ -207,7 +209,7 @@ export function rankWords(r: Ranked, l: CostLine, clause: string): string | null
   return `${tied ? "Tied " : ""}${ordinal(rank)} cheapest ${of}`;
 }
 
-/** "$9.17 more a year than the cheapest" + "Fidelity, −$0.22"; for the cheapest, the gap to the next one. */
+/** "$9.17 more a year than the cheapest" + "Fidelity, $0.22 ahead"; for the cheapest, the gap to the next one. */
 export function gapLine(r: Ranked, l: CostLine): { lead: string; who: string | null } | null {
   if (!r.ranks.has(l.id) || r.complete.length < 2) return null;
   const c = cents(l.total), low = cents(r.complete[0].total);
@@ -217,9 +219,9 @@ export function gapLine(r: Ranked, l: CostLine): { lead: string; who: string | n
   if (c === low) {
     if (lowest.length) return { lead: `Level with ${named(lowest)} at the lowest`, who: null };
     const next = r.complete.find((x) => cents(x.total) > c);
-    return next ? { lead: `${by(cents(next.total) - c)} less a year than the next cheapest`, who: `${next.short}, ${yearly(next.total)}` } : null;
+    return next ? { lead: `${by(cents(next.total) - c)} less a year than the next cheapest`, who: `${next.short}, ${yearSaid(next.total)}` } : null;
   }
-  return { lead: `${by(c - low)} more a year than the cheapest`, who: `${named(r.complete.filter((x) => cents(x.total) === low))}, ${yearly(r.complete[0].total)}` };
+  return { lead: `${by(c - low)} more a year than the cheapest`, who: `${named(r.complete.filter((x) => cents(x.total) === low))}, ${yearSaid(r.complete[0].total)}` };
 }
 
 /** Why a broker's figure is a minimum, one plain sentence per gap ("Avenue's commission isn't confirmed, so it isn't
@@ -232,8 +234,9 @@ export function whyWords(d: Data, l: CostLine): string[] {
   else for (const m of fees) {
     const what = m.startsWith("commission") ? "commission" : m.startsWith("options") ? "options fee" : m.startsWith("cash") ? "interest on cash" : "margin rate";
     out.push(m === "options (not offered)" ? `${s} doesn't offer options trading, so options aren't counted.`
-      : m.endsWith("(varies)") ? `${s}'s ${what} varies by balance or program, so it isn't counted.`
-        : `${s}'s ${what} isn't confirmed, so it isn't counted.`);
+      : paysNone(m) ? `${s} pays no interest on cash; its idle cash isn't counted.`
+        : m.endsWith("(varies)") ? `${s}'s ${what} varies by balance or program, so it isn't counted.`
+          : `${s}'s ${what} isn't confirmed, so it isn't counted.`);
   }
   for (const m of l.missing.filter((x) => x.endsWith("prices"))) {
     out.push(`${s} has no ${m === "S&P 500 prices" ? `S&P${SP_GAP}500` : "other-stock"} price report for orders this size, so those trades aren't counted.`);

@@ -1,14 +1,18 @@
 // What a typical year of trading costs at each of the two: the broker pages' habit (lib/broker.ts HABIT: 24 trades of
 // $2,000, half S&P 500 and half other stocks; trade prices and commissions), the difference as the heading when both years
 // are complete, "at least" when a part is missing, ranked only among the brokers whose commission is confirmed, both on
-// the small scale, and "Change" into the calculator on exactly these inputs. Like the broker page's yearly card, the page
-// holds two copies (`at`): "flow" after the answer on phones and tablets, "side" in the right column on a desktop, under
-// cost by order size.
-import { cents, HABIT, scaleOf, SP_GAP, yearly, yearPool, type Year } from "../../lib/broker";
+// the small scale, then one priced line for the money the figures leave out (lib/cash.ts: where $1,000 of cash earns
+// more and where moving the account out costs less, on the calculator's own arithmetic), and "Change" into the calculator
+// on exactly these inputs. A figure below zero is said in words ("$0.22 ahead"). Like the broker page's yearly card, the
+// page holds two copies (`at`): "flow" after the answer on phones and tablets, "side" in the right column on a desktop,
+// under cost by order size.
+import { cents, HABIT, scaleOf, SP_GAP, yearPool, type Year } from "../../lib/broker";
+import { cashPair, yearSaid } from "../../lib/cash";
 import { calcSearch, type CostLine } from "../../lib/cost";
 import type { Data, Firm } from "../../lib/data";
 import { num, ordinal, usd2 } from "../../lib/format";
 import { href, pagePath } from "../../lib/routes";
+import { PricedText } from "../broker/YearCard";
 import { Scale } from "../broker/Scale";
 import { Icon } from "../ui";
 
@@ -58,7 +62,7 @@ export function YearPair({ d, A, B, years, at }: { d: Data; A: Firm; B: Firm; ye
     ? scaleOf(pool.map((c) => ({ name: c.short, v: c.total })), null, ranked.map(([F, y]) => ({ name: F.short, v: y.line!.total })))
     : null;
   const notes = pairs.flatMap(([F, y]) => (y.line ? why(d, F, y.line) : []));
-  const below = pairs.some(([, y]) => y.line && done(y) && cents(y.line.total) < 0);
+  const cash = cashPair(d, A, B);
 
   return (
     <section className={`card cmp-year cmp-year-${at}`} aria-labelledby={hid}>
@@ -72,15 +76,15 @@ export function YearPair({ d, A, B, years, at }: { d: Data; A: Firm; B: Firm; ye
               <small>{shortRank(y) ?? (y.line ? "Not ranked: part of its year is missing" : "No price report this month")}</small>
             </dt>
             {!y.line ? <dd className="unknown">No estimate</dd>
-              : done(y) ? <dd>{yearly(y.line.total)}</dd>
+              : done(y) ? <dd>{yearSaid(y.line.total)}</dd>
                 : <dd>{atLeast(y.line)}</dd>}
           </div>
         ))}
       </dl>
-      {scale && <Scale sets={[{ data: scale }]} fmt={usd2} typFmt={about} small />}
+      {scale && <Scale sets={[{ data: scale }]} fmt={yearSaid} typFmt={about} small />}
       {ranked.length > 0 && <p className="cmp-note">Ranked among {yearPool(pool.length)}.</p>}
       {notes.map((n) => <p key={n} className="cmp-note">{n}</p>)}
-      {below && <p className="cmp-note">Below zero: prices beat the fair price.</p>}
+      {cash && <p className="cmp-note cmp-cash"><PricedText line={cash} nw="cmp-nw" /></p>}
       <div className="cmp-act">
         <p>Idle cash and margin aren't counted; the calculator asks.</p>
         <a className="btn btn-ghost" href={href(pagePath("calculator")) + calcSearch(HABIT, A.slug)}>

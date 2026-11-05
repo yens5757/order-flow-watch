@@ -2,7 +2,8 @@
 // broker pages' own words ("About $9 a year"), what it is for, one row per part with the rate behind it, its rank among
 // the brokers whose every needed fee is confirmed, the gap to the cheapest and the neutral scale. All of it generated
 // from the inputs in use (model.ts), so a figure here is always the one the arithmetic used.
-import { scaleOf, yearly } from "../../lib/broker";
+import { scaleOf } from "../../lib/broker";
+import { yearSaid } from "../../lib/cash";
 import type { CostInputs, CostLine } from "../../lib/cost";
 import type { Data } from "../../lib/data";
 import { monthLong } from "../../lib/format";
@@ -67,9 +68,8 @@ export function AnswerCard({ d, lines, ranked, me, pick, inp, onPick }: {
         <a className="go" href="#breakdown">See all {lines.length}<Icon name="down" size={20} /></a>
       </div>
       {gap && <p className="calc-diff">{gap.lead}{gap.who && <> <span className="calc-nw">({gap.who})</span></>}</p>}
-      {scale && <Scale sets={[{ data: scale }]} fmt={yearly} typFmt={about} />}
+      {scale && <Scale sets={[{ data: scale }]} fmt={yearSaid} typFmt={about} />}
       {why.map((w) => <p key={w} className="calc-note">{w}</p>)}
-      {me.total < 0 && !me.missing.length && <p className="calc-note">Below zero: its prices beat the fair price.</p>}
     </section>
   );
 }

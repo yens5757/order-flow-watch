@@ -3,7 +3,8 @@
 // each name picks that broker, an incomplete figure reads "at least"), and how the parts add up with the sources.
 import { useMemo } from "react";
 import { EChart } from "../../charts/EChart";
-import { andList, yearly } from "../../lib/broker";
+import { andList } from "../../lib/broker";
+import { yearSaid } from "../../lib/cash";
 import type { CostInputs, CostLine } from "../../lib/cost";
 import type { Data } from "../../lib/data";
 import { dayLong, monthLong, pct } from "../../lib/format";
@@ -58,13 +59,13 @@ export function Breakdown({ lines, ranked, me, inp, onPick }: { lines: CostLine[
     { key: "name", label: "Broker", pin: true, value: (r) => r.short },
     {
       key: "total", label: "A year", num: true, value: (r) => Math.round(r.total * 100) / 100,
-      render: (r) => (r.gaps.length ? <span className="calc-least">{totalWords(r)}</span> : <b>{yearly(r.total)}</b>),
+      render: (r) => (r.gaps.length ? <span className="calc-least">{totalWords(r)}</span> : <b>{yearSaid(r.total)}</b>),
     },
     ...parts.map((p): Col<CostLine> => ({
       key: p.key, label: p.label, num: true,
       // an unknown fee is a word on screen and an empty cell in the CSV, never $0
       value: (r) => { const f = missingFact(r, p.key); return f && p.key !== "spread" ? null : Math.round(r[p.key] * 100) / 100; },
-      render: (r) => { const f = missingFact(r, p.key); return f && p.key !== "spread" ? <span className="calc-unk">{unknownWord(f)}</span> : yearly(r[p.key]); },
+      render: (r) => { const f = missingFact(r, p.key); return f && p.key !== "spread" ? <span className="calc-unk">{unknownWord(f)}</span> : yearSaid(r[p.key]); },
     })),
   ];
   return (
