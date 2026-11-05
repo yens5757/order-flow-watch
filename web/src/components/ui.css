@@ -1,0 +1,239 @@
+/* The world's shared components (ui.tsx, DataTable.tsx, Filters.tsx), in the broker page's look (DESIGN.md): soft white
+   cards on the ground, Figtree, ink and tinted greys, the action teal only on things you can press, 44px targets, the 3px
+   teal focus ring from index.css. Plain CSS loaded after Tailwind's utilities, so a class here wins over a utility on the
+   same element: give a page its own class rather than a utility to change one. */
+
+/* ---------- page heading: the h1 and one plain line ---------- */
+.ph { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; padding-top: 40px; margin-bottom: 24px; }
+.ph-text { min-width: 0; max-width: 44rem; }
+.ph-h1 { font-size: var(--fs-6); line-height: 1.05; font-weight: 800; letter-spacing: -.03em; text-wrap: balance; }
+.ph-intro { margin-top: 12px; max-width: 62ch; font-size: var(--fs-3); line-height: 1.55; color: var(--ink-2); }
+.ph-right { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; }
+
+/* ---------- card: a Title heading, a secondary sub-line, the content, an optional ruled footer ---------- */
+.card-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 20px; margin-bottom: 18px; }
+.card-titles { flex: 1 1 16rem; min-width: 0; }
+.card-title-row { display: flex; align-items: center; gap: 8px; }
+.card .card-title { font-size: var(--fs-4); line-height: 1.25; font-weight: 800; letter-spacing: -.015em; text-wrap: balance; }
+.card-sub { margin-top: 6px; color: var(--ink-2); }
+.card-right { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; max-width: 100%; }
+.card-foot { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); font-size: var(--fs-1); line-height: 1.5; color: var(--ink-2); }
+
+/* ---------- a figure on its own: label, the number, a note ---------- */
+.card.kpi { padding: 22px 24px 24px; }
+.kpi-label { display: flex; align-items: center; gap: 8px; font-size: var(--fs-1); font-weight: 600; line-height: 1.35; color: var(--ink-2); }
+.kpi-value { margin-top: 10px; font-size: var(--fs-5); line-height: 1.1; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.kpi-sub { margin-top: 8px; font-size: var(--fs-1); line-height: 1.45; color: var(--ink-2); }
+
+/* ---------- the (i): a teal icon button; its line floats in a raised panel (portalled to <body>, placed by Info) ---------- */
+.tip { position: relative; display: inline-flex; vertical-align: middle; }
+.info {
+  display: inline-grid; place-items: center; flex: none; width: 44px; height: 44px; margin: -12px -10px; border-radius: 50%;
+  color: var(--accent); cursor: pointer;
+}
+.info:hover { background: var(--accent-soft); color: var(--accent-hover); }
+.info[data-open] { background: var(--accent); color: var(--on-accent); }
+.tip-pop {
+  position: fixed; z-index: 70; width: max-content; max-width: min(20rem, calc(100vw - 24px)); padding: 10px 14px;
+  border: 1px solid transparent; border-radius: 14px; background: var(--surface-2); box-shadow: var(--pop);
+  color: var(--ink-2); font-size: var(--fs-1); font-weight: 500; line-height: 1.5; text-align: left; white-space: normal;
+  letter-spacing: normal; text-transform: none; text-wrap: pretty;
+}
+/* the same line in place: hidden, but it is the button's description; without a script it shows under the (i) */
+.tip-text { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+html:not(.js) .tip:is(:hover, :focus-within) .tip-text {
+  top: calc(100% + 8px); left: -12px; z-index: 70; width: max-content; max-width: min(18rem, calc(100vw - 32px)); height: auto; margin: 0;
+  padding: 10px 14px; overflow: visible; clip: auto; clip-path: none; white-space: normal; border-radius: 14px;
+  background: var(--surface-2); box-shadow: var(--pop); color: var(--ink-2); font-size: var(--fs-1); font-weight: 500; line-height: 1.5;
+}
+
+/* ---------- the pill switch (Segmented): the broker page's stock switch as buttons with radio roles ---------- */
+.segm {
+  display: inline-flex; flex-wrap: wrap; max-width: 100%; padding: 2px; border: 2px solid var(--accent); border-radius: 26px;
+  background: var(--surface);
+}
+.segm > button {
+  display: inline-flex; flex: 1 1 auto; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 999px;
+  font-size: var(--fs-2); font-weight: 600; line-height: 1.2; color: var(--ink); white-space: nowrap; cursor: pointer;
+}
+.segm.sm > button { padding: 0 16px; font-size: var(--fs-1); }
+.segm > button:hover { background: var(--accent-soft); }
+.segm > button[aria-checked="true"] { background: var(--accent); color: var(--on-accent); box-shadow: var(--press); }
+/* the whole switch takes the focus ring, as the stock switch does; where :has() is missing, the focused option does */
+@supports selector(:has(*)) {
+  .segm > button:focus-visible { outline: none; }
+  .segm:has(> button:focus-visible) { outline: 3px solid var(--accent); outline-offset: 3px; }
+}
+
+/* ---------- select: a teal-outlined pill with its label beside it ---------- */
+.sel { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; max-width: 100%; }
+.sel.full { display: flex; width: 100%; }
+.sel-l { font-size: var(--fs-1); font-weight: 600; line-height: 1.35; color: var(--ink-2); }
+.sel-box { position: relative; display: inline-flex; min-width: 0; max-width: 100%; }
+.sel.full .sel-box { flex: 1 1 auto; }
+.sel select {
+  min-width: 0; max-width: 100%; min-height: 48px; padding: 0 44px 0 20px; border: 2px solid var(--accent); border-radius: 999px;
+  background: var(--surface); color: var(--ink); font: inherit; font-size: var(--fs-2); font-weight: 600; text-overflow: ellipsis;
+  appearance: none; -webkit-appearance: none; cursor: pointer;
+}
+.sel.full select { width: 100%; }
+.sel select:hover { background: var(--accent-soft); }
+.sel-i { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--accent); pointer-events: none; }
+.sel select:hover + .sel-i { color: var(--accent-hover); }
+
+/* ---------- toggle (Switch): a pill track with a knob; the whole label is the target ---------- */
+.tgl { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 600; color: var(--ink); cursor: pointer; }
+.tgl > button { position: relative; flex: none; width: 46px; height: 28px; border: 2px solid var(--mark); border-radius: 999px; background: var(--surface); cursor: pointer; }
+.tgl-k { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--mark); transition: transform .3s var(--ease-out), background-color .2s; }
+.tgl:hover > button[aria-checked="false"] { background: var(--accent-soft); }
+.tgl > button[aria-checked="true"] { border-color: var(--accent); background: var(--accent); }
+.tgl > button[aria-checked="true"] .tgl-k { transform: translateX(18px); background: var(--on-accent); }
+
+/* ---------- text field: a pill with a 3:1 edge; the ring sits on the whole field ---------- */
+.field {
+  display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 18px; border: 2px solid var(--mark); border-radius: 999px;
+  background: var(--surface); color: var(--ink-2);
+}
+.field input { flex: 1 1 auto; min-width: 0; height: 44px; background: transparent; color: var(--ink); font: inherit; font-size: var(--fs-2); }
+.field input::placeholder { color: var(--ink-2); opacity: 1; }
+.field input:focus-visible { outline: none; }
+.field:focus-within { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+/* ---------- status chip: an icon and a word, in ink (the words carry good and bad, never a colour) ---------- */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px 3px 8px; border: 1px solid transparent; border-radius: 999px;
+  background: var(--surface-2); color: var(--ink); font-size: var(--fs-1); font-weight: 600; line-height: 1.4; white-space: nowrap;
+}
+.chip svg { color: var(--ink-2); }
+
+/* ---------- chart legend ---------- */
+.lgd { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: var(--fs-1); line-height: 1.5; color: var(--ink-2); }
+.lgd li { display: inline-flex; align-items: center; gap: 8px; }
+.lgd-sw { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+.lgd-dash { flex: none; width: 18px; border-top: 2px dashed; }
+
+/* ---------- empty state ---------- */
+.empty {
+  display: grid; place-items: center; min-height: 12rem; padding: 24px; border-radius: 14px; background: var(--surface-2);
+  color: var(--ink-2); text-align: center; text-wrap: balance;
+}
+
+/* ---------- tables: real tables everywhere (ChartTable, DataTable), the broker page's ranked-table look ---------- */
+.tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+.tbl th, .tbl td { padding: 13px 12px; border-top: 1px solid var(--border); text-align: left; white-space: nowrap; }
+.tbl thead th { padding-top: 6px; padding-bottom: 10px; border-top: 0; font-size: var(--fs-1); font-weight: 600; line-height: 1.3; color: var(--ink-2); vertical-align: bottom; white-space: normal; }
+.tbl tbody th { font-weight: 600; color: var(--ink); }
+.tbl td { color: var(--ink); }
+.tbl .num { text-align: right; }
+/* a table's own scroll box: it scrolls sideways inside the card, never the page */
+.tbox { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; scrollbar-color: var(--mark) transparent; }
+
+/* "Show as a table": a teal disclosure under every chart */
+.ctab { margin-top: 8px; }
+.ctab > summary {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--accent); font-weight: 600; cursor: pointer;
+  list-style: none; text-underline-offset: 4px;
+}
+.ctab > summary::-webkit-details-marker { display: none; }
+.ctab > summary:hover { color: var(--accent-hover); text-decoration: underline; }
+.ctab > summary svg { transition: transform .35s var(--ease-out); }
+.ctab[open] > summary svg { transform: rotate(180deg); }
+.ctab .ct-hide, .ctab[open] .ct-show { display: none; }
+.ctab[open] .ct-hide { display: inline; }
+.ctab .tbox { margin-top: 4px; }
+/* the first column (the row's name) stays in view when a wide table scrolls sideways */
+.ctab .tbl tr > :first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+
+/* ---------- DataTable: search, download, a sortable table in its own scroll box, the name column pinned ---------- */
+.dt-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.dt-search { flex: 1 1 16rem; max-width: 24rem; }
+.dt-count { min-height: 1.4em; margin-bottom: 4px; font-size: var(--fs-1); color: var(--ink-2); }
+.dt-count:empty { min-height: 0; margin: 0; }
+.dt-box { position: relative; }
+/* the header row stays at the top of a box given a height (DataTable maxHeight); without one the box never scrolls down.
+   Headings keep to one line: a table with many columns scrolls sideways rather than stacking its headings word by word */
+.dt thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); white-space: nowrap; }
+.dt-sort {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin: -6px 0 -10px; color: inherit; font: inherit;
+  text-align: inherit; cursor: pointer;
+}
+.dt .num .dt-sort { flex-direction: row-reverse; }
+.dt-sort svg { visibility: hidden; color: var(--mark); }
+.dt-sort:is(:hover, :focus-visible) svg { visibility: visible; }
+.dt th[aria-sort] { color: var(--ink); font-weight: 700; }
+.dt th[aria-sort] .dt-sort svg { visibility: visible; color: var(--accent); }
+.dt-sort:focus-visible { outline-offset: -3px; border-radius: 10px; }
+/* the name column stays in view while the table scrolls sideways; a hairline marks its edge once it has */
+.dt .pin { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+.dt thead .pin { z-index: 3; }
+.dt-box.is-scrolled .pin { box-shadow: 1px 0 0 var(--rule); }
+.dt .hl { background: var(--here); }
+.dt thead .hl { color: var(--ink); font-weight: 700; }
+.dt .wrap-cell { white-space: normal; min-width: 10rem; }
+/* each row opens through its name (a real link, or a button for an action); a press anywhere on the row does the same */
+.dt-go {
+  display: inline-flex; align-items: center; min-height: 44px; margin: -10px 0; color: var(--ink); font: inherit; font-weight: 600;
+  text-align: left; text-decoration: none; cursor: pointer;
+}
+.dt tr.go-row { cursor: pointer; }
+.dt tr.go-row:hover .dt-go { text-decoration: underline 2px var(--accent); text-underline-offset: 5px; }
+@supports selector(:has(*)) {
+  .dt .dt-go:focus-visible { outline: none; }
+  .dt tbody tr:has(.dt-go:focus-visible) { outline: 3px solid var(--accent); outline-offset: -3px; border-radius: 14px; }
+}
+.dt-go:focus-visible { outline-offset: -3px; }
+/* the row the page is about */
+.dt tr.here > * { background: var(--here); border-top-color: transparent; font-weight: 700; color: var(--ink); }
+.dt tr.here > :first-child { border-radius: 14px 0 0 14px; }
+.dt tr.here > :last-child { border-radius: 0 14px 14px 0; }
+.dt tr.here + tr > * { border-top-color: transparent; }
+.dt-none { padding: 24px 12px; color: var(--ink-2); text-align: center; white-space: normal; }
+
+/* ---------- filter bar: a row on the ground; it sticks to the top only on a desktop, kept short ---------- */
+.fbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-bottom: 22px; }
+.fbar-item { display: inline-flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
+@media (min-width: 1024px) {
+  .fbar { position: sticky; top: 0; z-index: 30; margin-inline: -12px; padding: 12px; background: var(--page); }
+  .fbar.is-stuck { box-shadow: 0 1px 0 var(--rule); }
+  /* a bar that has wrapped onto a second row is too tall to stick (Filters.tsx measures it) */
+  .fbar.is-tall { position: static; }
+  /* keyboard focus and in-page jumps land clear of the stuck bar (Filters.tsx keeps --fbar-h at its height) */
+  html:has(.fbar:not(.is-tall)) { scroll-padding-top: calc(var(--fbar-h, 76px) + 16px); }
+}
+
+/* ---------- press feedback and motion ---------- */
+.segm > button, .info, .tgl > button, .sel select, .dt-sort, .ctab > summary { transition: transform .5s var(--ease-out), background-color .2s, color .2s, box-shadow .25s; }
+.segm > button:active, .info:active, .tgl > button:active { transform: scale(.95); }
+
+/* ---------- phones ---------- */
+@media (max-width: 599px) {
+  .ph { padding-top: 26px; margin-bottom: 16px; }
+  .ph-intro { margin-top: 8px; }
+  .card-head { margin-bottom: 14px; }
+  .card-right { width: 100%; }
+  .card.kpi { padding: 18px 20px 20px; }
+  /* the switch spans the width; options share it and wrap to a new row (inside the switch) when they don't fit */
+  .segm { display: flex; width: 100%; }
+  .segm > button { flex: 1 1 0; padding: 0 12px; }
+  .dt-search { max-width: none; }
+  .fbar { gap: 12px; }
+  .fbar-item, .fbar .sel { width: 100%; }
+  .fbar .sel-box { flex: 1 1 12rem; }
+  .fbar .sel select { width: 100%; }
+}
+
+/* ---------- forced colours: the checked option and a switched-on toggle take the system highlight ---------- */
+@media (forced-colors: active) {
+  .segm > button[aria-checked="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .info[data-open] { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .tgl > button { forced-color-adjust: none; border-color: CanvasText; background: Canvas; }
+  .tgl-k { forced-color-adjust: none; background: CanvasText; }
+  .tgl > button[aria-checked="true"] { border-color: Highlight; background: Highlight; }
+  .tgl > button[aria-checked="true"] .tgl-k { background: HighlightText; }
+  .dt tr.here { outline: 2px solid CanvasText; outline-offset: -2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segm > button:active, .info:active, .tgl > button:active { transform: none; }
+  .tgl-k, .ctab > summary svg { transition: none; }
+}

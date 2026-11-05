@@ -1,8 +1,13 @@
-// The site's signature: a neutral scale that places one broker among all of them, cheapest · this broker's dot ·
-// typical (the median) · most expensive, each at its true position. Drawn with CSS (broker.css), no chart library.
-// Given two sets (S&P 500 and other stocks) it follows the page's stock switch and the dot glides between them.
-import type { CSSProperties } from "react";
+// The site's signature: a neutral scale that places brokers among all of them, cheapest · a broker's dot · typical (the
+// median) · most expensive, each at its true position. Drawn with CSS (scale.css), no chart library.
+// One dot (ScaleData.you): the broker page's scale, the name centred over the dot (turned inward near an end). Given two
+// sets (S&P 500 and other stocks) it follows the broker page's stock switch and the dot glides between them.
+// Several dots (`you` plus ScaleData.marks, or marks alone: Compare's two brokers): every dot the same ink, each name over
+// its own dot, and names that would run into each other stacked in rows. A page that re-renders the scale with new values
+// (React state, not the CSS switch) sees every dot glide to its new place.
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { scalePositions, type ScaleData } from "../../lib/broker";
+import "./scale.css";
 
 type G = "sp" | "ot";
 type Align = "center" | "start" | "end";
@@ -24,37 +29,95 @@ function vars(s: ScaleData, suffix: string): Record<string, string> {
   };
 }
 
+/** Every named dot of a set (`you` first, then the marks) with its position. */
+function dotsOf(s: ScaleData): { name: string; v: number; p: number }[] {
+  const p = scalePositions(s);
+  return [...(s.you ? [{ ...s.you, p: p.you ?? 50 }] : []), ...(s.marks ?? []).map((m, i) => ({ ...m, p: p.marks[i] }))];
+}
+
+/** How far a name reaches along the scale, in percent of its width, from where its alignment anchors it. Estimated for the
+ *  narrowest card (a scale about 250px wide on a 320px phone, a 700-weight character about 3.7% of it), so names placed
+ *  side by side clear each other on every screen. */
+function reach(name: string, p: number): [number, number] {
+  const w = name.length * 3.7 + 3, a = alignOf(p);
+  return a === "center" ? [p - w / 2, p + w / 2] : a === "start" ? [p - 4.5, p - 4.5 + w] : [p + 4.5 - w, p + 4.5];
+}
+
+/** The row each name sits in (0 = top), left to right: the first row where it clears the names already there. */
+function rowsOf(dots: { name: string; p: number }[]): number[] {
+  const order = dots.map((_, i) => i).sort((a, b) => dots[a].p - dots[b].p);
+  const ends: number[] = []; // per row, where its last name ends
+  const rows = dots.map(() => 0);
+  for (const i of order) {
+    const [from, to] = reach(dots[i].name, dots[i].p);
+    let row = ends.findIndex((e) => from > e + 1.5);
+    if (row < 0) { row = ends.length; ends.push(to); } else ends[row] = to;
+    rows[i] = row;
+  }
+  return rows;
+}
+
 /** "From cheapest to most expensive: Fidelity −$0.09, Robinhood $0.82, typical broker $0.96, eToro $1.77." */
 function describe(s: ScaleData, fmt: (v: number) => string, typFmt: (v: number) => string): string {
-  const items: { name: string; v: number; text: string }[] = [
-    { name: s.lo.name, v: s.lo.v, text: `${s.lo.name} ${fmt(s.lo.v)}` },
-    { name: "typical", v: s.typ, text: `typical broker ${typFmt(s.typ)}` },
-    { name: s.hi.name, v: s.hi.v, text: `${s.hi.name} ${fmt(s.hi.v)}` },
+  const items: { v: number; text: string }[] = [
+    { v: s.lo.v, text: `${s.lo.name} ${fmt(s.lo.v)}` },
+    { v: s.typ, text: `typical broker ${typFmt(s.typ)}` },
+    { v: s.hi.v, text: `${s.hi.name} ${fmt(s.hi.v)}` },
   ];
-  if (s.you && s.you.name !== s.lo.name && s.you.name !== s.hi.name) items.push({ name: s.you.name, v: s.you.v, text: `${s.you.name} ${fmt(s.you.v)}` });
+  for (const m of [...(s.you ? [s.you] : []), ...(s.marks ?? [])]) {
+    if (m.name !== s.lo.name && m.name !== s.hi.name) items.push({ v: m.v, text: `${m.name} ${fmt(m.v)}` });
+  }
   items.sort((a, b) => a.v - b.v);
   return `From cheapest to most expensive: ${items.map((i) => i.text).join(", ")}.`;
 }
 
 export interface ScaleSet { g?: G; data: ScaleData }
 
-/** One set: a fixed scale. Two sets (sp, then ot): one scale whose marks move with the stock switch. */
-export function Scale({ sets, fmt, typFmt = fmt, small }: {
+/** One set: a fixed scale. Two sets (sp, then ot): one scale whose marks move with the broker page's stock switch.
+ *  `fmt` writes a broker's value, `typFmt` the typical one; `small` is the secondary cards' size. */
+export function Scale({ sets: given, fmt, typFmt = fmt, small }: {
   sets: ScaleSet[]; fmt: (v: number) => string; typFmt?: (v: number) => string; small?: boolean;
 }) {
+  // a lone mark is drawn as `you` (one dot, centred name)
+  const sets = given.map((s) => (!s.data.you && s.data.marks?.length === 1 ? { ...s, data: { ...s.data, you: s.data.marks[0], marks: undefined } } : s));
   const follows = sets.length === 2;
-  const style = (follows ? { ...vars(sets[0].data, "-sp"), ...vars(sets[1].data, "-ot") } : vars(sets[0].data, "")) as CSSProperties;
-  const you = sets.find((s) => s.data.you)?.data.you ?? null;
+  const style: Record<string, string> = follows ? { ...vars(sets[0].data, "-sp"), ...vars(sets[1].data, "-ot") } : vars(sets[0].data, "");
   const each = (render: (s: ScaleData) => string) => sets.map((s, i) => <span key={s.g ?? i} data-g={follows ? s.g : undefined}>{render(s.data)}</span>);
+  const many = sets.some((s) => dotsOf(s.data).length > 1);
+
+  let dots: ReactNode;
+  if (!many) {
+    // one dot: its name centred over it, gliding with the switch
+    const you = sets.find((s) => s.data.you)?.data.you ?? null;
+    dots = you && <><b className="sc-you-l">{you.name}</b><span className="sc-you" /></>;
+  } else {
+    // several: each set's dots in a layer of their own (the shown group's, when the scale follows the switch), the rail
+    // lowered by one 22px row for every row of names past the first
+    let deepest = 0;
+    dots = sets.map((s, k) => {
+      const ds = dotsOf(s.data), rows = rowsOf(ds);
+      deepest = Math.max(deepest, ...rows);
+      // keyed by slot, not name: when a page swaps one broker for another, its dot glides to the new place
+      const layer = ds.map((d, i) => (
+        <Fragment key={i}>
+          <b className="sc-you-l sc-mk" style={{ "--m": pct(d.p), "--mx": dotShift(alignOf(d.p)), "--mrow": String(rows[i]) } as CSSProperties}>{d.name}</b>
+          <span className="sc-you sc-mk" style={{ "--m": pct(d.p) } as CSSProperties} />
+        </Fragment>
+      ));
+      return follows ? <span key={s.g ?? k} className="sc-layer" data-g={s.g}>{layer}</span> : <Fragment key={k}>{layer}</Fragment>;
+    });
+    style["--sc-up"] = `${deepest * 22}px`;
+  }
+
   return (
     <>
-      <div className={`scale${follows ? " sw" : ""}${small ? " sm" : ""}`} style={style} aria-hidden="true">
+      <div className={`scale${follows ? " sw" : ""}${small ? " sm" : ""}${many ? " many" : ""}`} style={style as CSSProperties} aria-hidden="true">
         <div className="sc-rail">
           <span className="sc-track" />
           <span className="sc-end" />
           <span className="sc-end r" />
           <span className="sc-typ" />
-          {you && <><b className="sc-you-l">{you.name}</b><span className="sc-you" /></>}
+          {dots}
         </div>
         <div className="sc-mid"><span className="sc-typ-l">Typical <b>{each((s) => typFmt(s.typ))}</b></span></div>
         <div className="sc-ends">

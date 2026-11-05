@@ -154,14 +154,14 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
 
   return (
     <div className="rise">
-      <PageHeader eyebrow="Trading firms" title="Who fills your order?"
-        sub="A handful of trading firms (market makers) fill most retail orders and set the price you get." />
+      <PageHeader title="Who fills your order?"
+        intro="A handful of trading firms (market makers) fill most retail orders and set the price you get." />
       <FilterBar d={d} f={f} set={set} show={["sp", "ot", "quarter", "clearing"]} />
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Kpi icon="coins" label="Trading firms used" value={tot.size} sub={`by brokers here, ${quarterLong(f.quarter)}`} />
-        <Kpi icon="layers" label="Trading firms compared" value={gaps.length} sub={`on the same ${SP_LABEL[f.sp]} stocks and sizes, ${monthLong(d.meta.detailMonth)}`} />
-        <Kpi icon="chart" label={`Biggest by volume, ${lastQ ? quarterShort(lastQ) : ""}`} value={leadShare != null ? pct(leadShare, 0) : "–"}
+        <Kpi label="Trading firms used" value={tot.size} sub={`by brokers here, ${quarterLong(f.quarter)}`} />
+        <Kpi label="Trading firms compared" value={gaps.length} sub={`on the same ${SP_LABEL[f.sp]} stocks and sizes, ${monthLong(d.meta.detailMonth)}`} />
+        <Kpi label={`Biggest by volume, ${lastQ ? quarterShort(lastQ) : ""}`} value={leadShare != null ? pct(leadShare, 0) : "–"}
           sub={lead ? `${trim(lead)}'s off-exchange share` : undefined} />
       </section>
 

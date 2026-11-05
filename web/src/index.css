@@ -94,8 +94,9 @@ h1, h2 { text-wrap: balance; }
 .on-accent :focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 #main:focus { outline: none; }
 .tnum { font-variant-numeric: tabular-nums; }
-/* the old gradient text and hero glow: flat now (no gradients anywhere); the classes stay so older pages still render */
-.grad-text { color: inherit; }
+/* Leftover, to go: Home's old hero glow element is never drawn (a no-op until Home drops it). The gradient text, the glow
+   itself and its dot grid are gone; .grad-text and .rise have no rules (a page still naming them gets nothing), and
+   --grad above is plain action teal until no page uses it (use --accent, .btn-solid). */
 .glow { display: none; }
 
 /* controls that only work with JavaScript are hidden without it (index.html adds .js to <html> before first paint) */

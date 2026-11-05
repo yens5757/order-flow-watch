@@ -1,4 +1,9 @@
-import { useId, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type SyntheticEvent } from "react";
+// The world's shared pieces (DESIGN.md), in the broker page's look: the page heading, the card, a figure card, the (i)
+// tooltip, the pill switch, select, toggle, status chip, chart legend, empty state and "Show as a table". Styles in ui.css.
+import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import { createPortal } from "react-dom";
+import { useBrowserLayoutEffect } from "../lib/hooks";
+import "./ui.css";
 
 /* ---------- icons (inline, stroke-based) ---------- */
 const PATHS: Record<string, ReactNode> = {
@@ -7,6 +12,7 @@ const PATHS: Record<string, ReactNode> = {
   left: <path d="m15 18-6-6 6-6" />,
   right: <path d="m9 18 6-6-6-6" />,
   down: <path d="m6 9 6 6 6-6" />,
+  up: <path d="m6 15 6-6 6 6" />,
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   tune: <><path d="M4 8h9M17 8h3M4 16h3M11 16h9" /><circle cx="15" cy="8" r="2.25" /><circle cx="9" cy="16" r="2.25" /></>,
   checkCircle: <><circle cx="12" cy="12" r="8.75" /><path d="m8.5 12.25 2.4 2.4 4.6-5" /></>,
@@ -39,85 +45,158 @@ export function Icon({ name, size = 18, className = "" }: { name: keyof typeof P
 }
 
 /* ---------- layout ---------- */
-export function PageHeader({ eyebrow, title, sub, right }: { eyebrow?: string; title: string; sub?: ReactNode; right?: ReactNode }) {
+/** The page's h1 and, if it needs one, a single plain line under it; `right` holds the page's own controls (a pair of
+ *  pickers, "Copy link") and sits beside the heading on a wide screen, under it on a phone. No kicker above the h1. */
+export function PageHeader({ title, intro, right }: { title: ReactNode; intro?: ReactNode; right?: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4 pb-6 pt-10">
-      <div className="max-w-2xl">
-        {eyebrow && <div className="mb-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-accent">{eyebrow}</div>}
-        <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-tight text-ink sm:text-[38px]">{title}</h1>
-        {sub && <p className="mt-2 text-[15.5px] leading-relaxed text-ink2">{sub}</p>}
+    <div className="ph">
+      <div className="ph-text">
+        <h1 className="ph-h1">{title}</h1>
+        {intro && <p className="ph-intro">{intro}</p>}
       </div>
-      {right}
+      {right && <div className="ph-right">{right}</div>}
     </div>
   );
 }
 
-export function Card({ title, sub, right, info, children, className = "", foot }: {
-  title?: ReactNode; sub?: ReactNode; right?: ReactNode; info?: ReactNode; children: ReactNode; className?: string; foot?: ReactNode;
+/** One idea per card: a white card on the ground with a Title heading (h2, or h3 under a section heading), a secondary
+ *  sub-line for scope and date, the content, and an optional ruled footer. `right` sits beside the title (a switch, a
+ *  link); `info` puts an (i) beside the title, outside the heading, named "About <infoTopic or the title>". */
+export function Card({ title, sub, right, info, infoTopic, children, className = "", foot, level = 2, id }: {
+  title?: ReactNode; sub?: ReactNode; right?: ReactNode; info?: ReactNode; infoTopic?: string; children: ReactNode;
+  className?: string; foot?: ReactNode; level?: 2 | 3; id?: string;
 }) {
+  const hid = useId();
+  const H = level === 3 ? "h3" : "h2";
+  const head = title != null || right != null;
   return (
-    <section className={`rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6 ${className}`}>
-      {(title || right) && (
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            {title && <h3 className="flex items-center gap-2 text-[15.5px] font-semibold text-ink">{title}{info && <Info>{info}</Info>}</h3>}
-            {sub && <p className="mt-0.5 text-[13px] text-muted">{sub}</p>}
-          </div>
-          {right}
+    <section id={id} className={`card ${className}`.trim()} aria-labelledby={title != null ? hid : undefined}>
+      {head && (
+        <div className="card-head">
+          {(title != null || sub) && (
+            <div className="card-titles">
+              {title != null && (
+                <div className="card-title-row">
+                  <H id={hid} className="card-title">{title}</H>
+                  {info && <Info topic={infoTopic ?? (typeof title === "string" ? title : "this")}>{info}</Info>}
+                </div>
+              )}
+              {sub && <p className="card-sub">{sub}</p>}
+            </div>
+          )}
+          {right && <div className="card-right">{right}</div>}
         </div>
       )}
       {children}
-      {foot && <div className="mt-3 border-t border-line pt-3 text-[12.5px] leading-relaxed text-muted">{foot}</div>}
+      {foot && <div className="card-foot">{foot}</div>}
     </section>
   );
 }
 
-/** Small "i" that reveals a definition on hover or keyboard focus; Escape hides it again. The button's hit area is 40px
- *  (negative margins keep its footprint in the text at 20px), and the text is read to screen readers as its description. */
-export function Info({ children }: { children: ReactNode }) {
+/** The (i) beside a term. Hover, keyboard focus or a press shows its one plain line in a raised panel the pointer can
+ *  move onto; Escape hides it wherever focus is; a press elsewhere, or focus leaving, closes it. The panel is portalled to
+ *  <body> and placed in the viewport (12px clear of every edge, under the icon, or over it when there is no room below),
+ *  so no card, scroll box or moving parent clips it. The line is also the button's description for screen readers, from
+ *  a hidden copy in place, which shows under the icon when the page runs without a script. Plain text only: no links.
+ *  `topic` names the button: "About <topic>". Put it beside a heading, never inside one. */
+export function Info({ topic, children }: { topic: string; children: ReactNode }) {
   const id = useId();
-  const [hidden, setHidden] = useState(false);
-  const [phone, setPhone] = useState<CSSProperties | null>(null);
-  // on phones the box spans the viewport width under the icon (offset inside the icon's own wrapper, since the page's
-  // entrance animation would capture a fixed box), so an icon in a right-hand column cannot push it off screen
-  const place = (e: SyntheticEvent<HTMLElement>) => {
-    if (window.innerWidth >= 640) { setPhone(null); return; }
-    const r = e.currentTarget.getBoundingClientRect();
-    setPhone({ left: 16 - r.left, width: window.innerWidth - 32, maxWidth: "none" });
+  const btn = useRef<HTMLButtonElement>(null);
+  const pop = useRef<HTMLDivElement>(null);
+  const [hover, setHover] = useState(false);
+  const [focus, setFocus] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const [at, setAt] = useState<{ left: number; top: number } | null>(null);
+  const timer = useRef<number | undefined>(undefined);
+  const open = !dismissed && (hover || focus || pinned);
+
+  const enter = () => { window.clearTimeout(timer.current); setHover(true); };
+  // a short grace, so the pointer can cross from the icon to the panel
+  const leave = () => { window.clearTimeout(timer.current); timer.current = window.setTimeout(() => setHover(false), 200); };
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  // Escape's "hidden" lasts until the pointer and focus have both left
+  useEffect(() => { if (!hover && !focus && !pinned) setDismissed(false); }, [hover, focus, pinned]);
+
+  const place = () => {
+    const b = btn.current?.getBoundingClientRect(), el = pop.current;
+    if (!b || !el) return;
+    const vw = document.documentElement.clientWidth, vh = window.innerHeight, edge = 12, gap = 2;
+    const w = el.offsetWidth, h = el.offsetHeight;
+    const left = Math.min(Math.max(b.left + b.width / 2 - w / 2, edge), Math.max(edge, vw - edge - w));
+    const below = b.bottom + gap;
+    const top = below + h > vh - edge && b.top - gap - h >= edge ? b.top - gap - h : below;
+    setAt((p) => (p && p.left === Math.round(left) && p.top === Math.round(top) ? p : { left: Math.round(left), top: Math.round(top) }));
   };
+  useBrowserLayoutEffect(() => { if (open) place(); else setAt(null); }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    // the panel goes at once, so it never reports the pointer leaving it: hovering ends here, and the pointer opens the
+    // line again by coming back to the icon (keyboard focus keeps it hidden until focus moves away)
+    const esc = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      window.clearTimeout(timer.current);
+      setDismissed(true); setPinned(false); setHover(false);
+    };
+    const away = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (!btn.current?.contains(t) && !pop.current?.contains(t)) setPinned(false);
+    };
+    document.addEventListener("keydown", esc);
+    document.addEventListener("pointerdown", away);
+    addEventListener("scroll", place, true);
+    addEventListener("resize", place);
+    return () => {
+      document.removeEventListener("keydown", esc);
+      document.removeEventListener("pointerdown", away);
+      removeEventListener("scroll", place, true);
+      removeEventListener("resize", place);
+    };
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const press = () => { if (pinned) { setPinned(false); setDismissed(true); } else { setPinned(true); setDismissed(false); } };
+  const panel: CSSProperties = at ? { left: at.left, top: at.top } : { left: 0, top: 0, visibility: "hidden" };
   return (
-    <span className="group relative inline-flex" onMouseEnter={place} onFocus={place} onMouseLeave={() => setHidden(false)} onBlur={() => setHidden(false)}>
-      <button type="button" aria-label="More information" aria-describedby={id}
-        onKeyDown={(e) => { if (e.key === "Escape") setHidden(true); }}
-        className="-m-2.5 grid h-10 w-10 place-items-center rounded-full text-muted hover:text-ink focus:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-        <Icon name="info" size={15} />
+    <span className="tip">
+      <button ref={btn} type="button" className="info" aria-describedby={id} data-open={open || undefined}
+        onMouseEnter={enter} onMouseLeave={leave} onFocus={() => setFocus(true)} onBlur={() => { setFocus(false); setPinned(false); }}
+        onClick={press}>
+        <Icon name="info" size={20} /><span className="sr-only">About {topic}</span>
       </button>
-      <span id={id} role="tooltip" style={phone ?? undefined} className={`pointer-events-none absolute left-0 top-6 z-30 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-line bg-surface2 p-3 whitespace-normal text-left text-[12.5px] font-normal leading-relaxed text-ink2 opacity-0 shadow-card transition-opacity sm:left-1/2 sm:-translate-x-1/2 ${hidden ? "" : "group-focus-within:opacity-100 group-hover:opacity-100"}`}>
-        {children}
-      </span>
+      <span id={id} className="tip-text">{children}</span>
+      {open && typeof document !== "undefined" && createPortal(
+        <div ref={pop} className="tip-pop" style={panel} aria-hidden="true" onMouseEnter={enter} onMouseLeave={leave}>{children}</div>,
+        document.body,
+      )}
     </span>
   );
 }
 
 /* ---------- controls ---------- */
-/** A radio group drawn as a pill switch: `label` names it for assistive tech, arrow keys move between options. */
+/** A radio group drawn as the broker page's pill switch: `label` names it for assistive tech; one Tab stop (the checked
+ *  option), the arrow keys, Home and End move and pick. On a phone it spans the width and its options share it, wrapping
+ *  to a new row inside the switch when they don't fit: keep option labels short. `size="sm"` sets them in the label
+ *  size (still 44px tall). */
 export function Segmented<T extends string | number>({ label, value, onChange, options, size = "md" }: {
   label: string; value: T; onChange: (v: T) => void; options: [T, string][]; size?: "sm" | "md";
 }) {
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const cur = Math.max(0, options.findIndex(([v]) => v === value));
   const keys = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
-    const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
-    if (!step) return;
+    const n = options.length;
+    const j = e.key === "ArrowRight" || e.key === "ArrowDown" ? (i + 1) % n
+      : e.key === "ArrowLeft" || e.key === "ArrowUp" ? (i - 1 + n) % n
+        : e.key === "Home" ? 0 : e.key === "End" ? n - 1 : -1;
+    if (j < 0) return;
     e.preventDefault();
-    const j = (i + step + options.length) % options.length;
     onChange(options[j][0]);
-    (e.currentTarget.parentElement?.children[j] as HTMLElement | undefined)?.focus();
+    refs.current[j]?.focus();
   };
   return (
-    <div className="inline-flex rounded-xl border border-line bg-surface2 p-[3px]" role="radiogroup" aria-label={label}>
+    <div className={`segm${size === "sm" ? " sm" : ""}`} role="radiogroup" aria-label={label}>
       {options.map(([v, text], i) => (
-        <button key={String(v)} type="button" role="radio" aria-checked={value === v} tabIndex={value === v ? 0 : -1}
-          onClick={() => onChange(v)} onKeyDown={(e) => keys(e, i)}
-          className={`min-h-[34px] whitespace-nowrap rounded-lg font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${size === "sm" ? "px-3 text-[12.5px]" : "px-3.5 text-[13.5px]"} ${value === v ? "bg-surface3 text-ink shadow-sm" : "text-muted hover:text-ink"}`}>
+        <button key={String(v)} ref={(el) => { refs.current[i] = el; }} type="button" role="radio" aria-checked={value === v}
+          tabIndex={i === cur ? 0 : -1} onClick={() => onChange(v)} onKeyDown={(e) => keys(e, i)}>
           {text}
         </button>
       ))}
@@ -125,95 +204,124 @@ export function Segmented<T extends string | number>({ label, value, onChange, o
   );
 }
 
-/** `full`: fills its container with the visible label hidden (for panels that already title the control). */
-export function Select<T extends string | number>({ label, value, onChange, options, full }: {
-  label: string; value: T; onChange: (v: T) => void; options: [T, string][]; full?: boolean;
+/** A native select as a teal-outlined pill, its label beside it (always visible, unless `hideLabel`). `full` fills the
+ *  container and keeps the label for screen readers only (for panels that already title the control). Text is 1rem at
+ *  every width, so phones don't zoom in. It only reports the pick: a page that wants to open another page from it puts a
+ *  "Go" link or button next to it rather than navigating on change. */
+export function Select<T extends string | number>({ label, value, onChange, options, full, hideLabel }: {
+  label: string; value: T; onChange: (v: T) => void; options: [T, string][]; full?: boolean; hideLabel?: boolean;
 }) {
   return (
-    <label className={`items-center gap-2 text-[12.5px] text-muted ${full ? "flex w-full" : "inline-flex"}`}>
-      <span className={full ? "sr-only" : "hidden sm:inline"}>{label}</span>
-      <select value={String(value)} aria-label={label}
-        onChange={(e) => onChange((typeof value === "number" ? Number(e.target.value) : e.target.value) as T)}
-        className={`rounded-xl border border-line bg-surface2 px-3 py-2 text-[13.5px] font-medium text-ink outline-none focus:border-accent ${full ? "w-full min-w-0 text-ellipsis" : ""}`}>
-        {options.map(([v, l]) => <option key={String(v)} value={String(v)}>{l}</option>)}
-      </select>
+    <label className={`sel${full ? " full" : ""}`}>
+      <span className={full || hideLabel ? "sr-only" : "sel-l"}>{label}</span>
+      <span className="sel-box">
+        <select value={String(value)} onChange={(e) => onChange((typeof value === "number" ? Number(e.target.value) : e.target.value) as T)}>
+          {options.map(([v, l]) => <option key={String(v)} value={String(v)}>{l}</option>)}
+        </select>
+        <Icon name="down" size={20} className="sel-i" />
+      </span>
     </label>
   );
 }
 
+/** An on/off toggle: the whole label (44px tall) is the target. */
 export function Switch({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className="inline-flex cursor-pointer items-center gap-2 text-[13px] text-ink2">
-      <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
-        className={`relative h-5 w-9 rounded-full transition-colors ${checked ? "bg-accent" : "bg-surface3"}`}>
-        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${checked ? "left-[18px]" : "left-0.5"}`} />
-      </button>
-      {label}
+    <label className="tgl">
+      <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}><span className="tgl-k" /></button>
+      <span>{label}</span>
     </label>
   );
 }
 
 /* ---------- figures ---------- */
-export function Kpi({ icon, label, value, sub, tone, info }: { icon?: string; label: string; value: ReactNode; sub?: ReactNode; tone?: "good" | "bad"; info?: ReactNode }) {
+/** One figure on its own small card: a label, the number, a note. Words, not colour, say whether it is good. */
+export function Kpi({ label, value, sub, info }: { label: string; value: ReactNode; sub?: ReactNode; info?: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-5 shadow-card">
-      <div className="flex items-center gap-2 text-[12.5px] font-medium text-muted">
-        {icon && <span className="grid h-7 w-7 place-items-center rounded-lg bg-[var(--accent-soft)] text-accent"><Icon name={icon} size={15} /></span>}
-        {label}{info && <Info>{info}</Info>}
-      </div>
-      <div className={`mt-3 font-display text-[30px] font-extrabold leading-none tracking-tight ${tone === "good" ? "text-better" : tone === "bad" ? "text-worse" : "text-ink"}`}>{value}</div>
-      {sub && <div className="mt-2 text-[12.5px] leading-snug text-muted">{sub}</div>}
+    <div className="card kpi">
+      <p className="kpi-label">{label}{info && <Info topic={label}>{info}</Info>}</p>
+      <p className="kpi-value">{value}</p>
+      {sub && <p className="kpi-sub">{sub}</p>}
     </div>
   );
 }
 
-/** Status chip: colour plus icon plus label, so meaning never rides on colour alone. */
+/** Status chip: an icon and a word in ink (check, cross or dash), so meaning never rides on colour. */
 export function Status({ kind, children }: { kind: "good" | "bad" | "neutral"; children: ReactNode }) {
-  const c = kind === "good" ? "var(--good)" : kind === "bad" ? "var(--critical)" : "var(--muted)";
-  // the text takes the theme's ink for that colour (index.css --good-ink, --critical-ink), which reaches 4.5:1 on the chip's tint
-  const ink = kind === "good" ? "var(--good-ink)" : kind === "bad" ? "var(--critical-ink)" : "var(--muted)";
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[12px] font-semibold"
-      style={{ color: ink, borderColor: `color-mix(in srgb, ${c} 40%, transparent)`, background: `color-mix(in srgb, ${c} 10%, transparent)` }}>
-      <Icon name={kind === "good" ? "check" : kind === "bad" ? "x" : "minus"} size={13} />{children}
+    <span className="chip">
+      <Icon name={kind === "good" ? "check" : kind === "bad" ? "x" : "minus"} size={16} />{children}
     </span>
   );
 }
 
+/** A chart's key in HTML: a swatch (or a dashed line) and a word per series; it wraps instead of paging on a phone. */
 export function Legend({ items }: { items: { color: string; label: string; dashed?: boolean }[] }) {
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-ink2">
+    <ul className="lgd">
       {items.map((i) => (
-        <span key={i.label} className="inline-flex items-center gap-1.5">
-          {i.dashed ? <span className="w-4 border-t-2 border-dashed" style={{ borderColor: i.color }} />
-            : <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: i.color }} />}
+        <li key={i.label}>
+          {i.dashed ? <span className="lgd-dash" style={{ borderColor: i.color }} aria-hidden="true" />
+            : <span className="lgd-sw" style={{ background: i.color }} aria-hidden="true" />}
           {i.label}
-        </span>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
+/** Nothing to show for these settings: one plain line in a quiet panel, announced when it replaces a chart. */
 export const Empty = ({ children }: { children: ReactNode }) => (
-  <div className="grid h-48 place-items-center rounded-xl border border-dashed border-line text-center text-[13.5px] text-muted">{children}</div>
+  <div className="empty" role="status">{children}</div>
 );
 
-/** The numbers behind a chart as a collapsed table: the text version for screen readers and anyone who wants to copy them. */
-export function ChartTable({ head, rows, summary = "Show as a table" }: { head: string[]; rows: ReactNode[][]; summary?: string }) {
+/** Whether a scroll box is wider inside than out, and whether it has been scrolled from its start; kept current as it
+ *  resizes and scrolls (a table that scrolls sideways inside its card). */
+export function useSideScroll(ref: RefObject<HTMLElement>, deps: unknown[] = []): { over: boolean; scrolled: boolean } {
+  const [s, setS] = useState({ over: false, scrolled: false });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () => {
+      const over = el.scrollWidth > el.clientWidth + 1, scrolled = el.scrollLeft > 0;
+      setS((p) => (p.over === over && p.scrolled === scrolled ? p : { over, scrolled }));
+    };
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return () => { el.removeEventListener("scroll", check); ro.disconnect(); };
+  }, deps); // eslint-disable-line react-hooks/exhaustive-deps
+  return s;
+}
+
+/** The numbers behind a chart as a real table, collapsed under "Show as a table" (the same words under every chart): the
+ *  text version for screen readers and anyone who wants to copy them. The first column names the row; a wide table
+ *  scrolls sideways inside the card with that column pinned. `caption` names the table (read with it, and after "Show
+ *  as a table" for screen readers when a page has several). */
+export function ChartTable({ head, rows, caption }: { head: string[]; rows: ReactNode[][]; caption?: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const { over } = useSideScroll(box);
   return (
-    <details className="group mt-1 text-[13px]">
-      <summary className="inline-flex min-h-10 cursor-pointer list-none items-center gap-1.5 font-medium text-muted hover:text-ink">
-        <Icon name="right" size={14} className="transition-transform group-open:rotate-90" />{summary}
+    <details className="ctab">
+      <summary>
+        <span className="ct-show">Show as a table</span><span className="ct-hide">Hide the table</span>
+        {caption && <span className="sr-only">: {caption}</span>}
+        <Icon name="down" size={20} />
       </summary>
-      <div className="mb-2 overflow-x-auto rounded-xl border border-line">
-        <table className="w-full border-collapse">
-          <thead className="bg-surface2">
-            <tr>{head.map((h, i) => <th key={h} scope="col" className={`whitespace-nowrap px-3 py-2 font-semibold text-ink2 ${i ? "text-right" : "text-left"}`}>{h}</th>)}</tr>
+      {/* focusable only when it scrolls, so a keyboard can scroll it */}
+      <div ref={box} className="tbox" tabIndex={over ? 0 : undefined} role={over ? "region" : undefined}
+        aria-label={over ? `${caption ?? "Table"}, scrolls sideways` : undefined}>
+        <table className="tbl">
+          {caption && <caption className="sr-only">{caption}</caption>}
+          <thead>
+            <tr>{head.map((h, i) => <th key={i} scope="col" className={i ? "num" : undefined}>{h}</th>)}</tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
-              <tr key={i} className="border-t border-line">
-                {r.map((c, j) => <td key={j} className={`whitespace-nowrap px-3 py-1.5 ${j ? "tnum text-right text-ink" : "text-ink2"}`}>{c}</td>)}
+              <tr key={i}>
+                {r.map((c, j) => (j === 0 ? <th key={j} scope="row">{c}</th> : <td key={j} className="num">{c}</td>))}
               </tr>
             ))}
           </tbody>

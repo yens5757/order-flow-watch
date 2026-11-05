@@ -11,11 +11,15 @@ export interface Tokens {
   dark: boolean;
   page: string; surface: string; surface2: string;
   ink: string; ink2: string; muted: string; grid: string; baseline: string; border: string;
+  /** the scale's end-dot grey (non-text marks, 3:1 on the card) and its rail */
+  mark: string; track: string;
   accent: string; accent2: string;
   s: string[];
   better: string; worse: string; context: string; neutral: string;
   good: string; warning: string; critical: string;
   seq: string[];
+  /** the raised panel's shadow (the chart tooltip's), as CSS */
+  pop: string;
 }
 
 /** The custom properties of each `:root` block in index.css (comments stripped first): a block whose selector names
@@ -37,11 +41,13 @@ function read(dark: boolean): Tokens {
     dark,
     page: v("--page"), surface: v("--surface"), surface2: v("--surface-2"),
     ink: v("--ink"), ink2: v("--ink-2"), muted: v("--muted"), grid: v("--grid"), baseline: v("--baseline"), border: v("--border"),
+    mark: v("--mark"), track: v("--track"),
     accent: v("--accent"), accent2: v("--accent-2"),
     s: [1, 2, 3, 4, 5, 6, 7, 8].map((i) => v(`--s${i}`)),
     better: v("--better"), worse: v("--worse"), context: v("--context"), neutral: v("--neutral"),
     good: v("--good"), warning: v("--warning"), critical: v("--critical"),
     seq: [0, 1, 2, 3, 4].map((i) => v(`--seq-${i}`)),
+    pop: v("--pop"),
   };
 }
 

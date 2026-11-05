@@ -11,10 +11,10 @@
    once with data-g="sp" (S&P 500) and once with data-g="ot" (other stocks). */
 html:not(:has(#sg-ot:checked)) [data-g="ot"],
 html:has(#sg-ot:checked) [data-g="sp"] { display: none !important; }
-/* where :has() is missing, the page's script mirrors the checked radio on <html data-sg> (BrokerProfile.tsx) */
+/* where :has() is missing, the page's script mirrors the checked radio on <html data-sg> (BrokerProfile.tsx); the
+   price scale's own copy of this rule is in scale.css */
 @supports not selector(:has(*)) {
   html:not([data-sg="ot"]) [data-g="ot"], html[data-sg="ot"] [data-g="sp"] { display: none !important; }
-  html[data-sg="ot"] .scale.sw { --lo: var(--lo-ot); --hi: var(--hi-ot); --typ: var(--typ-ot); --you: var(--you-ot); --youx: var(--youx-ot); --typx: var(--typx-ot); }
 }
 
 /* ---------- where you are: breadcrumb, the one switch, the name ---------- */
@@ -54,37 +54,7 @@ html.js .bp-def-note:not(.open) { display: none; }
 .bp-say { margin-top: 22px; font-size: var(--fs-3); line-height: 1.55; max-width: 62ch; text-wrap: pretty; }
 .bp-none { font-size: var(--fs-3); line-height: 1.55; }
 
-/* ---------- the neutral scale: cheapest · this broker · typical · most expensive ---------- */
-.scale { --r: 11px; margin-top: 16px; }
-.scale.sm { --r: 9px; }
-/* a scale that follows the stock switch carries both groups' positions and swaps them; the dot glides between */
-.scale.sw { --lo: var(--lo-sp); --hi: var(--hi-sp); --typ: var(--typ-sp); --you: var(--you-sp); --youx: var(--youx-sp); --typx: var(--typx-sp); }
-html:has(#sg-ot:checked) .scale.sw { --lo: var(--lo-ot); --hi: var(--hi-ot); --typ: var(--typ-ot); --you: var(--you-ot); --youx: var(--youx-ot); --typx: var(--typx-ot); }
-.sc-rail { position: relative; height: 62px; }
-.sc-track { position: absolute; left: 0; right: 0; top: 41px; height: 8px; border-radius: 999px; background: var(--track); }
-.sc-end { position: absolute; left: var(--lo); top: 40px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--mark); box-shadow: 0 0 0 2px var(--surface); }
-.sc-end.r { left: var(--hi); }
-.sc-typ { position: absolute; left: var(--typ); top: 34px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--mark); box-shadow: 0 0 0 2px var(--surface); }
-.sc-you {
-  position: absolute; left: var(--you); top: 34px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%;
-  background: var(--ink); box-shadow: 0 0 0 3px var(--surface), 0 3px 8px rgb(16 40 34 / .25);
-}
-/* the dot's name sits above it on the card (a sibling, not inside the dot), centred or turned inward near an end */
-.sc-you-l { position: absolute; left: var(--you); top: 6px; transform: translateX(var(--youx, -50%)); white-space: nowrap; line-height: 1.2; font-weight: 700; }
-.sc-mid { position: relative; height: 1.6rem; margin-top: 4px; }
-.sc-typ-l { position: absolute; left: var(--typ); top: 0; transform: translateX(var(--typx, -50%)); white-space: nowrap; font-size: var(--fs-1); color: var(--ink-2); }
-.sc-typ-l b { font-size: var(--fs-2); color: var(--ink); }
-.sc-ends { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; }
-.sc-lab { max-width: 48%; font-weight: 700; line-height: 1.35; }
-.sc-lab small { display: block; font-size: var(--fs-1); font-weight: 500; color: var(--ink-2); }
-.sc-lab.r { text-align: right; }
-.sc-you, .sc-you-l, .sc-typ, .sc-typ-l, .sc-end { transition: left .8s var(--ease-out); }
-.scale.sm .sc-rail { height: 56px; }
-.scale.sm .sc-track { top: 37px; height: 6px; }
-.scale.sm .sc-end { top: 35px; }
-.scale.sm .sc-typ { top: 31px; height: 18px; }
-.scale.sm .sc-you { top: 31px; width: 18px; height: 18px; margin-left: -9px; }
-.scale.sm .sc-you-l { top: 3px; }
+/* ---------- the neutral scale: Scale.tsx and scale.css ---------- */
 
 /* ---------- yearly card ---------- */
 .bp-year { display: flex; flex-direction: column; }
@@ -185,7 +155,6 @@ html.js .bp-where:not(.all) .bp-fn.far { display: none; }
   .bp-h1 { margin-top: 26px; }
   .bp-per { font-size: var(--fs-3); }
   .bp-rank { margin-top: 14px; }
-  .scale { margin-top: 12px; }
   .bp-say { margin-top: 14px; }
 }
 /* the table restacks into a two-line list on phones; the ARIA roles keep it a table for screen readers */
@@ -210,18 +179,13 @@ html.js .bp-where:not(.all) .bp-fn.far { display: none; }
   .bp-tbl .c-pd { grid-column: 2 / -1; grid-row: 3; text-align: left; }
 }
 
-/* a forced-colours theme drops fills: the scale is drawn in system colours, and the broker's own row keeps an outline */
+/* a forced-colours theme drops fills: the broker's own row keeps an outline (the scale's own rules are in scale.css) */
 @media (forced-colors: active) {
-  .scale { forced-color-adjust: none; color: CanvasText; }
-  .scale * { color: CanvasText; }
-  .sc-track { background: GrayText; }
-  .sc-end, .sc-typ { background: CanvasText; box-shadow: none; }
-  .sc-you { background: Highlight; box-shadow: none; }
   .bp-tbl tr.you { outline: 2px solid CanvasText; outline-offset: -2px; }
 }
 
 /* no glide and no press give for anyone who asked for less motion (index.css stops every transition too) */
 @media (prefers-reduced-motion: reduce) {
-  .sc-you, .sc-you-l, .sc-typ, .sc-typ-l, .sc-end, .bp-more svg, .bp-sources summary svg, .bp-line { transition: none; }
+  .bp-more svg, .bp-sources summary svg, .bp-line { transition: none; }
   .bp-line:has(.go):active { transform: none; }
 }

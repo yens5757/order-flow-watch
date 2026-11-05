@@ -1,0 +1,65 @@
+/* The neutral price scale (Scale.tsx): cheapest · a broker's dot · typical · most expensive, drawn in CSS. Every mark
+   sits at its true position (custom properties set inline); a scale that follows the broker page's stock switch carries
+   both groups' positions and swaps them, so its dot glides. Several dots (Compare) put their names in rows over the rail:
+   --sc-up lowers the rail by one 22px row for each row past the first, --mrow is a name's row, --m a dot's position. */
+.scale { --r: 11px; margin-top: 16px; }
+.scale.sm { --r: 9px; }
+/* a scale that follows the stock switch carries both groups' positions and swaps them; the dot glides between */
+.scale.sw { --lo: var(--lo-sp); --hi: var(--hi-sp); --typ: var(--typ-sp); --you: var(--you-sp); --youx: var(--youx-sp); --typx: var(--typx-sp); }
+html:has(#sg-ot:checked) .scale.sw { --lo: var(--lo-ot); --hi: var(--hi-ot); --typ: var(--typ-ot); --you: var(--you-ot); --youx: var(--youx-ot); --typx: var(--typx-ot); }
+/* where :has() is missing, the broker page's script mirrors the checked radio on <html data-sg> (BrokerProfile.tsx) */
+@supports not selector(:has(*)) {
+  html[data-sg="ot"] .scale.sw { --lo: var(--lo-ot); --hi: var(--hi-ot); --typ: var(--typ-ot); --you: var(--you-ot); --youx: var(--youx-ot); --typx: var(--typx-ot); }
+}
+.sc-rail { position: relative; height: calc(62px + var(--sc-up, 0px)); }
+.sc-track { position: absolute; left: 0; right: 0; top: calc(41px + var(--sc-up, 0px)); height: 8px; border-radius: 999px; background: var(--track); }
+.sc-end { position: absolute; left: var(--lo); top: calc(40px + var(--sc-up, 0px)); width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--mark); box-shadow: 0 0 0 2px var(--surface); }
+.sc-end.r { left: var(--hi); }
+.sc-typ { position: absolute; left: var(--typ); top: calc(34px + var(--sc-up, 0px)); width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--mark); box-shadow: 0 0 0 2px var(--surface); }
+.sc-you {
+  position: absolute; left: var(--you); top: calc(34px + var(--sc-up, 0px)); width: 22px; height: 22px; margin-left: -11px; border-radius: 50%;
+  background: var(--ink); box-shadow: 0 0 0 3px var(--surface), 0 3px 8px rgb(16 40 34 / .25);
+}
+/* the dot's name sits above it on the card (a sibling, not inside the dot), centred or turned inward near an end */
+.sc-you-l { position: absolute; left: var(--you); top: 6px; transform: translateX(var(--youx, -50%)); white-space: nowrap; line-height: 1.2; font-weight: 700; }
+/* several dots: each at its own place, its name in its own row */
+.sc-you.sc-mk, .sc-you-l.sc-mk { left: var(--m); }
+.sc-you-l.sc-mk { top: calc(6px + var(--mrow, 0) * 22px); transform: translateX(var(--mx, -50%)); }
+.sc-layer { display: contents; }
+.sc-mid { position: relative; height: 1.6rem; margin-top: 4px; }
+.sc-typ-l { position: absolute; left: var(--typ); top: 0; transform: translateX(var(--typx, -50%)); white-space: nowrap; font-size: var(--fs-1); color: var(--ink-2); }
+.sc-typ-l b { font-size: var(--fs-2); color: var(--ink); }
+.sc-ends { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; }
+.sc-lab { max-width: 48%; font-weight: 700; line-height: 1.35; }
+.sc-lab small { display: block; font-size: var(--fs-1); font-weight: 500; color: var(--ink-2); }
+.sc-lab.r { text-align: right; }
+.sc-you, .sc-you-l, .sc-typ, .sc-typ-l, .sc-end { transition: left .8s var(--ease-out); }
+/* several dots: a new row of names lowers the rail smoothly too */
+.scale.many .sc-rail { transition: height .4s var(--ease-out); }
+.scale.many :is(.sc-track, .sc-end, .sc-typ, .sc-you, .sc-you-l) { transition: left .8s var(--ease-out), top .4s var(--ease-out); }
+.scale.sm .sc-rail { height: calc(56px + var(--sc-up, 0px)); }
+.scale.sm .sc-track { top: calc(37px + var(--sc-up, 0px)); height: 6px; }
+.scale.sm .sc-end { top: calc(35px + var(--sc-up, 0px)); }
+.scale.sm .sc-typ { top: calc(31px + var(--sc-up, 0px)); height: 18px; }
+.scale.sm .sc-you { top: calc(31px + var(--sc-up, 0px)); width: 18px; height: 18px; margin-left: -9px; }
+.scale.sm .sc-you-l { top: 3px; }
+.scale.sm .sc-you-l.sc-mk { top: calc(3px + var(--mrow, 0) * 22px); }
+
+@media (max-width: 599px) {
+  .scale { margin-top: 12px; }
+}
+
+/* a forced-colours theme drops fills: the scale is drawn in system colours */
+@media (forced-colors: active) {
+  .scale { forced-color-adjust: none; color: CanvasText; }
+  .scale * { color: CanvasText; }
+  .sc-track { background: GrayText; }
+  .sc-end, .sc-typ { background: CanvasText; box-shadow: none; }
+  .sc-you { background: Highlight; box-shadow: none; }
+}
+
+/* no glide for anyone who asked for less motion (index.css stops every transition too) */
+@media (prefers-reduced-motion: reduce) {
+  .sc-you, .sc-you-l, .sc-typ, .sc-typ-l, .sc-end { transition: none; }
+  .scale.many .sc-rail, .scale.many :is(.sc-track, .sc-end, .sc-typ, .sc-you, .sc-you-l) { transition: none; }
+}

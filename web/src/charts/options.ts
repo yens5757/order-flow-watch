@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Tokens } from "../lib/theme";
 import type { Option } from "./EChart";
-import { base, catAxis, colourAt, hEnd, legend, readableOn, tip, tooltip, valueAxis, vEnd } from "./kit";
+import { base, catAxis, colourAt, hEnd, label, legend, readableOn, tip, tooltip, valueAxis, vEnd } from "./kit";
 
 type Row = [string | null, string, string];
-const CLICK = "Click to open the broker profile";
+const CLICK = "Click or tap to open the broker’s page";
 
 /* ---------- scatter with a name on every dot ---------- */
 export interface Pt { id: string; name: string; x: number; y: number; dim?: boolean; rows?: Row[] }
@@ -15,7 +15,7 @@ export function labeledScatter(t: Tokens, pts: Pt[], o: {
 }): Option {
   const medianLines = o.medians ? {
     silent: true, symbol: "none", lineStyle: { color: t.baseline, type: "dashed", width: 1 },
-    label: { color: t.muted, fontSize: 11, formatter: "median" },
+    label: { color: t.muted, fontSize: label(), formatter: "median" },
     data: [{ xAxis: o.medians[0], label: { position: "end" } }, { yAxis: o.medians[1], label: { position: "end" } }],
   } : undefined;
   return {
@@ -33,7 +33,7 @@ export function labeledScatter(t: Tokens, pts: Pt[], o: {
       data: pts.map((p) => ({ value: [p.x, p.y], name: p.name, id: p.id, dim: p.dim, rows: p.rows,
         itemStyle: { color: p.dim ? t.context : t.s[0] } })),
       itemStyle: { borderColor: t.surface, borderWidth: 2 },
-      label: { show: true, formatter: (p: any) => (p.data.dim ? "" : p.data.name), position: "right", distance: 6, color: t.ink2, fontSize: 11.5 },
+      label: { show: true, formatter: (p: any) => (p.data.dim ? "" : p.data.name), position: "right", distance: 6, color: t.ink2, fontSize: label() },
       labelLayout: { hideOverlap: true },
       emphasis: { scale: 1.35, label: { color: t.ink, fontWeight: 600 } },
       cursor: o.clickable ? "pointer" : "default",
@@ -67,7 +67,7 @@ export function ranked(t: Tokens, rows: { id: string; name: string; v: number; h
       axisLabel: { color: t.muted, formatter: o.axis, hideOverlap: true, showMinLabel: min === 0, showMaxLabel: false },
     }),
     yAxis: catAxis(t, rows.map((r) => r.name), { inverse: true, axisLine: { show: false },
-      axisLabel: { color: t.ink2, fontSize: 12, rich: { hl: { color: t.ink, fontWeight: 700, fontSize: 12 } },
+      axisLabel: { color: t.ink2, fontSize: label(), rich: { hl: { color: t.ink, fontWeight: 700, fontSize: label() } },
         formatter: (v: string) => (rows.some((r) => r.hl && r.name === v) ? `{hl|${v}}` : v) } }),
     tooltip: tooltip(t, { trigger: "item", formatter: (p: any) => tip(p.name, rows[p.dataIndex].rows ?? [[p.color, "Value", o.fmt(p.value)]], o.foot) }),
     series: [{
@@ -79,12 +79,12 @@ export function ranked(t: Tokens, rows: { id: string; name: string; v: number; h
         // a small negative bar keeps its label on the right (over the empty zero side), clear of the broker's name
         label: { position: o.diverging && r.v < 0 ? "left" : "right", color: r.hl ? t.ink : t.ink2, fontWeight: r.hl ? 700 : 400 },
       })),
-      label: { show: true, fontSize: 11.5, formatter: (p: any) => o.fmt(p.value) },
+      label: { show: true, fontSize: label(), formatter: (p: any) => o.fmt(p.value) },
       emphasis: { itemStyle: { opacity: 1 } },
       cursor: "pointer",
       markLine: o.median != null ? {
         silent: true, symbol: "none", lineStyle: { color: t.muted, type: "dashed", width: 1 },
-        label: { position: "start", color: t.muted, fontSize: 11, formatter: `median ${o.fmt(o.median)}` },
+        label: { position: "start", color: t.muted, fontSize: label(), formatter: `median ${o.fmt(o.median)}` },
         data: [{ xAxis: o.median }],
       } : undefined,
     }],
@@ -109,7 +109,7 @@ export function divergingBars(t: Tokens, rows: { id: string; name: string; v: nu
       barWidth: 12,
       data: rows.map((r) => ({ value: r.v, id: r.id, itemStyle: { color: r.v < 0 ? t.better : t.worse, borderRadius: hEnd(r.v) },
         label: { position: r.v < 0 ? "left" : "right" } })),
-      label: { show: true, color: t.ink2, fontSize: 11.5, formatter: (p: any) => fmt(p.value) },
+      label: { show: true, color: t.ink2, fontSize: label(), formatter: (p: any) => fmt(p.value) },
       markLine: { silent: true, symbol: "none", label: { show: false }, lineStyle: { color: t.baseline, type: "solid", width: 1 }, data: [{ xAxis: 0 }] },
       emphasis: { focus: "self" },
       cursor: o.clickable ? "pointer" : "default",
@@ -131,9 +131,9 @@ export function hBars(t: Tokens, rows: { id: string; name: string; v: number; ro
       type: "bar",
       barWidth: 12,
       showBackground: true,
-      backgroundStyle: { color: t.neutral, opacity: 0.35, borderRadius: 4 },
+      backgroundStyle: { color: t.track, borderRadius: 4 },
       data: rows.map((r) => ({ value: r.v, id: r.id, itemStyle: { color: o.color, borderRadius: hEnd(r.v) } })),
-      label: { show: true, position: "right", color: t.ink2, fontSize: 11.5, formatter: (p: any) => o.fmt(p.value) },
+      label: { show: true, position: "right", color: t.ink2, fontSize: label(), formatter: (p: any) => o.fmt(p.value) },
       cursor: o.clickable ? "pointer" : "default",
     }],
   };
@@ -147,7 +147,7 @@ export function lines(t: Tokens, cats: string[], series: { name: string; values:
     ...base(t),
     legend: legend(t),
     grid: { left: 8, right: o.endLabels ? 96 : 20, top: 38, bottom: 8, containLabel: true },
-    xAxis: catAxis(t, cats, { boundaryGap: false, axisLabel: { color: t.muted, fontSize: 11.5 } }),
+    xAxis: catAxis(t, cats, { boundaryGap: false, axisLabel: { color: t.muted, fontSize: label() } }),
     yAxis: valueAxis(t, { min: o.min, max: o.max, axisLabel: { color: t.muted, formatter: (v: number) => o.fmt(v) } }),
     tooltip: tooltip(t, {
       trigger: "axis", axisPointer: { type: "line", lineStyle: { color: t.baseline } },
@@ -164,7 +164,7 @@ export function lines(t: Tokens, cats: string[], series: { name: string; values:
       lineStyle: { width: 2, color: s.color, type: s.dashed ? "dashed" : "solid" },
       itemStyle: { color: s.color, borderColor: t.surface, borderWidth: 2 },
       areaStyle: o.area ? { color: s.color, opacity: t.dark ? 0.28 : 0.22 } : undefined,
-      endLabel: o.endLabels ? { show: true, formatter: "{a}", color: t.ink2, fontSize: 11.5, distance: 8 } : undefined,
+      endLabel: o.endLabels ? { show: true, formatter: "{a}", color: t.ink2, fontSize: label(), distance: 8 } : undefined,
       labelLayout: o.endLabels ? { moveOverlap: "shiftY" } : undefined,
       emphasis: { focus: "series" },
     })),
@@ -180,7 +180,7 @@ export function bandLine(t: Tokens, cats: string[], d: { v: (number | null)[]; m
     ...base(t),
     legend: legend(t, { data: [o.name, "Median broker", "Range of all brokers"] }),
     grid: { left: 8, right: 20, top: 38, bottom: 8, containLabel: true },
-    xAxis: catAxis(t, cats, { boundaryGap: false, axisLabel: { color: t.muted, fontSize: 11.5 } }),
+    xAxis: catAxis(t, cats, { boundaryGap: false, axisLabel: { color: t.muted, fontSize: label() } }),
     yAxis: valueAxis(t, { axisLabel: { color: t.muted, formatter: (v: number) => o.fmt(v) } }),
     tooltip: tooltip(t, {
       trigger: "axis", axisPointer: { type: "line", lineStyle: { color: t.baseline } },
@@ -234,7 +234,7 @@ export function stackedColumns(t: Tokens, cats: string[], series: { name: string
     ...base(t),
     legend: legend(t),
     grid: { left: 8, right: 12, top: 38, bottom: 8, containLabel: true },
-    xAxis: catAxis(t, cats, { axisLabel: { color: t.muted, fontSize: 11.5 } }),
+    xAxis: catAxis(t, cats, { axisLabel: { color: t.muted, fontSize: label() } }),
     yAxis: valueAxis(t, { axisLabel: { color: t.muted, formatter: fmt } }),
     tooltip: tooltip(t, {
       trigger: "axis", axisPointer: { type: "shadow", shadowStyle: { color: t.neutral, opacity: 0.25 } },
@@ -261,17 +261,17 @@ export function heatmap(t: Tokens, rows: string[], cols: string[], cells: [numbe
       ...base(t),
       grid: { left: 8, right: 8, top: 8, bottom: 44, containLabel: true },
       xAxis: catAxis(t, cols, { position: "top", splitArea: { show: false }, axisLine: { show: false },
-        axisLabel: { color: t.ink2, fontSize: 11.5, rotate: 30, interval: 0, width: 100, overflow: "truncate" } }),
+        axisLabel: { color: t.ink2, fontSize: label(), rotate: 30, interval: 0, width: 100, overflow: "truncate" } }),
       yAxis: catAxis(t, rows, { inverse: true, axisLine: { show: false } }),
       visualMap: { min: 0, max, calculable: false, orient: "horizontal", left: "center", bottom: 0, itemWidth: 12, itemHeight: 160,
-        text: [o.fmt(max), "0"], textStyle: { color: t.muted, fontSize: 11 }, inRange: { color: t.seq }, dimension: 2 },
+        text: [o.fmt(max), "0"], textStyle: { color: t.muted, fontSize: label() }, inRange: { color: t.seq }, dimension: 2 },
       tooltip: tooltip(t, { trigger: "item", formatter: (p: any) => tip(rows[p.data.value[1]], [[null, cols[p.data.value[0]], p.data.value[2] == null ? "–" : o.fmt(p.data.value[2])]], o.rowIds ? CLICK : undefined) }),
       series: [{
         type: "heatmap",
         // the per-cell label carries only its colour, so the series-level `show` (off on phones) decides whether it is drawn
         data: cells.filter((c) => c[2] != null).map((c) => ({ value: c, label: { color: ink(c[2]!), textBorderWidth: 0 } })),
         itemStyle: { borderColor: t.surface, borderWidth: 2, borderRadius: 4 },
-        label: { show: true, fontSize: 10.5, formatter: (p: any) => (p.data.value[2] >= max * 0.02 ? o.fmt(p.data.value[2]) : "") },
+        label: { show: true, fontSize: label(), formatter: (p: any) => (p.data.value[2] >= max * 0.02 ? o.fmt(p.data.value[2]) : "") },
         emphasis: { itemStyle: { borderColor: t.ink, borderWidth: 1 } },
         cursor: o.rowIds ? "pointer" : "default",
       }],
@@ -279,7 +279,7 @@ export function heatmap(t: Tokens, rows: string[], cols: string[], cells: [numbe
     // phone width: ten columns share ~300px, so the headers stand upright instead of piling onto each other and the
     // in-cell numbers (which would run together and clip) move to the tooltip; the colour still reads
     media: [{ query: { maxWidth: 520 }, option: {
-      xAxis: { axisLabel: { rotate: 90, fontSize: 10, width: 84 } },
+      xAxis: { axisLabel: { rotate: 90, fontSize: label(), width: 84 } },
       series: [{ label: { show: false } }],
     } }],
   };
@@ -318,7 +318,7 @@ export function strip(t: Tokens, groups: string[], pts: { id: string; name: stri
     // phone width: the long row names took half the width and the tick labels ran together, so the rows get their
     // short names, the ticks go every 50 points and the title is short enough to stay inside the card
     media: o.narrow ? [{ query: { maxWidth: 480 }, option: {
-      yAxis: [{ id: "rows", data: o.narrow.groups, axisLabel: { fontSize: 11, lineHeight: 14 } }],
+      yAxis: [{ id: "rows", data: o.narrow.groups, axisLabel: { fontSize: label(), lineHeight: Math.round(label() * 1.25) } }],
       xAxis: { name: o.narrow.xName, minInterval: 50 }, // minInterval, not interval: a set interval counts from the axis minimum, not from 0
     } }] : [],
   };
@@ -332,7 +332,7 @@ export function forest(t: Tokens, items: { label: string; rho: number; lo: numbe
     grid: { left: 8, right: 24, top: 10, bottom: 36, containLabel: true },
     xAxis: valueAxis(t, { min: -1, max: 1, name: "Rank correlation (−1 to +1) with 95% interval", nameLocation: "middle", nameGap: 26 }),
     yAxis: catAxis(t, items.map((i) => i.label), { inverse: true, axisLine: { show: false },
-      axisLabel: { color: t.ink2, fontSize: 12, width: 250, overflow: "break", lineHeight: 15 } }),
+      axisLabel: { color: t.ink2, fontSize: label(), width: 250, overflow: "break", lineHeight: Math.round(label() * 1.25) } }),
     tooltip: tooltip(t, { trigger: "item", formatter: (p: any) => tip(items[p.data.i].label, items[p.data.i].rows) }),
     series: [
       {
@@ -354,7 +354,7 @@ export function forest(t: Tokens, items: { label: string; rho: number; lo: numbe
     },
     // phone width: 250px labels would leave the plot a sliver, so they wrap narrower and the axis keeps fewer ticks
     media: [{ query: { maxWidth: 560 }, option: {
-      yAxis: { axisLabel: { width: 118, fontSize: 11, lineHeight: 13 } },
+      yAxis: { axisLabel: { width: 118, fontSize: label(), lineHeight: Math.round(label() * 1.25) } },
       xAxis: { splitNumber: 2, name: "Rank correlation, 95% interval", nameGap: 22 },
     } }],
   };

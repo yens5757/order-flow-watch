@@ -14,6 +14,7 @@ import Explore from "./pages/Explore";
 import Home from "./pages/Home";
 import MarketMakers from "./pages/MarketMakers";
 import Method from "./pages/Method";
+import NotFound from "./pages/NotFound";
 
 // "How we measure" stays a page but lives in the footer and in card links, not in the nav
 const NAV: [PageName, string][] = [["home", "Home"], ["compare", "Compare"], ["calculator", "Calculator"], ["brokers", "Brokers"], ["trading-firms", "Trading firms"]];
@@ -40,7 +41,8 @@ export function AppShell({ data, path, search }: { data: Data | Raw; path: strin
   const [filters, setFilters] = useState<Filters>(() => ({ sp: "Y", ot: "M", b: 199999, month: d.meta.month, quarter: d.meta.quarter, clearing: false }));
   const set = (p: Partial<Filters>) => setFilters((f) => ({ ...f, ...p }));
   const { dark, toggle } = useTheme();
-  const active: PageName | null = route.page === "broker" || route.page === "firms" ? "brokers" : route.page === "how-we-measure" ? null : route.page;
+  const active: PageName | null = route.page === "broker" || route.page === "firms" ? "brokers"
+    : route.page === "how-we-measure" || route.page === "not-found" ? null : route.page;
 
   // the phone menu (a <details>, so it opens without a script too) closes on a new page, on a tap anywhere outside it,
   // when keyboard focus moves out of it (so it never covers the control that now has focus), and on Escape, which puts
@@ -70,6 +72,7 @@ export function AppShell({ data, path, search }: { data: Data | Raw; path: strin
     : route.page === "trading-firms" ? <MarketMakers d={d} f={filters} set={set} />
     : route.page === "firms" ? <AllFirms d={d} f={filters} set={set} />
     : route.page === "how-we-measure" ? <Method d={d} />
+    : route.page === "not-found" ? <NotFound />
     : <Home d={d} />;
 
   return (
@@ -162,12 +165,20 @@ export default function App({ data }: { data: Data }) {
   }, [data]);
 
   useEffect(() => {
-    const { title, description, canonical } = describeRoute(data, loc.path, loc.search);
+    const { title, description, canonical, robots } = describeRoute(data, loc.path, loc.search);
     document.title = title;
     document.querySelector('meta[name="description"]')?.setAttribute("content", description);
+    // the not-found page has no canonical URL and asks not to be indexed; every other page has one and doesn't
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-    if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }
-    link.href = canonical;
+    if (canonical) {
+      if (!link) { link = document.createElement("link"); link.rel = "canonical"; document.head.appendChild(link); }
+      link.href = canonical;
+    } else link?.remove();
+    let noindex = document.querySelector('meta[name="robots"]') as HTMLMetaElement | null;
+    if (robots) {
+      if (!noindex) { noindex = document.createElement("meta"); noindex.name = "robots"; document.head.appendChild(noindex); }
+      noindex.content = robots;
+    } else noindex?.remove();
   }, [data, loc]);
 
   return <AppShell data={data} path={loc.path} search={loc.search} />;

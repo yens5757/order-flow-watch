@@ -2,7 +2,8 @@
 // Path routing, pure: paths in and out, no browser globals, so the same code names every link on the client and
 // in the pre-render. Every page path is relative to the Vite base (import.meta.env.BASE_URL, ends with "/") and
 // ends with "/": "" home · "compare/" · "compare/<a>-vs-<b>/" · "calculator/" · "brokers/" (the explorer, its
-// state in the query string) · "brokers/<slug>/" · "trading-firms/" · "firms/" · "how-we-measure/".
+// state in the query string) · "brokers/<slug>/" · "trading-firms/" · "firms/" · "how-we-measure/". Any other
+// address (or an unknown broker or pair) is the not-found page, which GitHub Pages reaches through 404.html.
 import { cents, money, placeBrokers, rankWords } from "./broker";
 import { asData, metric, type Data, type Filters, type Firm, type Raw } from "./data";
 import { monthLong } from "./format";
@@ -37,54 +38,65 @@ export type Route =
   | { page: "calculator" }
   | { page: "trading-firms" }
   | { page: "firms" }
-  | { page: "how-we-measure" };
+  | { page: "how-we-measure" }
+  /** any address the site has no page for: an unknown path, broker or pair (pages/NotFound.tsx) */
+  | { page: "not-found" };
 
 /** First path segments this app answers to, the old names included (they redirect to the new ones). */
 const KNOWN = new Set(["compare", "calculator", "brokers", "trading-firms", "firms", "how-we-measure", "explore", "market-makers", "method", "broker"]);
 const segments = (path: string) => path.split("?")[0].split("/").filter(Boolean);
+const NOT_FOUND: Route = { page: "not-found" };
 
-/** A firm by slug, or by its reporter id for links written before slugs existed. */
-const firmOf = (d: Data, s: string | undefined): Firm | undefined => (s ? d.bySlug[s] ?? d.byId[s] ?? d.byId[s.toUpperCase()] : undefined);
+/** A firm by slug (in any case), or by its reporter id for links written before slugs existed. */
+const firmOf = (d: Data, s: string | undefined): Firm | undefined =>
+  (s ? d.bySlug[s] ?? d.bySlug[s.toLowerCase()] ?? d.byId[s] ?? d.byId[s.toUpperCase()] : undefined);
 
-/** The page a path names. Unknown paths and firms fall back the way the hash router did: home, the first broker, the default pair. */
+/** The page a path names. An unknown path, broker or pair is the not-found page; "index.html" in place of a page's
+ *  last segment names that page (brokers/index.html is the explorer). */
 export function parseRoute(data: Data, path: string): Route {
   const d = asData(data);
   const segs = segments(path);
+  const sub = segs[1] === "index.html" ? undefined : segs[1];
   switch (segs[0]) {
     case undefined: case "index.html": return { page: "home" };
-    case "brokers": case "explore": return segs[1] == null ? { page: "brokers" } : { page: "broker", firm: firmOf(d, segs[1]) ?? d.brokers[0] };
-    case "broker": return { page: "broker", firm: firmOf(d, segs[1]) ?? d.brokers[0] };
+    case "brokers": case "explore": {
+      if (sub == null) return { page: "brokers" };
+      const firm = firmOf(d, sub);
+      return firm ? { page: "broker", firm } : NOT_FOUND;
+    }
+    case "broker": { const firm = firmOf(d, sub); return firm ? { page: "broker", firm } : NOT_FOUND; }
     case "compare": {
-      const seg = segs[1], defs = defaultPair(d);
-      if (!seg) return { page: "compare", a: defs[0], b: defs[1], explicit: false };
-      const i = seg.indexOf("-vs-");
-      const x = i < 0 ? undefined : firmOf(d, seg.slice(0, i)), y = i < 0 ? undefined : firmOf(d, seg.slice(i + 4));
-      const [a, b] = pairOrder(x ?? defs[0], y ?? defs[1]);
+      if (!sub) { const defs = defaultPair(d); return { page: "compare", a: defs[0], b: defs[1], explicit: false }; }
+      const i = sub.indexOf("-vs-");
+      const x = i < 0 ? undefined : firmOf(d, sub.slice(0, i)), y = i < 0 ? undefined : firmOf(d, sub.slice(i + 4));
+      if (!x || !y) return NOT_FOUND;
+      const [a, b] = pairOrder(x, y);
       return { page: "compare", a, b, explicit: true };
     }
     case "calculator": return { page: "calculator" };
     case "trading-firms": case "market-makers": return { page: "trading-firms" };
     case "firms": return { page: "firms" };
     case "how-we-measure": case "method": return { page: "how-we-measure" };
-    default: return { page: "home" };
+    default: return NOT_FOUND;
   }
 }
 
-/** The canonical path of a route. */
+/** The canonical path of a route (the not-found page has none: "" here, and no canonical link in its head). */
 export function routePath(r: Route): string {
   switch (r.page) {
-    case "home": return "";
+    case "home": case "not-found": return "";
     case "broker": return brokerPath(r.firm.slug);
     case "compare": return r.explicit ? comparePath(r.a.slug, r.b.slug) : pagePath("compare");
     default: return pagePath(r.page);
   }
 }
 
-/** The path this one should be at: null when it is unknown (left alone, rendered as home). */
+/** The path this one should be at: null when it names no page (left alone and rendered as the not-found page). */
 function canonicalPath(d: Data, path: string): string | null {
   const segs = segments(path);
   if (segs.length && segs[0] !== "index.html" && !KNOWN.has(segs[0])) return null;
-  return routePath(parseRoute(d, path));
+  const r = parseRoute(d, path);
+  return r.page === "not-found" ? null : routePath(r);
 }
 
 /** Where a URL from before this routing should go, or null when it is already right. Pure, so it can be tested
@@ -108,8 +120,13 @@ export function normalizeLocation(data: Data, path: string, search: string, hash
         if (ex) query.set("ex", ex.split(",").filter(Boolean).map((x) => slug(x) ?? x).join(","));
         break;
       }
-      case "broker": to = brokerPath(slug(segs[1]) ?? d.brokers[0].slug); break;
-      case "compare": { const a = slug(segs[1]), b = slug(segs[2]); to = a && b ? comparePath(a, b) : pagePath("compare"); break; }
+      // an id the data doesn't know keeps its name in the new path, which then shows the not-found page
+      case "broker": to = segs[1] ? brokerPath(slug(segs[1]) ?? segs[1].toLowerCase()) : pagePath("brokers"); break;
+      case "compare": {
+        const a = slug(segs[1]), b = slug(segs[2]);
+        to = a && b ? comparePath(a, b) : segs[1] && segs[2] ? `compare/${(a ?? segs[1]).toLowerCase()}-vs-${(b ?? segs[2]).toLowerCase()}/` : pagePath("compare");
+        break;
+      }
       case "calculator": { to = pagePath("calculator"); const b = query.get("b"); if (b) query.set("b", slug(b) ?? b); break; }
       case "market-makers": to = pagePath("trading-firms"); break;
       case "method": to = pagePath("how-we-measure"); break;
@@ -126,10 +143,12 @@ export function normalizeLocation(data: Data, path: string, search: string, hash
 const HOME_DESCRIPTION = "Which US brokers get you the best price on a trade, from the reports they must publish by law (SEC Rules 605 and 606). Updated weekly.";
 
 /** <title>, meta description and canonical URL per page, so search results and shared links say what the page is about.
- *  The title ends with " · Fills and Fees" except on home. */
-export function describeRoute(data: Data | Raw, path: string, search: string): { title: string; description: string; canonical: string } {
+ *  The title ends with " · Fills and Fees" except on home. The not-found page has no canonical URL (an empty string) and
+ *  asks not to be indexed (`robots`). */
+export function describeRoute(data: Data | Raw, path: string, search: string): { title: string; description: string; canonical: string; robots?: string } {
   const d = asData(data);
   const r = parseRoute(d, path);
+  if (r.page === "not-found") return { title: `Page not found · ${SITE_NAME}`, description: "There's no page at this address.", canonical: "", robots: "noindex" };
   const canonical = SITE_URL + routePath(r);
   if (r.page === "home") return { title: `${SITE_NAME}: is your broker getting you a good price?`, description: HOME_DESCRIPTION, canonical };
   // descriptions are what a search result shows under the title: each page carries its own numbers where it has them

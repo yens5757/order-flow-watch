@@ -7,7 +7,7 @@ import { Card, Legend, PageHeader, Segmented } from "../components/ui";
 import { BUCKET_LABEL, execKey, OT_LABEL, slugOf, SP_LABEL, type Data, type Filters } from "../lib/data";
 import { num, pct, titleCase } from "../lib/format";
 import { go } from "../lib/hooks";
-import { brokerPath } from "../lib/routes";
+import { brokerPath, href } from "../lib/routes";
 import { useTheme } from "../lib/theme";
 
 /** Firm groups: [chart row label, toggle label, chart row label on phones (line breaks keep them narrow so the plot keeps its width)]. */
@@ -43,7 +43,7 @@ export default function AllFirms({ d, f, set }: { d: Data; f: Filters; set: (p: 
   const shown = group < 0 ? data : data.filter((r) => r.g === group);
 
   const cols: Col<R>[] = [
-    { key: "name", label: "Firm", value: (r) => r.name, render: (r) => <span className={r.tracked ? "font-medium text-ink" : ""}>{r.name}</span> },
+    { key: "name", label: "Firm", pin: true, value: (r) => r.name, render: (r) => <span className={r.tracked ? "font-medium text-ink" : ""}>{r.name}</span> },
     { key: "cat", label: "Category", value: (r) => r.cat },
     { key: "cust", label: "Customer pays", num: true, hint: "Share of the quoted spread the customer paid; lower is better", value: (r) => r.cust, render: (r) => pct(r.cust, 1) },
     { key: "pi", label: "Price-improved", num: true, hint: "Share filled at a better price than the quote", value: (r) => r.pi, render: (r) => pct(r.pi, 0) },
@@ -52,8 +52,8 @@ export default function AllFirms({ d, f, set }: { d: Data; f: Filters; set: (p: 
 
   return (
     <div className="rise">
-      <PageHeader eyebrow="All firms" title="Every firm that reports how well it fills orders"
-        sub={`${data.length} firms file a monthly price report (SEC Rule 605).`} />
+      <PageHeader title="Every firm that reports how well it fills orders"
+        intro={`${data.length} firms file a monthly price report (SEC Rule 605).`} />
       <FilterBar d={d} f={f} set={set} show={["sp", "ot", "b", "month"]} />
       <div className="space-y-5">
         <Card title="Where the brokers on this site sit among every firm" sub={`${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot].toLowerCase()} orders · ${BUCKET_LABEL[f.b].toLowerCase()}`}
@@ -64,7 +64,7 @@ export default function AllFirms({ d, f, set }: { d: Data; f: Filters; set: (p: 
         </Card>
         <Card title="All firms" right={<Segmented size="sm" label="Firm group" value={group} onChange={setGroup} options={[[-1, "All"], ...GROUPS.map(([, p], i) => [i, p] as [number, string])]} />}>
           <DataTable rows={shown} cols={cols} initial={{ key: "cust", dir: 1 }} search={(r) => `${r.name} ${r.id} ${r.cat}`}
-            onRow={(r) => r.tracked && go(brokerPath(slugOf(d, r.id)))} file={`rule605_reporters_${f.month}.csv`} maxHeight={560} />
+            rowHref={(r) => (r.tracked ? href(brokerPath(slugOf(d, r.id))) : null)} file={`rule605_reporters_${f.month}.csv`} maxHeight={560} />
         </Card>
       </div>
     </div>

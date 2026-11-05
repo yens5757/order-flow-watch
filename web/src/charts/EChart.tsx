@@ -38,13 +38,23 @@ export function EChart({ option, height = 320, label, onClick }: {
 
   // ECharts' aria component rewrites the container's aria-label with a generated description (ten data points per series at
   // most) on every setOption, so the hand-written label goes in as that description and wins. Builders with media rules
-  // keep their option under baseOption, where the aria setting has to go too.
+  // keep their option under baseOption, where the aria setting has to go too. Nothing moves for anyone who asked for less
+  // motion: no entry or update animation, no hover transition.
   useEffect(() => {
     if (!ready) return;
-    const aria = { enabled: true, label: { description: label } };
-    const o = option.baseOption ? { ...option, baseOption: { ...(option.baseOption as object), aria } } : { ...option, aria };
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? { animation: false, stateAnimation: { duration: 0 } } : {};
+    const extra = { aria: { enabled: true, label: { description: label } }, ...still };
+    const o = option.baseOption ? { ...option, baseOption: { ...(option.baseOption as object), ...extra } } : { ...option, ...extra };
     chart.current?.setOption(o, { notMerge: true });
   }, [option, label, ready]);
+
+  // Escape hides the tooltip wherever focus is (the tooltip itself can be hovered: kit.ts)
+  useEffect(() => {
+    if (!ready) return;
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") chart.current?.dispatchAction({ type: "hideTip" }); };
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [ready]);
 
   return <div ref={el} role="img" aria-label={label} style={{ height }} className="w-full" />;
 }

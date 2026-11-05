@@ -159,8 +159,8 @@ export default function Method({ d }: { d: Data }) {
 
   return (
     <div className="rise">
-      <PageHeader eyebrow="How we measure" title="How the numbers are measured"
-        sub={`From the reports brokers must publish, refreshed weekly${updated ? `; last updated ${updated}` : ""}. Prices: ${month} (Rule 605). Payments: ${quarter} (Rule 606).`} />
+      <PageHeader title="How the numbers are measured"
+        intro={`From the reports brokers must publish, refreshed weekly${updated ? `; last updated ${updated}` : ""}. Prices: ${month} (Rule 605). Payments: ${quarter} (Rule 606).`} />
 
       <Card title="Where the numbers come from">
         <div className={BODY}>

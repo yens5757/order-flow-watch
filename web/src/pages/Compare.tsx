@@ -241,8 +241,8 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
 
   return (
     <div className="rise">
-      <PageHeader eyebrow="Compare" title={explicit ? `${A.short} vs ${B.short}` : "Compare two brokers"}
-        sub={<>
+      <PageHeader title={explicit ? `${A.short} vs ${B.short}` : "Compare two brokers"}
+        intro={<>
           {!explicit && (
             <span className="mb-1 block font-semibold text-ink">
               Showing <a href={href(comparePath(A.slug, B.slug))} className="text-accent hover:underline">{A.short} vs {B.short}</a>; pick any two above.
@@ -295,7 +295,7 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
                     <th scope="row" className="py-2.5 pr-2 text-left text-[13.5px] font-medium leading-snug text-ink2 max-sm:col-span-2 max-sm:pb-1">
                       {/* the info icon stays glued to the last word, so it never sits alone on a line */}
                       {r.label.slice(0, r.label.lastIndexOf(" ") + 1)}
-                      <span className="whitespace-nowrap">{r.label.slice(r.label.lastIndexOf(" ") + 1)}{r.info && <> <Info>{r.info}</Info></>}</span>
+                      <span className="whitespace-nowrap">{r.label.slice(r.label.lastIndexOf(" ") + 1)}{r.info && <> <Info topic={r.label}>{r.info}</Info></>}</span>
                     </th>
                     {cell(r, "a")}{cell(r, "b")}
                   </tr>

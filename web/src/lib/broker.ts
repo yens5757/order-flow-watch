@@ -169,22 +169,26 @@ export function yearRankWords(y: Year): string | null {
 /* ---------- the price scale ---------- */
 
 export interface ScalePoint { name: string; v: number }
-/** The neutral scale a broker is placed on: cheapest · this broker · typical (the median) · most expensive. */
-export interface ScaleData { lo: ScalePoint; hi: ScalePoint; typ: number; you: ScalePoint | null }
+/** The neutral scale a broker is placed on: cheapest · this broker · typical (the median) · most expensive. `marks` are
+ *  more named dots of the same weight as `you` (Compare's two brokers, for instance); components/broker/Scale.tsx places
+ *  every one at its true position. */
+export interface ScaleData { lo: ScalePoint; hi: ScalePoint; typ: number; you: ScalePoint | null; marks?: ScalePoint[] }
 
-export function scaleOf(points: ScalePoint[], you: ScalePoint | null): ScaleData | null {
+/** The scale of `points` (every broker), with `you` and any further `marks` placed on it. */
+export function scaleOf(points: ScalePoint[], you: ScalePoint | null, marks?: ScalePoint[]): ScaleData | null {
   if (!points.length) return null;
   const sorted = [...points].sort((a, b) => a.v - b.v);
-  return { lo: sorted[0], hi: sorted[sorted.length - 1], typ: median(sorted.map((p) => p.v)) ?? sorted[0].v, you };
+  return { lo: sorted[0], hi: sorted[sorted.length - 1], typ: median(sorted.map((p) => p.v)) ?? sorted[0].v, you, ...(marks?.length ? { marks } : {}) };
 }
 
 /** Each mark's true position along the scale, in percent of its width. A broker outside the ends (a clearing firm
  *  priced past every broker) widens the scale rather than sitting on an end it doesn't share. */
-export function scalePositions(s: ScaleData): { lo: number; hi: number; typ: number; you: number | null } {
-  const vals = [s.lo.v, s.hi.v, s.typ, ...(s.you ? [s.you.v] : [])];
+export function scalePositions(s: ScaleData): { lo: number; hi: number; typ: number; you: number | null; marks: number[] } {
+  const extra = s.marks ?? [];
+  const vals = [s.lo.v, s.hi.v, s.typ, ...(s.you ? [s.you.v] : []), ...extra.map((m) => m.v)];
   const min = Math.min(...vals), max = Math.max(...vals);
   const at = (v: number) => (max > min ? ((v - min) / (max - min)) * 100 : 50);
-  return { lo: at(s.lo.v), hi: at(s.hi.v), typ: at(s.typ), you: s.you ? at(s.you.v) : null };
+  return { lo: at(s.lo.v), hi: at(s.hi.v), typ: at(s.typ), you: s.you ? at(s.you.v) : null, marks: extra.map((m) => at(m.v)) };
 }
 
 /* ---------- one stock group of a broker page, ready to render ---------- */

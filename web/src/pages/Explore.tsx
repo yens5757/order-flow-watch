@@ -48,7 +48,7 @@ function fromUrl(d: Data, search: string): S {
 function Group({ title, children, info }: { title: string; children: ReactNode; info?: ReactNode }) {
   return (
     <div className="border-b border-line py-4 first:pt-0 last:border-0 last:pb-0">
-      <div className="mb-2.5 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wider text-muted">{title}{info && <Info>{info}</Info>}</div>
+      <div className="mb-2.5 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wider text-muted">{title}{info && <Info topic={title}>{info}</Info>}</div>
       {children}
     </div>
   );
@@ -231,7 +231,7 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
           <Switch label="Only brokers paid for orders" checked={s.paid} onChange={(paid) => set({ paid })} />
           <div className="flex items-center gap-1.5">
             <Switch label="Show Apex Clearing" checked={s.clr} onChange={(clr) => set({ clr })} />
-            <Info>Apex routes orders for several brokers; you can't open an account there.</Info>
+            <Info topic="Apex Clearing">Apex routes orders for several brokers; you can't open an account there.</Info>
           </div>
         </div>
       </Group>
@@ -245,8 +245,8 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
 
   return (
     <div className="rise">
-      <PageHeader eyebrow="Brokers" title="Every broker, every number"
-        sub="The link in your address bar saves your view." />
+      <PageHeader title="Every broker, every number"
+        intro="The link in your address bar saves your view." />
 
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open}
         className="mb-4 inline-flex w-full items-center justify-between rounded-xl border border-line bg-surface px-4 py-3 text-[14px] font-semibold text-ink lg:hidden">
@@ -275,7 +275,7 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
             right={<a href={href(pagePath("firms"))} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent">Every firm that reports ({Object.keys(d.reporters).length})<Icon name="arrow" size={14} /></a>}>
             <DataTable key={`${s.m}-${s.sort}`} rows={shown} cols={cols} highlight={[s.m, s.vs]}
               initial={s.sort === "az" ? { key: "name", dir: 1 } : { key: s.m, dir: ((M.better ? dir : -1) * (s.sort === "worst" ? -1 : 1)) as 1 | -1 }}
-              onRow={(r) => go(brokerPath(r.f.slug))} search={(r) => `${r.f.short} ${r.f.name}`}
+              rowHref={(r) => href(brokerPath(r.f.slug))} search={(r) => `${r.f.short} ${r.f.name}`}
               file={`brokers-${s.sp === "Y" ? "sp500" : "other-stocks"}-${s.ot === "M" ? "market" : "marketable-limit"}-orders.csv`} />
           </Card>
         </div>

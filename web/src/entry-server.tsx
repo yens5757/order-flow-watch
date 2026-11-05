@@ -23,14 +23,16 @@ export function render(path: string, search: string, data: Data): { html: string
       <AppShell data={data} path={path} search={search} />
     </ThemeProvider>,
   );
-  const { title, description, canonical } = describeRoute(data, path, search);
+  const { title, description, canonical, robots } = describeRoute(data, path, search);
+  // a page without a canonical URL (the not-found page) gets no canonical link and no og:url, and asks not to be indexed
   const head = [
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(description)}" />`,
-    `<link rel="canonical" href="${esc(canonical)}" />`,
+    robots ? `<meta name="robots" content="${esc(robots)}" />` : "",
+    canonical ? `<link rel="canonical" href="${esc(canonical)}" />` : "",
     `<meta property="og:title" content="${esc(title)}" />`,
-    `<meta property="og:url" content="${esc(canonical)}" />`,
+    canonical ? `<meta property="og:url" content="${esc(canonical)}" />` : "",
     `<meta property="og:description" content="${esc(description)}" />`,
-  ].join("\n    ");
+  ].filter(Boolean).join("\n    ");
   return { html, head, canonical };
 }

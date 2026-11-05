@@ -151,7 +151,7 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
   // one sourcing line per page: the fee source and its check date are stated here on Home, and by the calculator page's own card otherwise
   const foot = <>Prices: SEC Rule 605 reports for {monthLong(d.meta.month)}, orders of your size.{compact && <> Fees: each broker's own pages, {checked}.</>} Estimates, not advice.</>;
   const brokerPick = <Select label="Your broker" value={me?.id ?? ""} onChange={choose} options={[...lines].sort((a, b) => a.short.localeCompare(b.short)).map((l) => [l.id, l.short])} />;
-  const mixInfo = <Info>Big companies = S&P 500 stocks; other = everything else, including ETFs; a mix = half of each.</Info>;
+  const mixInfo = <Info topic="what you trade">Big companies = S&P 500 stocks; other = everything else, including ETFs; a mix = half of each.</Info>;
   const asTable = (rows: CostLine[]) => (
     <ChartTable head={["Broker", "Total per year", ...PARTS.map((p) => p.label)]}
       rows={rows.map((r) => [r.short + (r.gaps.length ? " *" : ""), perYear(r.total), ...PARTS.map((p) => (r[p.key] === 0 && p.facts.some((f) => r.missing.includes(f)) ? "–" : perYear(r[p.key])))])} />

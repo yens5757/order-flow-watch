@@ -84,8 +84,8 @@ export default function Calculator({ d, search }: { d: Data; search: string }) {
 
   return (
     <div className="rise">
-      <PageHeader eyebrow="Calculator" title="What does your broker cost you per year?"
-        sub="Enter how you trade; see the yearly cost at every broker."
+      <PageHeader title="What does your broker cost you per year?"
+        intro="Enter how you trade; see the yearly cost at every broker."
         right={
           <button type="button" onClick={copy} className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-[14px] font-semibold text-ink hover:border-accent">
             <Icon name={copied ? "check" : "ext"} size={16} />{copied ? "Link copied" : "Copy link"}
