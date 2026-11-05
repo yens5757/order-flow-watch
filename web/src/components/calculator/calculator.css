@@ -12,8 +12,10 @@
 /* one column that never grows past the page: a wide chart or table scrolls inside its own card instead */
 .calc-board { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .calc-more { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 16px; }
+/* the broker page's 648:448, the inputs never under 400px: below that (1024px to about 1050px) each number box dropped
+   under its label and the inputs ran 120px and more below the answer */
 @media (min-width: 1024px) {
-  .calc-board { grid-template-columns: minmax(0, 648fr) minmax(0, 448fr); column-gap: 24px; align-items: start; }
+  .calc-board { grid-template-columns: minmax(0, 648fr) minmax(400px, 448fr); column-gap: 24px; align-items: start; }
 }
 
 /* ---------- the answer ---------- */

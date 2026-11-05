@@ -355,7 +355,7 @@ One centred column, `min(100% - 2 × gutter, 70rem)`, with 24px gutters (16px un
 The other pages use the same board or one column of full-width cards:
 - **Home:** the answer card, a one-line yearly card, the findings and a few side-by-side comparisons on the left; every broker ranked in a table on the right (two equal columns from 1024px so the four-column table fits, 648:448 from 1200px). Below 1024px one stack with the ranking after the yearly line, opening on the picked broker and three either side, with "See all".
 - **Compare:** the answer card and the side-by-side table on the left; cost by order size, the typical year, what each is paid and registration on the right; other comparisons at full width under the board.
-- **Calculator:** the answer on the left, "How you trade" on the right; the ranking, every broker's table and "How it adds up" at full width beneath.
+- **Calculator:** the answer on the left, "How you trade" on the right (never under 400px, so each number box stays at the end of its row from 1024px); the ranking, every broker's table and "How it adds up" at full width beneath.
 - **How we measure:** the reading column on the left, "On this page" in the right column (straight after the first card below 1024px); the evidence card at full width last.
 - **Brokers (explorer), Trading firms, All firms:** one column of full-width cards under the page's controls.
 - **Not found:** the page header and one card of three soft pills (Home, Brokers, Compare), at the 44rem reading width.
