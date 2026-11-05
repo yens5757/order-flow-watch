@@ -1,0 +1,197 @@
+/* The comparison pages (pages/Compare.tsx and the components beside this file), in the broker page's world: its board,
+   value rows, scale and type steps (components/broker/broker.css), the tokens in src/index.css, the shared pieces in
+   components/ui.css. Every class here starts with cmp-, so nothing reaches another page. */
+
+/* tablet and phone: a reading width, the header and footer with it, as on the broker page */
+@media (max-width: 1023px) {
+  [data-page="compare"] .wrap { width: min(100% - 2 * var(--gut), 44rem); }
+}
+
+/* the table's row of names stays at the top of the window while the table scrolls past: keyboard focus and in-page jumps
+   land clear of it */
+html:has(.cmp-tbl) { scroll-padding-top: 72px; }
+
+/* ---------- the heading and the pair picker ---------- */
+.ph.cmp-head { margin-bottom: 20px; }
+.cmp-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; min-width: 0; }
+.cmp-pick .sel select { padding: 0 42px 0 18px; }
+.cmp-vs { font-weight: 600; color: var(--ink-2); }
+
+/* ---------- the two filters and the month ---------- */
+.cmp-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.cmp-ot { display: inline-flex; align-items: center; gap: 12px; min-width: 0; max-width: 100%; }
+.cmp-scope { color: var(--ink-2); font-weight: 500; }
+
+/* ---------- the board: two independent stacks of cards on a desktop, one stack below ---------- */
+.cmp-board { display: grid; gap: 16px; margin-top: 22px; }
+.cmp-col { display: grid; gap: 16px; align-content: start; min-width: 0; }
+/* a card never widens its column past the screen: a wide chart or table scrolls inside its own box */
+.cmp-col > * { min-width: 0; }
+.cmp-year.cmp-year-side { display: none; }
+.cmp-more { margin-top: 16px; }
+.cmp-same { margin-top: 22px; }
+.cmp-sub { margin-top: 6px; color: var(--ink-2); }
+.cmp-nw { white-space: nowrap; }
+
+/* value rows (the answer's two places, the two years, what each is paid): label left with an optional note, value right */
+.cmp-rows { margin-top: 16px; }
+.cmp-rows > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; padding: 8px 0; border-top: 1px solid var(--border); }
+.cmp-rows dt { min-width: 0; font-weight: 600; line-height: 1.3; }
+.cmp-rows dt small, .cmp-rows dd small { display: block; margin-top: 2px; font-size: var(--fs-1); font-weight: 500; line-height: 1.35; color: var(--ink-2); }
+.cmp-rows dd { font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.cmp-rows .unknown { font-weight: 600; color: var(--ink-2); }
+.cmp-note { margin-top: 14px; max-width: 60ch; color: var(--ink-2); }
+/* an in-text link: ink, underlined in the action colour, with a 44px tall hit area (padding on an inline box adds no height
+   to its line) */
+.cmp-a { padding: 14px 0; color: var(--ink); font-weight: 600; text-decoration: underline 2px var(--accent); text-underline-offset: 5px; }
+.cmp-a:hover { text-decoration-thickness: 3px; }
+
+/* ---------- the answer: the gap, the two places, the scale, the short answer ---------- */
+.cmp-fig { display: flex; flex-wrap: wrap; align-items: flex-end; column-gap: 18px; row-gap: 6px; }
+.cmp-amt { font-size: var(--fs-7); line-height: .92; font-weight: 800; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.cmp-per { padding-bottom: 4px; font-size: var(--fs-4); line-height: 1.3; font-weight: 600; }
+.cmp-lead { font-size: var(--fs-4); line-height: 1.3; font-weight: 700; letter-spacing: -.01em; text-wrap: balance; }
+.cmp-places { margin-top: 24px; }
+.cmp-answer .scale { margin-top: 22px; }
+.cmp-say { margin-top: 22px; max-width: 60ch; }
+.cmp-say p { font-size: var(--fs-3); line-height: 1.55; }
+.cmp-say p + p { margin-top: 12px; }
+
+/* the scale's table: every broker it places, the two compared on Here-tinted rows */
+.cmp-rank { margin-top: 10px; }
+.cmp-rank .tbl tbody th a { color: var(--ink); text-decoration: underline 1.5px var(--accent); text-underline-offset: 4px; }
+.cmp-rank .tbl tbody th a:hover { text-decoration-thickness: 2.5px; }
+.cmp-rank .tbl tr.here > :is(th, td) { background: var(--here); border-top-color: transparent; font-weight: 700; color: var(--ink); }
+.cmp-rank .tbl tr.here > :first-child { border-radius: 14px 0 0 14px; }
+.cmp-rank .tbl tr.here > :last-child { border-radius: 0 14px 14px 0; }
+.cmp-rank .tbl tr.here + tr > * { border-top-color: transparent; }
+
+/* ---------- a typical year at each ---------- */
+.cmp-year { display: flex; flex-direction: column; }
+.cmp-year h2.cmp-year-a { font-size: var(--fs-5); line-height: 1.1; letter-spacing: -.03em; }
+.cmp-year .cmp-sub { margin-top: 8px; }
+.cmp-act { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+.cmp-act p { flex: 1 1 13rem; line-height: 1.45; color: var(--ink-2); }
+
+/* ---------- side by side: a real table, its row of names held at the top while it scrolls past ---------- */
+.cmp-tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+.cmp-tbl :is(th, td) { padding: 12px 10px; border-top: 1px solid var(--border); text-align: left; vertical-align: middle; }
+.cmp-tbl thead :is(th, td) { position: sticky; top: 0; z-index: 2; padding-top: 0; padding-bottom: 4px; border-top: 0; background: var(--surface); box-shadow: inset 0 -1px 0 var(--rule); }
+.cmp-tbl .c-lab { padding-left: 0; font-weight: 500; line-height: 1.35; }
+.cmp-tbl .c-lab small { display: block; margin-top: 2px; font-size: var(--fs-1); color: var(--ink-2); }
+.cmp-tbl .c-i { width: 44px; padding: 0; text-align: center; }
+.cmp-tbl .c-v { width: 24%; text-align: right; white-space: nowrap; }
+.cmp-tbl :is(th, td):last-child { padding-right: 0; }
+.cmp-tbl .c-grp { padding: 28px 0 8px; border-top: 0; font-size: var(--fs-3); font-weight: 700; line-height: 1.3; }
+.cmp-tbl tbody:first-of-type .c-grp { padding-top: 16px; }
+.cmp-tbl .c-grp span { margin-left: 12px; font-size: var(--fs-1); font-weight: 500; color: var(--ink-2); }
+.cmp-tbl .c-win { font-weight: 700; }
+.cmp-tbl .c-win svg { display: inline; vertical-align: -3px; color: var(--ink-2); }
+.cmp-tbl .c-win .tk-a { margin-right: 4px; }
+.cmp-tbl .c-win .tk-b { display: none; margin-left: 4px; }
+.cmp-tbl .c-na { font-weight: 600; color: var(--ink-2); white-space: normal; }
+.cmp-nm { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); font-weight: 700; text-decoration: underline 2px var(--accent); text-underline-offset: 6px; }
+.cmp-nm:hover { text-decoration-thickness: 3px; }
+.cmp-sbs .card-foot p + p { margin-top: 6px; }
+.cmp-tick { display: inline; margin-right: 2px; vertical-align: -3px; color: var(--ink-2); }
+
+/* ---------- what each is paid; registration ---------- */
+.cmp-pay-rows dd { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0 14px; }
+.cmp-reg-list > li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 16px; padding: 12px 0 14px; border-top: 1px solid var(--border); }
+.cmp-reg-nm { flex: 1 1 10rem; min-width: 0; line-height: 1.3; }
+.cmp-reg-nm strong { display: block; font-weight: 700; }
+.cmp-reg-nm small { display: block; margin-top: 2px; font-size: var(--fs-1); color: var(--ink-2); }
+.cmp-facts { display: flex; flex: 1 1 100%; flex-wrap: wrap; gap: 4px 20px; }
+.cmp-facts span { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+
+/* ---------- cost by order size ---------- */
+.cmp-take { margin-bottom: 14px; max-width: 60ch; }
+.cmp-size .lgd { margin-bottom: 4px; }
+
+/* ---------- other comparisons: soft pills, then every pair ---------- */
+.cmp-pills { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: 10px; }
+.cmp-pills .cmp-here, .cmp-pills .cmp-here:hover { justify-content: flex-start; background: var(--here); color: var(--ink); }
+.cmp-every { margin-top: 12px; }
+.cmp-every > summary { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--accent); font-weight: 600; cursor: pointer; list-style: none; text-underline-offset: 4px; }
+.cmp-every > summary::-webkit-details-marker { display: none; }
+.cmp-every > summary:hover { color: var(--accent-hover); text-decoration: underline; }
+.cmp-every > summary svg { transition: transform .35s var(--ease-out); }
+.cmp-every[open] > summary svg { transform: rotate(180deg); }
+.cmp-all { margin-top: 6px; }
+.cmp-all > li { display: grid; grid-template-columns: 9rem minmax(0, 1fr); align-items: start; column-gap: 16px; padding: 6px 0; border-top: 1px solid var(--border); }
+.cmp-all-x { padding: 6px 0; font-weight: 700; line-height: 1.35; }
+.cmp-all ul { display: flex; flex-wrap: wrap; column-gap: 18px; }
+.cmp-all a { display: inline-flex; align-items: center; min-height: 34px; color: var(--ink); text-decoration: underline 1.5px var(--accent); text-underline-offset: 4px; }
+.cmp-all a:hover { text-decoration-thickness: 2.5px; }
+.cmp-all a[aria-current="page"] { font-weight: 700; text-decoration: none; }
+
+/* ---------- desktop: two independent stacks in the broker page's ratio ---------- */
+@media (min-width: 1024px) {
+  .cmp-board { grid-template-columns: minmax(0, 648fr) minmax(0, 448fr); column-gap: 24px; align-items: start; }
+  .cmp-year.cmp-year-flow { display: none; }
+  .cmp-year.cmp-year-side { display: flex; }
+  .cmp-more { margin-top: 24px; }
+}
+
+/* ---------- phone ---------- */
+@media (max-width: 599px) {
+  .ph.cmp-head { margin-bottom: 16px; }
+  /* the picker spans the width: the two boxes side by side, "Compare" under them */
+  .cmp-pick { display: grid; flex: 1 1 100%; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .cmp-pick :is(.sel, .sel-box, select) { width: 100%; }
+  .cmp-pick .btn { grid-column: 1 / -1; }
+  .cmp-filter { gap: 10px; }
+  .cmp-ot { display: flex; width: 100%; gap: 8px; }
+  .cmp-ot .segm { flex: 1 1 auto; width: auto; min-width: 0; }
+  .cmp-scope { font-size: var(--fs-1); line-height: 1.3; }
+  .cmp-board, .cmp-col { gap: 12px; }
+  .cmp-board { margin-top: 14px; }
+  .cmp-more, .cmp-same { margin-top: 12px; }
+  .cmp-per { font-size: var(--fs-3); }
+  .cmp-places { margin-top: 16px; }
+  .cmp-answer .scale { margin-top: 14px; }
+  .cmp-say { margin-top: 16px; }
+
+  /* the table restacks: each measure's label (and its (i)) on one line, the two values under the names; the row of names
+     is the table's sticky head. The ARIA roles keep it a table for screen readers. */
+  .cmp-tbl, .cmp-tbl thead, .cmp-tbl tbody { display: block; }
+  .cmp-tbl thead { position: sticky; top: 0; z-index: 2; background: var(--surface); box-shadow: 0 1px 0 var(--rule); }
+  .cmp-tbl tr { display: flex; flex-wrap: wrap; align-items: center; column-gap: 12px; }
+  .cmp-tbl :is(th, td) { display: block; padding: 0; border: 0; }
+  .cmp-tbl thead :is(th, td) { position: static; padding: 0; box-shadow: none; }
+  .cmp-tbl thead :is(.c-lab, .c-i) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); }
+  .cmp-tbl thead tr { padding: 0 0 2px; }
+  .cmp-tbl tbody tr { padding: 10px 0 12px; border-top: 1px solid var(--border); }
+  .cmp-tbl tbody tr.c-grp-row { padding: 22px 0 4px; border-top: 0; }
+  .cmp-tbl tbody:first-of-type tr.c-grp-row { padding-top: 12px; }
+  .cmp-tbl .c-grp { flex: 1 1 100%; padding: 0; }
+  .cmp-tbl .c-grp span { display: block; margin: 2px 0 0; }
+  .cmp-tbl .c-lab { flex: 0 1 auto; max-width: calc(100% - 56px); padding: 0; }
+  .cmp-tbl .c-i { flex: 0 0 auto; width: auto; }
+  .cmp-tbl .c-i:empty { flex-basis: 0; width: 0; overflow: hidden; }
+  .cmp-tbl tr::after { content: ""; flex: 1 1 100%; order: 1; }
+  .cmp-tbl .c-v { flex: 1 1 0; order: 2; width: auto; min-width: 0; text-align: left; white-space: normal; }
+  .cmp-tbl tbody .c-v { margin-top: 4px; }
+  /* values start at one edge in each half: the tick follows the figure */
+  .cmp-tbl .c-win .tk-a { display: none; }
+  .cmp-tbl .c-win .tk-b { display: inline; }
+
+  .cmp-all > li { grid-template-columns: minmax(0, 1fr); }
+  .cmp-all-x { padding: 6px 0 0; }
+  .cmp-all a { min-height: 44px; }
+}
+/* the smallest phones: the two boxes one above the other */
+@media (max-width: 359px) {
+  .cmp-pick { grid-template-columns: minmax(0, 1fr); }
+  .cmp-vs { display: none; }
+}
+
+/* a forced-colours theme drops fills: the two compared rows of the scale's table keep an outline */
+@media (forced-colors: active) {
+  .cmp-rank .tbl tr.here { outline: 2px solid CanvasText; outline-offset: -2px; }
+}
+
+/* nothing turns for anyone who asked for less motion (index.css stops every transition too) */
+@media (prefers-reduced-motion: reduce) {
+  .cmp-every > summary svg { transition: none; }
+}
