@@ -34,6 +34,6 @@ STORY: The visitor sees their broker's yearly cost before any input, changes the
 
 FIRST VIEWPORT: Header (wordmark, nav with Calculator current, theme toggle); h1 "What does your broker cost you a year?". Desktop: the answer card left (select, "About $9 a year" at Display size, scope line, part rows, rank) and "How you trade" right (trades, size, what you trade, the three questions), both above the fold. Phone: the h1, then the answer card's select, figure, scope line and rows; the inputs start below and pin the echo when scrolled to. Nothing else sticky.
 
-FORM: inherits the established world; no new direction round. seed: none (unavailable).
+FORM: inherits the established world (the broker page's direction contract); no new direction round. seed:79f5bd6605318015 (inherited from web-src-pages-brokerprofile-tsx.md; no new roll).
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

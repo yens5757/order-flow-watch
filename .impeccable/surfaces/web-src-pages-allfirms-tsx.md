@@ -32,6 +32,6 @@ STORY: The visitor sees the whole field at a glance, finds a firm by name, group
 
 FIRST VIEWPORT: Header with Brokers current; breadcrumb; h1 "Every firm with a price report" with the month picker at its right on a desktop; the one-row filter bar (sticky from 1024px); the rails card with its four rows and axis. Phone: breadcrumb, h1, month, the filters full width, then the rails.
 
-FORM: inherits the established world; no new direction round. seed: none (unavailable). Signature interaction: every firm's dot glides along its rail when a filter changes, the table re-sorting with it (nothing moves under reduced motion).
+FORM: inherits the established world (the broker page's direction contract); no new direction round. seed:79f5bd6605318015 (inherited from web-src-pages-brokerprofile-tsx.md; no new roll). Signature interaction: every firm's dot glides along its rail when a filter changes, the table re-sorting with it (nothing moves under reduced motion).
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

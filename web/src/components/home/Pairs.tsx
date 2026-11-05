@@ -1,5 +1,6 @@
-// The comparisons people search for most, each a quiet pill to its page (the broker page's soft pills), and the compare
-// page for any other two.
+// A few side-by-side comparisons, each a quiet pill to its page (the broker page's soft pills), and the compare page for any
+// other two. The list is picked by hand: nothing measures which pairs visitors look up yet, so the card never calls them
+// popular (bring that word back only once Search Console or Web Analytics data drives the list).
 import type { Data } from "../../lib/data";
 import { comparePath, href, pagePath, pairOrder } from "../../lib/routes";
 import { Card, Icon } from "../ui";
@@ -11,7 +12,7 @@ export function Pairs({ d }: { d: Data }) {
   const pairs = PAIRS.filter(([a, b]) => d.byId[a] && d.byId[b]).map(([a, b]) => pairOrder(d.byId[a], d.byId[b]));
   if (!pairs.length) return null;
   return (
-    <Card className="hm-pairs" title="Popular comparisons"
+    <Card className="hm-pairs" title="Compare side by side"
       right={<a className="go" href={href(pagePath("compare"))}>Pick any two<Icon name="arrow" size={20} /></a>}>
       <ul className="hm-pills">
         {pairs.map(([x, y]) => (

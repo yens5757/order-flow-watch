@@ -1,7 +1,9 @@
 // "On this page": the page's sections in reading order, each a row that jumps to its card. It follows the first card in
 // the page, so Tab and screen readers reach it second; on phones and tablets it shows there, and on a desktop CSS moves it
 // into the right-hand column (method.css), where it stays in view beside the reading column (it covers nothing: the
-// column is its own) and marks the section being read with the Here tint, as a table marks the page's own row.
+// column is its own) and marks the section being read with the Here tint, as a table marks the page's own row. Each row
+// ends in the world's go-to arrow ("Details", "Every broker's gap"), never the down chevron, which on this page and the
+// broker page means "opens in place".
 import { useEffect, useState, type CSSProperties } from "react";
 import { Icon } from "../ui";
 
@@ -67,7 +69,7 @@ export function Contents({ rows }: { rows: number }) {
       <ul>
         {SECTIONS.map((s) => (
           <li key={s.id}>
-            <a href={`#${s.id}`} aria-current={cur === s.id ? "location" : undefined}><span>{s.title}</span><Icon name="down" size={18} /></a>
+            <a href={`#${s.id}`} aria-current={cur === s.id ? "location" : undefined}><span>{s.title}</span><Icon name="arrow" size={18} /></a>
           </li>
         ))}
       </ul>

@@ -30,6 +30,6 @@ STORY: The visitor learns that a handful of trading firms fill most orders and t
 
 FIRST VIEWPORT: Header with Trading firms current; h1 "Who fills your order?" and one line; the filter bar; the prices card leads with its generated sentence and the ranked rails (desktop shows most of the eight firms; a phone shows the sentence and the first rows).
 
-FORM: inherits the established world; no new direction round. seed: none (unavailable). Signature carried over from the broker page: the neutral rail and ink dot, gliding and re-ranking on the stock switch.
+FORM: inherits the established world (the broker page's direction contract); no new direction round. seed:79f5bd6605318015 (inherited from web-src-pages-brokerprofile-tsx.md; no new roll). Signature carried over from the broker page: the neutral rail and ink dot, gliding and re-ranking on the stock switch.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

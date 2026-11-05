@@ -64,6 +64,12 @@ colors:
   series-6-dark: "#008300"
   series-7-dark: "#9085e9"
   series-8-dark: "#e66767"
+  ramp-1: "#374642"
+  ramp-2: "#5E6B66"
+  ramp-3: "#83908B"
+  ramp-1-dark: "#EAF1EE"
+  ramp-2-dark: "#A5B3AE"
+  ramp-3-dark: "#76837E"
 typography:
   display:
     fontFamily: "Figtree Variable, Figtree, system-ui, -apple-system, Segoe UI, sans-serif"
@@ -251,6 +257,7 @@ A near-monochrome system of teal-tinted greys with one saturated teal for action
 ### Series (charts only)
 - **Validated series palette** (series-1 … series-8, stepped separately per theme): chart lines and bars, read into ECharts from the CSS custom properties. series-1 is "paid", series-2 is "cost"; better/worse reuse series-1/series-8. Never used for text, controls or cards. A trading firm keeps one series colour on every chart of the Trading firms page.
 - **Sequential steps** (seq-0, seq-1, seq-3, seq-4; the dark variants run the other way): the four shades of the routing heat table. Light cells take ink, dark cells the card colour, every pair at least 5.4:1; the number is written in every cell.
+- **Neutral ramp** (ramp-1 … ramp-3, ink to light sage; dark variants light to mid sage; each at least 3:1 on the card, about 15 lightness steps apart): a chart's series where every series colour already means something else. On Trading firms the eight series colours name firms, so a broker's payment rate is an ink line and its dollars by type of trade are ramp-stacked columns, each with its HTML key and table.
 
 ### Named Rules
 **The Press-Only Teal Rule.** Teal marks only what can be pressed or what has keyboard focus. A heading, a figure, a badge, a decorative shape or a "good" value is never teal. If it is teal, clicking it does something.
@@ -288,7 +295,7 @@ The scale has seven rem steps so it follows the reader's own text size; the top 
 One centred column, `min(100% - 2 × gutter, 70rem)`, with 24px gutters (16px under 600px). Pages that read rather than browse (a broker, Home, Compare, the calculator, How we measure) narrow to a 44rem reading width under 1024px. On a desktop (1024px and up) the broker page is a board of two independent stacks of cards in a 648:448 ratio with a 24px column gap, each card as tall as its content; below 1024px it is one stack, with the secondary card placed straight after the answer card so its top edge peeks into the first screen. Cards are separated by 16px (12px on phones) and padded 30px 32px (20px on phones).
 
 The other pages use the same board or one column of full-width cards:
-- **Home:** the answer card, a one-line yearly card, the findings and popular comparisons on the left; every broker ranked in a table on the right (two equal columns from 1024px so the four-column table fits, 648:448 from 1200px). Below 1024px one stack with the ranking after the yearly line, opening on the picked broker and three either side, with "See all".
+- **Home:** the answer card, a one-line yearly card, the findings and a few side-by-side comparisons on the left; every broker ranked in a table on the right (two equal columns from 1024px so the four-column table fits, 648:448 from 1200px). Below 1024px one stack with the ranking after the yearly line, opening on the picked broker and three either side, with "See all".
 - **Compare:** the answer card and the side-by-side table on the left; the typical year, what each is paid, registration and cost by order size on the right; other comparisons at full width under the board.
 - **Calculator:** the answer on the left, "How you trade" on the right; the ranking, every broker's table and "How it adds up" at full width beneath.
 - **How we measure:** the reading column on the left, "On this page" in the right column (straight after the first card below 1024px); the evidence card at full width last.
@@ -389,7 +396,7 @@ Everywhere else the shared (i) sits beside a heading or a term, never inside a h
 - **Comparison table (Compare):** two value columns under a sticky row of the two names. A neutral ink check marks the better value (before it, after it on phones) with a screen-reader "better:"; rows without one are context, not a score. Unknowns in words; the (i)s in their own column so row headings stay clean.
 - **Heat table (Trading firms):** the routing matrix as a real table, each cell shaded in one of four sequential steps with 2px card-coloured borders as gaps and its number written in it; the first column is pinned while the table scrolls sideways, broker names link to their section below, and the broker shown there is on the Here tint.
 - **Sortable table:** column headings are 44px buttons with aria-sort, the ring inset and clear of the label; rows without a value stay last in their given order whichever way a column sorts. Charts rank only complete figures; a broker missing a part is named under the chart and shown "at least" in the table.
-- **Contents (How we measure):** "On this page" as a card of rows that jump to each section, the section being read on the Here tint. A teal disclosure (a summary with a chevron, like "Show as a table") holds anything longer than a line.
+- **Contents (How we measure):** "On this page" as a card of rows that jump to each section, each ending in the go arrow (a down chevron means "opens in place"), the section being read on the Here tint. A teal disclosure (a summary with a chevron, like "Show as a table") holds anything longer than a line.
 
 ## Do's and Don'ts
 

@@ -30,6 +30,6 @@ STORY: The visitor reads the gap in dollars and the two places on the scale in o
 
 FIRST VIEWPORT: Header (wordmark, nav with Compare current, theme button); the h1 naming the pair with the pair picker (two selects and a Compare link) beside it on a desktop and under it on a phone; the stock and order-type switches with the month; the answer card: the gap at Display size with "cheaper at <broker> / per $10,000 traded" and its (i), each broker's figure and rank, the scale with both dots. Desktop: the typical-year card to the right. Phone: the answer card starts in the first screen; nothing sticky.
 
-FORM: inherits the established world; no new direction round. seed: none (unavailable)
+FORM: inherits the established world (the broker page's direction contract); no new direction round. seed:79f5bd6605318015 (inherited from web-src-pages-brokerprofile-tsx.md; no new roll)
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

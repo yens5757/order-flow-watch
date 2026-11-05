@@ -32,6 +32,6 @@ STORY: The visitor picks a measure and sees at once who leads and who trails and
 
 FIRST VIEWPORT: Header with Brokers current; h1 "Every broker, every number", one line, "Copy link" at its right; the two control rows; the chart card's title, scope, sentence and the first rows of the rail chart. Phone: h1, "Change view" and "Copy link", then the chart card with its sentence and first rows; nothing sticky.
 
-FORM: inherits the established world; no new direction round. seed: none (unavailable). Signature interaction: the rows of the rail chart re-sort in place and every dot glides to its new value when the measure, a filter or the order changes (nothing moves under reduced motion).
+FORM: inherits the established world (the broker page's direction contract); no new direction round. seed:79f5bd6605318015 (inherited from web-src-pages-brokerprofile-tsx.md; no new roll). Signature interaction: the rows of the rail chart re-sort in place and every dot glides to its new value when the measure, a filter or the order changes (nothing moves under reduced motion).
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

@@ -76,8 +76,10 @@ export function ByBroker({ d, f, firm, slot }: { d: Data; f: Filters; firm: Firm
   const known = hist.filter((v): v is number => v != null);
   const anchor = { min: known.some((v) => v < 0) ? undefined : 0, max: known.some((v) => v > 0) ? undefined : 0 };
   const rateFmt = (v: number) => `${Number.isInteger(v) ? v : v.toFixed(1)}¢`;
+  // the series colours name trading firms on this page (the ring above, the off-exchange lines), so the rate is drawn in ink
+  // and the types of trade below on the neutral ramp: a reader who has learned the ring never reads a firm into them
   const histChart = useMemo(() => ({
-    ...lines(t, qs.map(quarterShort), [{ name: "Paid per 100 shares", values: hist, color: t.s[0] }], { fmt: rateFmt, area: false, ...anchor }),
+    ...lines(t, qs.map(quarterShort), [{ name: "Paid per 100 shares", values: hist, color: t.ink }], { fmt: rateFmt, area: false, ...anchor }),
     // one series: the heading names it, so no legend
     legend: { show: false },
     grid: { left: 8, right: 20, top: 14, bottom: 8, containLabel: true },
@@ -85,7 +87,7 @@ export function ByBroker({ d, f, firm, slot }: { d: Data; f: Filters; firm: Firm
 
   const segs = [["SP500", "S&P 500", 0], ["OtherStocks", "Other stocks", 1], ["Options", "Options", 2]] as const;
   const usd = segs.map(([k, name, i]) => ({
-    name, color: t.s[i], css: `var(--s${i + 1})`,
+    name, color: t.ramp[i], css: `var(--ramp-${i + 1})`,
     values: qs.map((q) => d.usd.filter((u) => u.crd === firm.crd && u.q === q && u.seg === k).reduce((a, u) => a + Math.max(0, u.usd), 0)),
   }));
   const usdTotal = usd.reduce((a, s) => a + s.values.reduce((x, y) => x + y, 0), 0);

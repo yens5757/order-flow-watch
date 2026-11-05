@@ -18,6 +18,8 @@ export interface Tokens {
   better: string; worse: string; context: string; neutral: string;
   good: string; warning: string; critical: string;
   seq: string[];
+  /** the neutral ramp, ink to light sage (each 3:1 on the card): a chart's parts where the series colours name firms */
+  ramp: string[];
   /** the raised panel's shadow (the chart tooltip's), as CSS */
   pop: string;
 }
@@ -47,6 +49,7 @@ function read(dark: boolean): Tokens {
     better: v("--better"), worse: v("--worse"), context: v("--context"), neutral: v("--neutral"),
     good: v("--good"), warning: v("--warning"), critical: v("--critical"),
     seq: [0, 1, 2, 3, 4].map((i) => v(`--seq-${i}`)),
+    ramp: [1, 2, 3].map((i) => v(`--ramp-${i}`)),
     pop: v("--pop"),
   };
 }

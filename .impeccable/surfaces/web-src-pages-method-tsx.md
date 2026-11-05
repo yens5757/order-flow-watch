@@ -32,6 +32,6 @@ STORY: The reader learns in the first screen that every figure comes from three 
 
 FIRST VIEWPORT: Header with the nav (no item current) and the theme switch; h1 "How we measure" and one line; the answer card "Where the numbers come from" with three dated rows (prices: SEC Rule 605, the latest month; payments: SEC Rule 606, the latest quarter with late filers named; fees: each broker's own price list, the check date). Desktop: "On this page" beside it and the top of the fair-price card below. Phone: the contents card's top edge under the answer card.
 
-FORM: inherits the established world; no new direction round. seed: none (unavailable). The signature is used where it explains (the worked spread, the forest table's rails) and the switch's glide is the one motion.
+FORM: inherits the established world (the broker page's direction contract); no new direction round. seed:79f5bd6605318015 (inherited from web-src-pages-brokerprofile-tsx.md; no new roll). The signature is used where it explains (the worked spread, the forest table's rails) and the switch's glide is the one motion.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

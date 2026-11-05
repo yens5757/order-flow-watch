@@ -18,7 +18,7 @@ function amount(v: number): [string, string] {
   return [money(Math.abs(v)), c > 0 ? "above the fair price" : c < 0 ? "below the fair price" : "at the fair price"];
 }
 
-/** The broker a pick is compared with: Fidelity, or Robinhood when Fidelity is the pick (the pair people search most). */
+/** The broker a pick is compared with: Fidelity, or Robinhood when Fidelity is the pick (the pair the bare compare page opens on). */
 const partner = (d: Data, id: string): Firm | undefined =>
   d.byId[id === "FIBS" ? "HOOD" : "FIBS"] ?? d.brokers.find((b) => b.id !== id);
 

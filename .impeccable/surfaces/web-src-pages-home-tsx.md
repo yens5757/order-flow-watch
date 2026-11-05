@@ -18,7 +18,7 @@ The home page (`/`): web/src/pages/Home.tsx and web/src/components/home/. Mode: 
 
 ## Composition and memorable moment
 
-The question as the h1 with one plain line under it, then one control row: "Your broker" select, the stock switch, the scope (market orders, month). From 1024px a board of two stacks: left, the answer card (Display figure, rank, gap to the cheapest, scale, sentence, a solid link to the broker's page and a compare link), the yearly one-liner, the findings, popular comparisons; right, the ranked table of all 25. Below 1024px one 44rem column in the same order with the table showing the picked broker's neighbourhood and "See all 25". Memorable moment: picking a broker glides its dot along the scale to its true place while its row takes the Here tint in the ranking; flipping the switch glides every mark and re-ranks the table in place.
+The question as the h1 with one plain line under it, then one control row: "Your broker" select, the stock switch, the scope (market orders, month). From 1024px a board of two stacks: left, the answer card (Display figure, rank, gap to the cheapest, scale, sentence, a solid link to the broker's page and a compare link), the yearly one-liner, the findings, a few side-by-side comparisons (hand-picked: never called popular until analytics drive the list); right, the ranked table of all 25. Below 1024px one 44rem column in the same order with the table showing the picked broker's neighbourhood and "See all 25". Memorable moment: picking a broker glides its dot along the scale to its true place while its row takes the Here tint in the ranking; flipping the switch glides every mark and re-ranks the table in place.
 
 ## Direction contract
 
@@ -30,6 +30,6 @@ STORY: The visitor reads the question, names their broker, sees in one card what
 
 FIRST VIEWPORT: Header; h1 "Is your broker getting you a good price?" and one line; the control row; the answer card led by the dollar figure, the rank and the scale. Desktop: the ranked table's top rows beside it. Phone: the figure and the rank fit in the first screen; nothing sticky.
 
-FORM: inherits the established world; no new direction round. seed: none (unavailable)
+FORM: inherits the established world (the broker page's direction contract); no new direction round. seed:79f5bd6605318015 (inherited from web-src-pages-brokerprofile-tsx.md; no new roll)
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

@@ -60,7 +60,7 @@
 .hm-find .card-foot { margin-top: 8px; padding-top: 6px; }
 .hm-find .card-foot .go { font-size: var(--fs-2); }
 
-/* ---------- popular comparisons: quiet targets in two columns, one on a phone ---------- */
+/* ---------- side-by-side comparisons: quiet targets in two columns, one on a phone ---------- */
 .hm-pills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .hm-pills .pill-soft span { min-width: 0; }
 .hm-vs { font-weight: 500; }

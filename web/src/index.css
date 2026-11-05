@@ -8,7 +8,9 @@
    first paint). lib/theme.tsx reads the custom properties of every :root block below as text, for the charts: a block
    whose selector names [data-theme="dark"] or :not([data-theme="light"]) is dark, every other :root block is light.
    Keep one custom property per declaration, and keep the two dark blocks identical.
-   Series colours (--s1..--s8) are the validated dataviz palette, stepped separately per mode (not auto-flipped). */
+   Series colours (--s1..--s8) are the validated dataviz palette, stepped separately per mode (not auto-flipped).
+   The neutral ramp (--ramp-1..--ramp-3, ink to light sage, each at least 3:1 on the card) is for a chart's parts where
+   every series colour already names something else (the Trading firms page gives all eight to firms). */
 :root {
   /* type scale, seven steps, in rem so it follows the reader's own text size */
   --fs-1: .875rem; --fs-2: 1rem; --fs-3: 1.125rem; --fs-4: 1.375rem;
@@ -30,6 +32,7 @@
   --better: #2a78d6; --worse: #e34948; --context: #C3CDC9; --neutral: #E1E8E5;
   --good: #0ca30c; --warning: #fab219; --critical: #d03b3b; --good-ink: #0a7a0a; --critical-ink: #b42f2f;
   --seq-0: #eef4fd; --seq-1: #b7d3f6; --seq-2: #5598e7; --seq-3: #256abf; --seq-4: #104281;
+  --ramp-1: #374642; --ramp-2: #5E6B66; --ramp-3: #83908B;
   --shadow: 0 1px 2px rgb(16 40 34 / .05), 0 14px 30px -18px rgb(16 40 34 / .28);
   --lift: 0 1px 2px rgb(16 40 34 / .05), 0 14px 30px -18px rgb(16 40 34 / .28);
   --pop: 0 2px 6px rgb(16 40 34 / .08), 0 24px 48px -20px rgb(16 40 34 / .4);
@@ -46,6 +49,7 @@
   --better: #3987e5; --worse: #e66767; --context: #4A5551; --neutral: #404C47;
   --good: #0ca30c; --warning: #fab219; --critical: #d03b3b; --good-ink: #3dbf3d; --critical-ink: #ea7a7a;
   --seq-0: #162238; --seq-1: #184f95; --seq-2: #2a78d6; --seq-3: #6da7ec; --seq-4: #b7d3f6;
+  --ramp-1: #EAF1EE; --ramp-2: #A5B3AE; --ramp-3: #76837E;
   --shadow: 0 1px 0 rgb(255 255 255 / .03) inset, 0 16px 32px -22px rgb(0 0 0 / .8);
   --lift: 0 1px 0 rgb(255 255 255 / .03) inset, 0 16px 32px -22px rgb(0 0 0 / .8);
   --pop: 0 2px 8px rgb(0 0 0 / .35), 0 24px 48px -20px rgb(0 0 0 / .7);
@@ -64,6 +68,7 @@
     --better: #3987e5; --worse: #e66767; --context: #4A5551; --neutral: #404C47;
     --good: #0ca30c; --warning: #fab219; --critical: #d03b3b; --good-ink: #3dbf3d; --critical-ink: #ea7a7a;
     --seq-0: #162238; --seq-1: #184f95; --seq-2: #2a78d6; --seq-3: #6da7ec; --seq-4: #b7d3f6;
+    --ramp-1: #EAF1EE; --ramp-2: #A5B3AE; --ramp-3: #76837E;
     --shadow: 0 1px 0 rgb(255 255 255 / .03) inset, 0 16px 32px -22px rgb(0 0 0 / .8);
     --lift: 0 1px 0 rgb(255 255 255 / .03) inset, 0 16px 32px -22px rgb(0 0 0 / .8);
     --pop: 0 2px 8px rgb(0 0 0 / .35), 0 24px 48px -20px rgb(0 0 0 / .7);
