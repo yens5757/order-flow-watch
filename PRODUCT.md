@@ -40,12 +40,14 @@ Built from the execution and routing reports brokers must file with the SEC, com
 - Raw reports are never published (redistribution terms); sites that refuse automated access are never scraped.
 - A broker missing the latest payment quarter uses its previous quarter, and the site says so.
 - Not investment advice. Code, design and text are all rights reserved (public, view-only repository).
-- Open decision: monetisation (ads, affiliate links) has not been decided; there is none today.
+- Funding: no ads, no affiliate links, no money from brokers (a permanent brand commitment, below).
 
 ## Brand Commitments
 
-- Name: Fills and Fees, at fillsandfees.com. Tagline: "what your broker's trades really cost".
+- Name: Fills and Fees, at fillsandfees.com. Brand line (site header): "Broker comparison with nothing to sell". Proof line (Home's opening): "The numbers brokers must report by law, read the same way for every broker". The earlier tagline "what your broker's trades really cost" stays in search and share descriptions.
+- Nothing to sell (permanent, the owner's decision, Nov 2026): no ads, no affiliate links, no money from brokers, so no broker can pay for a place or a better position. Said on Home, in the footer and in How we measure's questions. The trust comes from what the site refuses to do, never from saying other sites lie, which would break the next commitment and cannot be proven.
 - Neutral, not activist (permanent): the site reports what the data shows, including results that cut against the case against payment for order flow, and campaigns against no broker or practice.
+- Shown to be current: Home and the footer say the site checks for new reports every week and give the last check date. Never that the numbers change weekly: prices arrive monthly and payments quarterly.
 - Voice: plain words a first-time investor understands; caveats stated rather than buried; nothing claimed beyond the data ("doesn't reliably predict", never "doesn't matter").
 
 ## Evidence on Hand

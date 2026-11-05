@@ -3,7 +3,7 @@
 // nothing else spells the brand out. The repository keeps its original name (order-flow-watch) for now.
 
 export const SITE_NAME = "Fills and Fees";
-export const TAGLINE = "what your broker's trades really cost";
+export const TAGLINE = "Broker comparison with nothing to sell";
 export const REPO = "https://github.com/yens5757/order-flow-watch";
 
 const DEFAULT_SITE_URL = "https://fillsandfees.com/";

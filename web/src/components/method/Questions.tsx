@@ -113,6 +113,14 @@ function questions(d: Data): [string, ReactNode][] {
     </p>
     <p><Go to={href(pagePath("brokers"))}>Find your broker</Go></p>
   </>]);
+
+  items.push(["Who pays for this site?", <>
+    <p>
+      Nobody. There are no ads, no affiliate links and no money from brokers, so no broker can pay for a better place.
+      Every number comes from the reports brokers must file by law, read the same way for every broker, and the site
+      checks for new reports every week.
+    </p>
+  </>]);
   return items;
 }
 
