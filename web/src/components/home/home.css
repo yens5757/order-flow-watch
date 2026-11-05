@@ -7,6 +7,22 @@
   [data-page="home"] .wrap { width: min(100% - 2 * var(--gut), 44rem); }
 }
 
+/* ---------- the opening (Hero.tsx): the question at the scale's largest step (--fs-7 from 640px, --fs-6 below), where
+   the numbers come from, the promise and the weekly check, centred, with the row of controls under them. Icons stay in
+   ink: teal is only for what can be pressed. ---------- */
+.hm-hero { display: grid; justify-items: center; text-align: center; padding: clamp(40px, 6.5vw, 96px) 0 clamp(12px, 2vw, 24px); }
+.hm-hero-h { max-width: 14em; font-size: var(--fs-6); line-height: 1.04; font-weight: 800; letter-spacing: -.035em; text-wrap: balance; }
+@media (min-width: 640px) { .hm-hero-h { font-size: var(--fs-7); } }
+.hm-hero-lead { max-width: 30ch; margin-top: 18px; font-size: var(--fs-4); line-height: 1.45; color: var(--ink-2); text-wrap: balance; }
+@media (min-width: 900px) { .hm-hero-lead { max-width: none; } }
+.hm-hero-promise { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px; margin-top: 22px; font-weight: 600; }
+.hm-hero-promise li { display: inline-flex; align-items: center; gap: 8px; }
+.hm-hero-promise svg, .hm-hero-fresh svg { color: var(--ink-2); }
+.hm-hero-fresh { margin-top: 10px; font-size: var(--fs-1); line-height: 1.5; color: var(--ink-2); text-wrap: balance; }
+.hm-hero-fresh svg { display: inline-block; margin-right: 6px; vertical-align: -3px; }
+.hm-hero-fresh b { font-weight: 600; color: var(--ink); white-space: nowrap; }
+.hm-hero .hm-ctl { justify-content: center; margin-top: 30px; }
+
 /* ---------- the one row of controls: the visitor's broker, the stock switch, the scope ---------- */
 .hm-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 .hm-ctl .sel-l { font-size: var(--fs-2); color: var(--ink); }

@@ -18,7 +18,7 @@ The home page (`/`): web/src/pages/Home.tsx and web/src/components/home/. Mode: 
 
 ## Composition and memorable moment
 
-The question as the h1 with one plain line under it, then one control row: "Your broker" select, the stock switch, the scope (market orders, month). From 1024px a board of two stacks: left, the answer card (Display figure, rank, gap to the cheapest, scale, sentence, a solid link to the broker's page and a compare link), the yearly one-liner, the findings, a few side-by-side comparisons (hand-picked: never called popular until analytics drive the list); right, the ranked table of all 25. Below 1024px one 44rem column in the same order with the table showing the picked broker's neighbourhood and "See all 25". Memorable moment: picking a broker glides its dot along the scale to its true place while its row takes the Here tint in the ranking; flipping the switch glides every mark and re-ranks the table in place.
+An opening with room (owner's request, Nov 2026: "the main page just needs some space to show some main text for getting attention"): the question as a centred h1 at the scale's largest step, the proof line "The numbers brokers must report by law, read the same way for every broker", the promise "No ads · No affiliate links · No money from brokers" and "Checked for new reports every week · last on <date>", with the control row centred under them: "Your broker" select, the stock switch, the scope (market orders, month). From 1024px a board of two stacks: left, the answer card (Display figure, rank, gap to the cheapest, scale, sentence, a solid link to the broker's page and a compare link), the yearly one-liner, the findings, a few side-by-side comparisons (hand-picked: never called popular until analytics drive the list); right, the ranked table of all 25. Below 1024px one 44rem column in the same order with the table showing the picked broker's neighbourhood and "See all 25". Memorable moment: picking a broker glides its dot along the scale to its true place while its row takes the Here tint in the ranking; flipping the switch glides every mark and re-ranks the table in place.
 
 ## Direction contract
 
@@ -28,7 +28,7 @@ OWN-WORLD: The established world in DESIGN.md, unchanged: soft white cards on th
 
 STORY: The visitor reads the question, names their broker, sees in one card what its customers paid above the fair price and where that ranks among 25, glances at the full ranking and what the reports show (with their caveats), and leaves for the broker's page, a comparison or the calculator.
 
-FIRST VIEWPORT: Header; h1 "Is your broker getting you a good price?" and one line; the control row; the answer card led by the dollar figure, the rank and the scale. Desktop: the ranked table's top rows beside it. Phone: the figure and the rank fit in the first screen; nothing sticky.
+FIRST VIEWPORT: Header (brand line "Broker comparison with nothing to sell"); the opening, centred: h1 "Is your broker getting you a good price?" at Display size, the proof line, the promise row and the weekly-check line, then the control row; below it the answer card led by the dollar figure, the rank and the scale (its top in the first screen at 1440x900). Desktop: the ranked table's top rows beside it. Phone: the opening and the control row fill the first screen and the answer's figure peeks below; nothing sticky.
 
 FORM: inherits the established world (the broker page's direction contract); no new direction round. seed:79f5bd6605318015 (inherited from web-src-pages-brokerprofile-tsx.md; no new roll)
 

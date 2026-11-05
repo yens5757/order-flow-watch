@@ -10,10 +10,11 @@ import "../components/home/home.css";
 import { loadBroker, saveBroker } from "../components/calculator/store";
 import { AnswerCard } from "../components/home/AnswerCard";
 import { Findings } from "../components/home/Findings";
+import { Hero } from "../components/home/Hero";
 import { Pairs } from "../components/home/Pairs";
 import { Ranking } from "../components/home/Ranking";
 import { YearLine } from "../components/home/YearLine";
-import { PageHeader, Segmented, Select } from "../components/ui";
+import { Segmented, Select } from "../components/ui";
 import { cents, groupOf, money, SP_GAP, yearFor, type Group } from "../lib/broker";
 import type { Data, Sp } from "../lib/data";
 import { monthLong } from "../lib/format";
@@ -98,12 +99,13 @@ export default function Home({ d }: { d: Data }) {
 
   return (
     <>
-      <PageHeader title="Is your broker getting you a good price?" intro="Your trades land a little above or below the fair price." />
-      <div className="hm-ctl">
-        <Select label="Your broker" value={firm.id} onChange={choose} options={options} />
-        <Segmented label="Stocks" value={sp} onChange={flip} options={STOCKS} />
-        <p className="hm-scope">Market orders · {month}</p>
-      </div>
+      <Hero built={d.meta.built}>
+        <div className="hm-ctl">
+          <Select label="Your broker" value={firm.id} onChange={choose} options={options} />
+          <Segmented label="Stocks" value={sp} onChange={flip} options={STOCKS} />
+          <p className="hm-scope">Market orders · {month}</p>
+        </div>
+      </Hero>
       <p className="sr-only" role="status">{said}</p>
       {/* Two independent stacks from 1024px (home.css): the answer, the year, the findings and the comparisons on the left,
           every broker ranked on the right. Below that one stack, the ranking straight after the yearly line: the ranking
