@@ -36,7 +36,7 @@ ORDER_TYPES = {"Market": "market", "MarketableLimit": "marketable_limit",
 VENUE_RULES = [
     (r"CITADEL", "Citadel Securities", "CDRG"),
     (r"VIRTU", "Virtu Americas", "NITE"),
-    (r"JANE STREET", "Jane Street", "JNST"),
+    (r"JANE ?STRE+T|\bJANEST\b|\bJNST\b", "Jane Street", "JNST"),  # Schwab wrote "JANEST" (2024Q2-2025Q1)
     (r"\bG1\b|G1 EXECUTION", "G1 Execution", "ETMM"),
     (r"HRT|HUDSON RIVER", "HRT Financial", "HRTF"),
     (r"TWO SIGMA", "Two Sigma Securities", "SOHO"),
@@ -57,7 +57,14 @@ VENUE_RULES = [
     (r"\bGTS", "GTS Securities", "GTSM"),  # also "GTSM" (its MPID)
     (r"\bJUMP\b", "Jump Execution", "JRET"),
     (r"STONEX", "StoneX Financial", None),
+    (r"\bBOFA\b|BANK OF AMERICA", "BofA Securities", None),
+    (r"\bJ ?P ?MORGAN", "J.P. Morgan Securities", None),
+    (r"NYSE AMERICAN|NYSE MKT|AMERICAN STOCK EXCHANGE", "NYSE American", None),
+    (r"\bMIAX\b|MIAMI INTERNATIONAL", "MIAX", None),
 ]
+
+# Words the title-case fallback keeps in capitals (venue names are free text in the XML).
+KEEP_CAPS = {"ATS", "IBKR", "BOX", "MCAP"}
 
 FNAME = re.compile(
     r"^(?P<crd>\d+)_606_NMS_(?P<y>\d{4})_Q(?P<q>\d)(?P<ctx>.*?)_V(?P<v>\d+)(?:_V\d+)*"
@@ -75,7 +82,8 @@ def canonical_venue(name, mic):
     for pattern, canon, rid in VENUE_RULES:
         if re.search(pattern, cleaned):
             return canon, rid
-    return cleaned.title() or (mic or "?"), None
+    fallback = " ".join(w if w in KEEP_CAPS else w.title() for w in cleaned.split())
+    return fallback or (mic or "?"), None
 
 
 def parse_xml(path):

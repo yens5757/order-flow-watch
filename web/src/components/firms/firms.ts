@@ -45,7 +45,7 @@ export const groupOf = (d: Data, id: string, cat: string): GroupIx =>
 
 /** One row per firm that reports, under the filters picked (stock group, order type, order size, month). */
 export function firmRows(d: Data, f: Filters): FirmRow[] {
-  return Object.entries(d.reporters).map(([id, r]) => {
+  const rows = Object.entries(d.reporters).map(([id, r]): FirmRow => {
     const e = d.exec.get(execKey(id, f.month, f.sp, f.ot, f.b));
     const own = d.byId[id];
     return {
@@ -53,6 +53,18 @@ export function firmRows(d: Data, f: Filters): FirmRow[] {
       cust: e?.efq == null ? null : e.efq * 100, pi: e?.pi == null ? null : e.pi * 100, sz: e?.sz ?? null,
     };
   });
+  // A firm filing two reports under one name and category (Fifth Third: two broker-dealer reports) would read as a repeated
+  // row: number them in reporter order ("report 1 of 2"), since reporter codes stay off the page.
+  const same = new Map<string, FirmRow[]>();
+  for (const r of rows) {
+    const k = `${r.name.toLowerCase()}|${r.cat}`;
+    same.set(k, [...(same.get(k) ?? []), r]);
+  }
+  for (const group of same.values()) {
+    if (group.length < 2) continue;
+    group.sort((a, b) => a.id.localeCompare(b.id)).forEach((r, i) => { r.name = `${r.name} (report ${i + 1} of ${group.length})`; });
+  }
+  return rows;
 }
 
 /** A share of the spread: "−16.6%", "30.8%", "4,205.3%" (a proper minus, never "−0.0%"). */
