@@ -1,0 +1,132 @@
+/* The calculator (pages/Calculator.tsx and the components beside this file), in the broker page's world (DESIGN.md):
+   soft cards on the ground, value rows on hairlines, the neutral scale, the action teal only on things you can press.
+   Colours, type steps, radii and shadows are the tokens in src/index.css; shared pieces (.field, .segm, .sel, .card) are
+   ui.css's, adjusted here only through this page's own classes. */
+
+/* tablet and phone: a reading width, the header and footer with it (as on the broker page) */
+@media (max-width: 1023px) {
+  [data-page="calculator"] .wrap { width: min(100% - 2 * var(--gut), 44rem); }
+}
+
+/* ---------- the board: the answer and the inputs, two independent stacks on a desktop ---------- */
+/* one column that never grows past the page: a wide chart or table scrolls inside its own card instead */
+.calc-board { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.calc-more { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 16px; }
+@media (min-width: 1024px) {
+  .calc-board { grid-template-columns: minmax(0, 648fr) minmax(0, 448fr); column-gap: 24px; align-items: start; }
+}
+
+/* ---------- the answer ---------- */
+.calc-pick { margin-bottom: 22px; }
+/* "About $9 a year": the amount at the Display size, the words around it at the Title size, one line of text on one
+   baseline (plain inline text, so the words wrap as words and the heading reads as one sentence) */
+.card .calc-h { font-size: var(--fs-4); line-height: 1.15; font-weight: 600; letter-spacing: -.01em; text-wrap: balance; }
+.calc-fig { margin: 0 .04em; font-size: var(--fs-7); line-height: .92; font-weight: 800; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.card .calc-none-h { font-size: var(--fs-5); line-height: 1.1; letter-spacing: -.03em; }
+.calc-scope { margin-top: 12px; max-width: 46ch; color: var(--ink-2); }
+.calc-parts { margin-top: 18px; }
+.calc-parts > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; padding: 8px 0; border-top: 1px solid var(--border); }
+.calc-parts dt { line-height: 1.3; }
+.calc-parts dt small { display: block; margin-top: 2px; font-size: var(--fs-1); color: var(--ink-2); }
+.calc-parts dt .tip { margin-left: 6px; }
+.calc-parts dd { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.calc-parts dd.unknown { font-weight: 600; color: var(--ink-2); }
+.calc-rank { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 16px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+.calc-rank p { flex: 1 1 16rem; font-size: var(--fs-3); font-weight: 700; line-height: 1.4; letter-spacing: -.01em; text-wrap: balance; }
+.calc-diff { margin-top: 2px; color: var(--ink-2); }
+.calc-nw { white-space: nowrap; }
+.calc-note { margin-top: 14px; color: var(--ink-2); }
+
+/* ---------- how you trade ---------- */
+.calc-in-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; min-height: 44px; margin-bottom: 10px; }
+.calc-reset { margin-right: -4px; }
+.calc-group > * { border-top: 1px solid var(--border); }
+.calc-group + .calc-group { margin-top: 22px; }
+.calc-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; min-height: 64px; padding: 10px 0; }
+.calc-l { flex: 1 1 9rem; min-width: 0; font-weight: 600; line-height: 1.3; }
+.calc-l small { display: block; margin-top: 2px; font-size: var(--fs-1); font-weight: 500; color: var(--ink-2); }
+
+/* a number box: the shared text-field pill, narrower, its "$" drawn beside the digits */
+.calc-num .calc-field { flex: 0 0 10.5rem; width: 10.5rem; gap: 2px; padding: 0 18px; }
+.calc-num .calc-field input { font-weight: 600; font-variant-numeric: tabular-nums; }
+.calc-pre { font-weight: 600; color: var(--ink-2); }
+.calc-num .calc-field.is-bad { border-color: var(--critical-ink); }
+/* the line under a box: a hint while an amount is missing, the problem and the value still in use after a mistake */
+.calc-say { display: flex; align-items: flex-start; gap: 8px; margin: -4px 0 12px; font-size: var(--fs-1); line-height: 1.45; color: var(--ink-2); }
+.calc-say:empty { margin: 0; }
+.calc-say.is-bad { color: var(--ink); }
+.calc-say.is-bad svg { margin-top: 1px; color: var(--critical-ink); }
+/* an amount under its question: no rule between them, a quieter label */
+.calc-q > .calc-num { border-top: 0; }
+.calc-num.is-sub .calc-row { min-height: 56px; padding-top: 0; }
+.calc-num.is-sub .calc-l { font-weight: 500; color: var(--ink-2); }
+
+/* what you trade: the label and its (i), then the switch across the card */
+.calc-mix { padding: 8px 0 16px; }
+.calc-mix-l { display: flex; align-items: center; gap: 10px; min-height: 44px; margin-bottom: 4px; }
+.calc-mix-l .calc-l { flex: none; }
+.calc-mix .segm { display: flex; width: 100%; }
+.calc-mix .segm > button { flex: 1 1 auto; padding: 0 14px; }
+
+/* a question and its No / Yes switch, side by side; the switch drops under the question when there's no room */
+.calc-yn .calc-l { text-wrap: balance; }
+.calc-yn .segm { display: inline-flex; flex: none; width: auto; }
+.calc-yn .segm > button { flex: none; padding: 0 18px; }
+
+/* "Copy link" and what happened */
+.calc-share { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+.calc-copy { font-size: var(--fs-2); }
+.calc-copied { display: inline-flex; align-items: center; gap: 6px; min-height: 1.5em; color: var(--ink-2); font-weight: 600; }
+.calc-copied svg { color: var(--ink-2); }
+
+/* the answer echoed at the top of the inputs: only where the answer isn't beside them; it stays at the top of the screen
+   while the boxes are on it (the one sticky row on the page), its white collar hiding what scrolls under it */
+.calc-echo { display: none; }
+@media (max-width: 1023px) {
+  .calc-echo { display: block; position: sticky; top: 0; z-index: 4; margin: 0 calc(-1 * var(--pad)) 4px; padding: 8px var(--pad) 10px; background: var(--surface); }
+  .calc-echo-in { display: block; padding: 10px 16px; border-radius: 14px; background: var(--here); color: var(--ink-2); line-height: 1.4; }
+  .calc-echo-in b { color: var(--ink); font-weight: 700; }
+  /* keyboard focus and in-page jumps land clear of the pinned line */
+  html:has(.calc-echo) { scroll-padding-top: 84px; }
+}
+
+/* ---------- every broker, the breakdown, how it adds up ---------- */
+.calc-key { margin-bottom: 10px; }
+.calc-fn { margin-top: 10px; font-size: var(--fs-1); line-height: 1.5; color: var(--ink-2); }
+.calc-unk { font-weight: 600; color: var(--ink-2); }
+.calc-least { font-weight: 600; color: var(--ink-2); }
+.calc-how > div { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 4px 24px; padding: 14px 0; border-top: 1px solid var(--border); }
+.calc-how dt { font-weight: 700; }
+.calc-how dd { color: var(--ink-2); max-width: 62ch; text-wrap: pretty; }
+.calc-parts dt small, .calc-l small, .calc-say span { text-wrap: pretty; }
+/* an inline link at the label size keeps its line but gets a 44px tall hit area */
+.calc-link { padding: 14px 0; }
+
+/* ---------- phones ---------- */
+@media (max-width: 599px) {
+  .calc-pick { margin-bottom: 18px; }
+  .calc-pick .sel { display: flex; width: 100%; }
+  .calc-pick .sel-box { flex: 1 1 auto; }
+  .calc-pick .sel select { width: 100%; }
+  .calc-scope { margin-top: 10px; }
+  .calc-rank p { font-size: var(--fs-2); }
+  .calc-row { min-height: 60px; }
+  .calc-num .calc-field { flex-basis: 9.5rem; width: 9.5rem; }
+  .calc-how > div { grid-template-columns: minmax(0, 1fr); }
+  /* the table's rank, broker and yearly figure fit the first view; the parts scroll sideways inside its box */
+  .calc-tablecard .tbl th, .calc-tablecard .tbl td { padding-left: 8px; padding-right: 8px; }
+}
+/* the narrowest phones: each box goes under its label at the full width, and the stock-mix labels step down to the label
+   size so the three fit on one row */
+@media (max-width: 359px) {
+  .calc-num .calc-row { flex-direction: column; align-items: stretch; gap: 8px; }
+  .calc-num .calc-l { flex: none; }
+  .calc-num .calc-field { flex: none; width: 100%; }
+  .calc-mix .segm > button { padding: 0 10px; font-size: var(--fs-1); }
+  .calc-yn .segm > button { padding: 0 16px; }
+}
+
+@media (forced-colors: active) {
+  .calc-num .calc-field.is-bad { border-color: CanvasText; border-style: dashed; }
+  .calc-echo-in { outline: 1px solid CanvasText; }
+}

@@ -1,0 +1,39 @@
+---
+version: 1
+slug: "web-src-pages-calculator-tsx"
+primary_target: "web/src/pages/Calculator.tsx"
+related_targets: ["web/src/components/Estimator.tsx"]
+---
+
+## Scope and visitor mode
+
+The calculator page (`/calculator/`, bare or opened from a link that carries inputs: `?n=24&s=2000&mix=50&o=10&c=5000&m=0&b=<slug>`), plus the compact estimator Home embeds (`components/Estimator.tsx`, `compact`). Mode: operate. The visitor came to put in their own habits and get one figure back; the world lends type, palette, density and the price scale, never the controls.
+
+## Audience, job, proof, constraints
+
+- Audience: US retail investors, often arriving from a broker page's "Change" button or the nav, on a phone or a desktop; first-timers who know how they trade, not how markets work.
+- Job: "What would a year of my trading cost at my broker, and at the others?" One generated figure for their broker, its rank among the brokers whose every needed cost is confirmed, the gap to the cheapest; then every broker.
+- Proof on the page: a row per part of the cost with its rate, the neutral price scale, every broker as stacked bars with an HTML key, a sortable table with CSV, the Rule 605 month and the fees check date, How we measure.
+- Constraints: `annualCost` (lib/cost.ts) is the only arithmetic; rank only brokers with a complete figure; "At least $X" for an incomplete one; options, idle cash and margin count only after the visitor answers Yes (default No, $0); invalid input is named inline with `aria-invalid`, the value still in use is stated, absurd values are capped; links carry their inputs and never overwrite saved ones; "Loading your numbers…" guards a query URL; no shared-file edits.
+
+## Composition and memorable moment
+
+Desktop: the broker page's board of two independent stacks (648:448). Left, the answer card: Your broker select; "About $9 a year" with the figure at Display size; the scope line generated from the inputs in use; one row per part; the rank and "See all 25"; the gap to the cheapest; the price scale. Right, "How you trade": three rows for the trades (trades a year, typical size, what you trade), then three Yes/No questions (options, cash at the broker, margin) that each reveal one amount; "Copy link" with its status line in the card's footer. Below, full width: every broker for your trades (key, bars, a note on "at least" lines), the table in dollars, how it adds up.
+
+Phone and tablet: one reading-width stack, the answer first. The inputs card carries a one-line echo of the answer that stays pinned at the top of the screen while the inputs are on it, so a change is seen where it is made.
+
+Memorable moment: as the visitor types, picks a mix or answers a question, their broker's dot glides along the scale among the brokers and the figure restates itself in words ("About $9 a year", "At least $9.80 a year", "About $3 ahead a year").
+
+## Direction contract
+
+THESIS: The calculator is one calm answer the visitor shapes: what a year of their own trading costs at their broker, in dollars and words, and where that sits among the brokers. It refuses the category defaults: a wall of equal input boxes with the result below the fold, a pre-filled assumption that writes the headline, and a red/green league table.
+
+OWN-WORLD: The established world in DESIGN.md, by reference: soft white cards (24px, 20px on phones) on the teal-tinted Sage Ground (dark: dim sage with darker cards), Figtree at the seven rem steps, sage-grey ink, the one action teal only on pressable things and focus, Lift shadows, value rows with hairlines, the neutral price scale as the signature, a real table for every chart, words not colour for good and bad. Series colours appear only inside the chart and its key.
+
+STORY: The visitor sees their broker's yearly cost before any input, changes their trades and answers the three questions, watches the figure and the dot respond, checks the parts and the rank, compares every broker in the bars and the table, and copies a link that opens on exactly these numbers.
+
+FIRST VIEWPORT: Header (wordmark, nav with Calculator current, theme toggle); h1 "What does your broker cost you a year?". Desktop: the answer card left (select, "About $9 a year" at Display size, scope line, part rows, rank) and "How you trade" right (trades, size, what you trade, the three questions), both above the fold. Phone: the h1, then the answer card's select, figure, scope line and rows; the inputs start below and pin the echo when scrolled to. Nothing else sticky.
+
+FORM: inherits the established world; no new direction round. seed: none (unavailable).
+
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
