@@ -14,7 +14,8 @@ export default defineConfig(({ isSsrBuild }) => ({
   base: normalise(process.env.SITE_BASE ?? "/"),
   build: {
     chunkSizeWarningLimit: 700,
-    // ECharts is most of the bundle and changes rarely: ship it as its own cacheable file. Client build only: the
+    // ECharts is most of the bundle and changes rarely: ship it as its own cacheable file, which charts/EChart.tsx loads
+    // only when a page draws a chart (a dynamic import), so pages without one never fetch it. Client build only: the
     // server build scripts/prerender.mjs makes (dist-ssr/) keeps dependencies external, so there is nothing to split.
     rollupOptions: isSsrBuild
       ? {}

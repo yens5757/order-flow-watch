@@ -1,0 +1,1073 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-05T11:50:03+00:00",
+  "title": "Design System: Fills and Fees",
+  "extensions": {
+    "colorMeta": {
+      "page": {
+        "role": "neutral",
+        "displayName": "Sage Ground",
+        "canonical": "#EDF2F0",
+        "tonalRamp": [
+          "#232A27",
+          "#3C4B45",
+          "#536E63",
+          "#6A9282",
+          "#8DA99E",
+          "#B0C0BA",
+          "#D1D9D6",
+          "#F1F3F2"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Card White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7E7E7E",
+          "#9B9B9B",
+          "#B8B8B8",
+          "#D5D5D5",
+          "#F2F2F2"
+        ]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Raised Tint",
+        "canonical": "#E6F0EC",
+        "tonalRamp": [
+          "#212C27",
+          "#374F46",
+          "#4C7565",
+          "#5F9D84",
+          "#85B19F",
+          "#ABC5BB",
+          "#CFDBD6",
+          "#F1F4F3"
+        ]
+      },
+      "surface-3": {
+        "role": "neutral",
+        "displayName": "Raised Tint, deeper",
+        "canonical": "#E1E9E6",
+        "tonalRamp": [
+          "#232A27",
+          "#3C4B45",
+          "#546D64",
+          "#6B9182",
+          "#8DA89E",
+          "#B0C0BA",
+          "#D1D9D6",
+          "#F1F3F2"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#374642",
+        "tonalRamp": [
+          "#242927",
+          "#3E4946",
+          "#576A65",
+          "#6F8D85",
+          "#90A5A0",
+          "#B2BEBB",
+          "#D2D8D7",
+          "#F2F3F3"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Secondary Ink",
+        "canonical": "#55615C",
+        "tonalRamp": [
+          "#252826",
+          "#404744",
+          "#5B6661",
+          "#75867F",
+          "#95A19C",
+          "#B5BBB9",
+          "#D3D7D5",
+          "#F2F3F2"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Axis Grey",
+        "canonical": "#5E6B66",
+        "tonalRamp": [
+          "#252827",
+          "#404744",
+          "#5B6662",
+          "#768680",
+          "#95A09C",
+          "#B5BBB9",
+          "#D3D7D5",
+          "#F2F3F2"
+        ]
+      },
+      "mark": {
+        "role": "neutral",
+        "displayName": "Mark Grey",
+        "canonical": "#7C8984",
+        "tonalRamp": [
+          "#252727",
+          "#414644",
+          "#5C6562",
+          "#77847F",
+          "#969F9C",
+          "#B5BBB9",
+          "#D4D6D5",
+          "#F2F3F2"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Row Hairline",
+        "canonical": "#E1E8E5",
+        "tonalRamp": [
+          "#232927",
+          "#3D4A44",
+          "#566B62",
+          "#6D8E80",
+          "#8FA69C",
+          "#B1BFB9",
+          "#D2D8D6",
+          "#F1F3F2"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Edge Rule",
+        "canonical": "#D5DEDA",
+        "tonalRamp": [
+          "#242927",
+          "#3E4944",
+          "#576A62",
+          "#6F8D7F",
+          "#90A59C",
+          "#B2BEB9",
+          "#D2D8D5",
+          "#F2F3F2"
+        ]
+      },
+      "baseline": {
+        "role": "neutral",
+        "displayName": "Chart Baseline",
+        "canonical": "#BCC8C3",
+        "tonalRamp": [
+          "#242827",
+          "#3F4844",
+          "#586962",
+          "#718A80",
+          "#92A39C",
+          "#B3BDB9",
+          "#D3D8D6",
+          "#F2F3F2"
+        ]
+      },
+      "track": {
+        "role": "neutral",
+        "displayName": "Scale Track",
+        "canonical": "#E1E9E6",
+        "tonalRamp": [
+          "#232A27",
+          "#3C4B45",
+          "#546D64",
+          "#6B9182",
+          "#8DA89E",
+          "#B0C0BA",
+          "#D1D9D6",
+          "#F1F3F2"
+        ]
+      },
+      "here": {
+        "role": "neutral",
+        "displayName": "Here Row",
+        "canonical": "#E6F0EC",
+        "tonalRamp": [
+          "#212C27",
+          "#374F46",
+          "#4C7565",
+          "#5F9D84",
+          "#85B19F",
+          "#ABC5BB",
+          "#CFDBD6",
+          "#F1F4F3"
+        ]
+      },
+      "selection": {
+        "role": "neutral",
+        "displayName": "Selection",
+        "canonical": "#D3E3DD",
+        "tonalRamp": [
+          "#212B27",
+          "#394E46",
+          "#4E7365",
+          "#629985",
+          "#87AEA0",
+          "#ACC4BB",
+          "#D0DBD6",
+          "#F1F4F3"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Action Teal",
+        "canonical": "#0F7B6C",
+        "tonalRamp": [
+          "#153833",
+          "#1E695F",
+          "#20A18F",
+          "#1CDFC4",
+          "#57DFCC",
+          "#8FE1D5",
+          "#C2E9E3",
+          "#EEF7F6"
+        ]
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Deep Teal",
+        "canonical": "#0B6155",
+        "tonalRamp": [
+          "#153833",
+          "#1D6A5F",
+          "#1FA290",
+          "#1AE1C5",
+          "#55E0CD",
+          "#8EE1D6",
+          "#C1E9E3",
+          "#EEF7F6"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Soft Teal",
+        "canonical": "#E3F1ED",
+        "tonalRamp": [
+          "#1F2E29",
+          "#33544A",
+          "#457C6C",
+          "#54A78F",
+          "#7EB8A7",
+          "#A7C9BF",
+          "#CDDDD9",
+          "#F0F4F3"
+        ]
+      },
+      "on-accent": {
+        "role": "primary",
+        "displayName": "On Teal",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7E7E7E",
+          "#9B9B9B",
+          "#B8B8B8",
+          "#D5D5D5",
+          "#F2F2F2"
+        ]
+      },
+      "page-dark": {
+        "role": "neutral",
+        "displayName": "Sage Ground (dark theme)",
+        "canonical": "#1A2220",
+        "tonalRamp": [
+          "#232928",
+          "#3D4A47",
+          "#566C66",
+          "#6D8E86",
+          "#8FA6A1",
+          "#B1BFBB",
+          "#D2D8D7",
+          "#F1F3F3"
+        ]
+      },
+      "surface-dark": {
+        "role": "neutral",
+        "displayName": "Card White (dark theme)",
+        "canonical": "#232D2A",
+        "tonalRamp": [
+          "#232927",
+          "#3D4946",
+          "#566B65",
+          "#6E8D84",
+          "#90A69F",
+          "#B1BEBB",
+          "#D2D8D6",
+          "#F2F3F3"
+        ]
+      },
+      "surface-2-dark": {
+        "role": "neutral",
+        "displayName": "Raised Tint (dark theme)",
+        "canonical": "#2C3733",
+        "tonalRamp": [
+          "#242927",
+          "#3E4945",
+          "#576A63",
+          "#708C81",
+          "#91A59D",
+          "#B2BEBA",
+          "#D2D8D6",
+          "#F2F3F2"
+        ]
+      },
+      "surface-3-dark": {
+        "role": "neutral",
+        "displayName": "Raised Tint, deeper (dark theme)",
+        "canonical": "#36443F",
+        "tonalRamp": [
+          "#242927",
+          "#3E4945",
+          "#576A63",
+          "#6F8C82",
+          "#91A59E",
+          "#B2BEBA",
+          "#D2D8D6",
+          "#F2F3F2"
+        ]
+      },
+      "ink-dark": {
+        "role": "neutral",
+        "displayName": "Ink (dark theme)",
+        "canonical": "#EAF1EE",
+        "tonalRamp": [
+          "#222B27",
+          "#3A4D45",
+          "#507163",
+          "#659781",
+          "#89AC9D",
+          "#AEC2B9",
+          "#D0DAD6",
+          "#F1F3F2"
+        ]
+      },
+      "ink-2-dark": {
+        "role": "neutral",
+        "displayName": "Secondary Ink (dark theme)",
+        "canonical": "#B0BEB9",
+        "tonalRamp": [
+          "#242827",
+          "#3F4845",
+          "#596963",
+          "#728A81",
+          "#92A39D",
+          "#B3BDB9",
+          "#D3D8D6",
+          "#F2F3F2"
+        ]
+      },
+      "muted-dark": {
+        "role": "neutral",
+        "displayName": "Axis Grey (dark theme)",
+        "canonical": "#A5B3AE",
+        "tonalRamp": [
+          "#242827",
+          "#3F4745",
+          "#5A6763",
+          "#738881",
+          "#93A29D",
+          "#B4BCB9",
+          "#D3D7D6",
+          "#F2F3F2"
+        ]
+      },
+      "mark-dark": {
+        "role": "neutral",
+        "displayName": "Mark Grey (dark theme)",
+        "canonical": "#93A29C",
+        "tonalRamp": [
+          "#252827",
+          "#404744",
+          "#5A6762",
+          "#748780",
+          "#94A19C",
+          "#B4BCB9",
+          "#D3D7D5",
+          "#F2F3F2"
+        ]
+      },
+      "border-dark": {
+        "role": "neutral",
+        "displayName": "Row Hairline (dark theme)",
+        "canonical": "#33403B",
+        "tonalRamp": [
+          "#242927",
+          "#3E4945",
+          "#576A63",
+          "#708C81",
+          "#91A59D",
+          "#B2BEB9",
+          "#D2D8D6",
+          "#F2F3F2"
+        ]
+      },
+      "rule-dark": {
+        "role": "neutral",
+        "displayName": "Edge Rule (dark theme)",
+        "canonical": "#2E3A36",
+        "tonalRamp": [
+          "#242927",
+          "#3E4945",
+          "#576A64",
+          "#6F8C82",
+          "#91A59E",
+          "#B2BEBA",
+          "#D2D8D6",
+          "#F2F3F2"
+        ]
+      },
+      "baseline-dark": {
+        "role": "neutral",
+        "displayName": "Chart Baseline (dark theme)",
+        "canonical": "#4A5853",
+        "tonalRamp": [
+          "#242827",
+          "#3F4845",
+          "#596863",
+          "#738881",
+          "#93A29D",
+          "#B3BCB9",
+          "#D3D7D6",
+          "#F2F3F2"
+        ]
+      },
+      "track-dark": {
+        "role": "neutral",
+        "displayName": "Scale Track (dark theme)",
+        "canonical": "#36443F",
+        "tonalRamp": [
+          "#242927",
+          "#3E4945",
+          "#576A63",
+          "#6F8C82",
+          "#91A59E",
+          "#B2BEBA",
+          "#D2D8D6",
+          "#F2F3F2"
+        ]
+      },
+      "here-dark": {
+        "role": "neutral",
+        "displayName": "Here Row (dark theme)",
+        "canonical": "#2E3D38",
+        "tonalRamp": [
+          "#232927",
+          "#3D4A46",
+          "#556C64",
+          "#6C8F84",
+          "#8FA79F",
+          "#B1BFBA",
+          "#D2D9D6",
+          "#F1F3F3"
+        ]
+      },
+      "selection-dark": {
+        "role": "neutral",
+        "displayName": "Selection (dark theme)",
+        "canonical": "#3A4D46",
+        "tonalRamp": [
+          "#232927",
+          "#3D4A45",
+          "#556C64",
+          "#6C8F82",
+          "#8FA79E",
+          "#B1BFBA",
+          "#D2D9D6",
+          "#F1F3F2"
+        ]
+      },
+      "accent-dark": {
+        "role": "primary",
+        "displayName": "Action Teal (dark theme)",
+        "canonical": "#5CCBB6",
+        "tonalRamp": [
+          "#1B322D",
+          "#2A5C53",
+          "#368B7B",
+          "#3DBEA6",
+          "#6EC8B7",
+          "#9DD3C9",
+          "#C8E2DD",
+          "#EFF5F4"
+        ]
+      },
+      "accent-hover-dark": {
+        "role": "primary",
+        "displayName": "Deep Teal (dark theme)",
+        "canonical": "#7AD8C6",
+        "tonalRamp": [
+          "#1A322E",
+          "#295E54",
+          "#338E7C",
+          "#3AC2A8",
+          "#6BCBB8",
+          "#9BD4CA",
+          "#C7E3DE",
+          "#EFF5F4"
+        ]
+      },
+      "accent-soft-dark": {
+        "role": "primary",
+        "displayName": "Soft Teal (dark theme)",
+        "canonical": "#24403A",
+        "tonalRamp": [
+          "#202C2A",
+          "#36514B",
+          "#49786E",
+          "#5BA192",
+          "#82B3A9",
+          "#A9C7C0",
+          "#CEDCD9",
+          "#F1F4F3"
+        ]
+      },
+      "on-accent-dark": {
+        "role": "primary",
+        "displayName": "On Teal (dark theme)",
+        "canonical": "#0F1F1B",
+        "tonalRamp": [
+          "#1F2E2A",
+          "#33544C",
+          "#447D6F",
+          "#52A993",
+          "#7CB9AA",
+          "#A6CAC1",
+          "#CCDED9",
+          "#F0F4F3"
+        ]
+      },
+      "series-1": {
+        "role": "series",
+        "displayName": "Chart series 1",
+        "canonical": "#2a78d6",
+        "tonalRamp": [
+          "#172535",
+          "#234064",
+          "#295B98",
+          "#2976D2",
+          "#6095D6",
+          "#95B5DB",
+          "#C4D4E6",
+          "#EEF2F6"
+        ]
+      },
+      "series-2": {
+        "role": "series",
+        "displayName": "Chart series 2",
+        "canonical": "#eb6834",
+        "tonalRamp": [
+          "#381E14",
+          "#6B321C",
+          "#A4431D",
+          "#E45217",
+          "#E27C53",
+          "#E3A58D",
+          "#EACCC1",
+          "#F7F0ED"
+        ]
+      },
+      "series-3": {
+        "role": "series",
+        "displayName": "Chart series 3",
+        "canonical": "#1baf7a",
+        "tonalRamp": [
+          "#16372B",
+          "#20674D",
+          "#249D72",
+          "#22D998",
+          "#5BDBAD",
+          "#92DEC3",
+          "#C3E7DA",
+          "#EEF7F3"
+        ]
+      },
+      "series-4": {
+        "role": "series",
+        "displayName": "Chart series 4",
+        "canonical": "#eda100",
+        "tonalRamp": [
+          "#3C2E10",
+          "#745513",
+          "#B37E0E",
+          "#FAAA01",
+          "#F2BA44",
+          "#ECCB84",
+          "#EEDEBC",
+          "#F8F4EC"
+        ]
+      },
+      "series-5": {
+        "role": "series",
+        "displayName": "Chart series 5",
+        "canonical": "#e87ba4",
+        "tonalRamp": [
+          "#361722",
+          "#65213B",
+          "#9B2752",
+          "#D52668",
+          "#D85D8C",
+          "#DD93AF",
+          "#E7C4D1",
+          "#F6EEF1"
+        ]
+      },
+      "series-6": {
+        "role": "series",
+        "displayName": "Chart series 6",
+        "canonical": "#008300",
+        "tonalRamp": [
+          "#103C10",
+          "#137413",
+          "#0EB30E",
+          "#01FA01",
+          "#44F244",
+          "#84EC84",
+          "#BCEEBC",
+          "#ECF8EC"
+        ]
+      },
+      "series-7": {
+        "role": "series",
+        "displayName": "Chart series 7",
+        "canonical": "#6250d6",
+        "tonalRamp": [
+          "#1C1834",
+          "#2D2561",
+          "#3B2D94",
+          "#4530CB",
+          "#7365D1",
+          "#A098D8",
+          "#CAC6E5",
+          "#F0EFF6"
+        ]
+      },
+      "series-8": {
+        "role": "series",
+        "displayName": "Chart series 8",
+        "canonical": "#e34948",
+        "tonalRamp": [
+          "#371616",
+          "#672020",
+          "#9D2524",
+          "#D92322",
+          "#DB5C5B",
+          "#DE9292",
+          "#E7C3C3",
+          "#F7EEEE"
+        ]
+      },
+      "series-1-dark": {
+        "role": "series",
+        "displayName": "Chart series 1 (dark theme)",
+        "canonical": "#3987e5",
+        "tonalRamp": [
+          "#152537",
+          "#1E4069",
+          "#215BA0",
+          "#1E75DD",
+          "#5895DE",
+          "#90B4E0",
+          "#C2D3E8",
+          "#EEF2F7"
+        ]
+      },
+      "series-2-dark": {
+        "role": "series",
+        "displayName": "Chart series 2 (dark theme)",
+        "canonical": "#d95926",
+        "tonalRamp": [
+          "#362017",
+          "#653521",
+          "#9A4827",
+          "#D55826",
+          "#D8805E",
+          "#DDA893",
+          "#E7CEC4",
+          "#F6F0EE"
+        ]
+      },
+      "series-3-dark": {
+        "role": "series",
+        "displayName": "Chart series 3 (dark theme)",
+        "canonical": "#199e70",
+        "tonalRamp": [
+          "#16362B",
+          "#20674E",
+          "#259C73",
+          "#23D89A",
+          "#5BDAAE",
+          "#92DEC4",
+          "#C3E7DB",
+          "#EEF7F4"
+        ]
+      },
+      "series-4-dark": {
+        "role": "series",
+        "displayName": "Chart series 4 (dark theme)",
+        "canonical": "#c98500",
+        "tonalRamp": [
+          "#3C2D10",
+          "#745313",
+          "#B37B0E",
+          "#FAA601",
+          "#F2B744",
+          "#ECC984",
+          "#EEDDBC",
+          "#F8F4EC"
+        ]
+      },
+      "series-5-dark": {
+        "role": "series",
+        "displayName": "Chart series 5 (dark theme)",
+        "canonical": "#d55181",
+        "tonalRamp": [
+          "#341923",
+          "#61263B",
+          "#932E53",
+          "#CA3269",
+          "#D0658C",
+          "#D898AF",
+          "#E4C6D1",
+          "#F6EFF1"
+        ]
+      },
+      "series-6-dark": {
+        "role": "series",
+        "displayName": "Chart series 6 (dark theme)",
+        "canonical": "#008300",
+        "tonalRamp": [
+          "#103C10",
+          "#137413",
+          "#0EB30E",
+          "#01FA01",
+          "#44F244",
+          "#84EC84",
+          "#BCEEBC",
+          "#ECF8EC"
+        ]
+      },
+      "series-7-dark": {
+        "role": "series",
+        "displayName": "Chart series 7 (dark theme)",
+        "canonical": "#9085e9",
+        "tonalRamp": [
+          "#1A1736",
+          "#292265",
+          "#34279A",
+          "#3A27D4",
+          "#6C5ED7",
+          "#9C94DC",
+          "#C8C4E6",
+          "#EFEEF6"
+        ]
+      },
+      "series-8-dark": {
+        "role": "series",
+        "displayName": "Chart series 8 (dark theme)",
+        "canonical": "#e66767",
+        "tonalRamp": [
+          "#361616",
+          "#662121",
+          "#9C2525",
+          "#D72424",
+          "#D95C5C",
+          "#DD9393",
+          "#E7C3C3",
+          "#F6EEEE"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The one big figure per page (the price card's dollar amount), tabular."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The page h1, the broker's name."
+      },
+      "headline-sm": {
+        "displayName": "Headline small",
+        "purpose": "A card heading that is itself an answer (About $9 a year)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card headings; at 700 the rank line, at 600 the unit beside the big figure; the wordmark."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "The generated sentence under the scale, max 62ch."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text and row labels; values at 700, tabular."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Row sub-notes, table column headings, scale captions, footnotes; sentence case."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lift",
+        "value": "0 1px 2px rgb(16 40 34 / .05), 0 14px 30px -18px rgb(16 40 34 / .28)",
+        "purpose": "Every card and the current nav pill (light)."
+      },
+      {
+        "name": "lift-dark",
+        "value": "0 1px 0 rgb(255 255 255 / .03) inset, 0 16px 32px -22px rgb(0 0 0 / .8)",
+        "purpose": "Every card and the current nav pill (dark)."
+      },
+      {
+        "name": "pop",
+        "value": "0 2px 6px rgb(16 40 34 / .08), 0 24px 48px -20px rgb(16 40 34 / .4)",
+        "purpose": "Menu panel; hover of a wholly pressable card (light)."
+      },
+      {
+        "name": "pop-dark",
+        "value": "0 2px 8px rgb(0 0 0 / .35), 0 24px 48px -20px rgb(0 0 0 / .7)",
+        "purpose": "Menu panel; hover of a wholly pressable card (dark)."
+      },
+      {
+        "name": "press",
+        "value": "0 8px 18px -10px rgb(12 32 27 / .45)",
+        "purpose": "Under teal fills: solid button, checked switch option (light)."
+      },
+      {
+        "name": "press-dark",
+        "value": "0 8px 18px -10px rgb(0 0 0 / .6)",
+        "purpose": "Under teal fills (dark)."
+      },
+      {
+        "name": "scale-dot",
+        "value": "0 0 0 3px var(--surface), 0 3px 8px rgb(16 40 34 / .25)",
+        "purpose": "The broker's dot on the price scale: a card-coloured ring and a small drop."
+      },
+      {
+        "name": "focus-ring",
+        "value": "outline: 3px solid var(--accent); outline-offset: 3px",
+        "purpose": "Every focusable element; white on a teal panel; on a wholly pressable card or table row the ring moves to the card or row."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(.22, 1, .36, 1)",
+        "purpose": "The one curve: an exponential ease-out with no overshoot, for every movement."
+      },
+      {
+        "name": "press",
+        "value": "transform: scale(.95) over .5s ease-out; colours .2s; shadow .25s",
+        "purpose": "Give on :active for every pressable control; a wholly pressable card scales to .985."
+      },
+      {
+        "name": "scale-glide",
+        "value": "left .8s ease-out",
+        "purpose": "The scale's dot, tick and labels glide to their new places when the stock switch flips."
+      },
+      {
+        "name": "table-rerank",
+        "value": "translateY FLIP 650ms ease-out; new rows fade in 280ms",
+        "purpose": "The ranked table re-sorts in place when the stock switch flips."
+      },
+      {
+        "name": "chevron",
+        "value": "rotate(180deg) over .35s ease-out",
+        "purpose": "Disclosure chevrons (See all, more sources)."
+      },
+      {
+        "name": "theme",
+        "value": "background-color, color .25s",
+        "purpose": "The page ground and ink on a theme change."
+      },
+      {
+        "name": "chart",
+        "value": "700ms cubicOut",
+        "purpose": "ECharts entry animation."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "every animation and transition off; no press transform; no smooth scroll",
+        "purpose": "prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "tiny",
+        "value": "max-width: 359px",
+        "purpose": "The Menu pill drops its word."
+      },
+      {
+        "name": "narrow",
+        "value": "max-width: 374px",
+        "purpose": "A restacked table row moves its payment to a third line."
+      },
+      {
+        "name": "table-stack",
+        "value": "max-width: 559px",
+        "purpose": "Tables restack into two-line lists."
+      },
+      {
+        "name": "phone",
+        "value": "max-width: 599px",
+        "purpose": "16px gutter, 20px card padding and corner, full-width switch, 64px header."
+      },
+      {
+        "name": "desktop",
+        "value": "min-width: 1024px",
+        "purpose": "Two-column card board and nav pills; below it the nav folds into Menu and reading pages narrow to 44rem."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Solid Button",
+      "kind": "button",
+      "refersTo": "button-solid",
+      "description": "The card's one loud action: teal fill, on-teal text, press shadow.",
+      "html": "<a class=\"ds-btn ds-btn-solid\" href=\"#\">Yearly cost with your own numbers <svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></a>",
+      "css": ".ds-btn { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 20px; border: 2px solid transparent; border-radius: 999px; font-weight: 700; text-decoration: none; transition: transform .5s cubic-bezier(.22,1,.36,1), background-color .2s, color .2s, box-shadow .25s; } .ds-btn-solid { background: var(--accent, #0F7B6C); color: var(--on-accent, #FFFFFF); box-shadow: 0 8px 18px -10px rgb(12 32 27 / .45); } .ds-btn-solid:hover { background: var(--accent-hover, #0B6155); } .ds-btn:active { transform: scale(.95); } .ds-btn:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action: card fill, 2px teal outline; hover fills Soft Teal.",
+      "html": "<button class=\"ds-ghost\" type=\"button\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M4 7h10M18 7h2M4 17h4M12 17h8\"/><circle cx=\"16\" cy=\"7\" r=\"2\"/><circle cx=\"10\" cy=\"17\" r=\"2\"/></svg>Change</button>",
+      "css": ".ds-ghost { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 20px; border: 2px solid var(--accent, #0F7B6C); border-radius: 999px; background: var(--surface, #FFFFFF); color: var(--accent, #0F7B6C); font-weight: 700; font-size: 1rem; cursor: pointer; transition: transform .5s cubic-bezier(.22,1,.36,1), background-color .2s, color .2s; } .ds-ghost:hover { background: var(--accent-soft, #E3F1ED); color: var(--accent-hover, #0B6155); } .ds-ghost:active { transform: scale(.95); } .ds-ghost:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; }"
+    },
+    {
+      "name": "Soft Pill",
+      "kind": "chip",
+      "refersTo": "pill-soft",
+      "description": "Quiet target in a list (compare-with choices): Soft Teal fill, Deep Teal text, chevron.",
+      "html": "<a class=\"ds-pill-soft\" href=\"#\"><span>Fidelity</span><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 6l6 6-6 6\"/></svg></a>",
+      "css": ".ds-pill-soft { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 180px; min-height: 48px; padding: 0 14px 0 18px; border-radius: 999px; background: var(--accent-soft, #E3F1ED); color: var(--accent-hover, #0B6155); font-weight: 700; text-decoration: none; transition: transform .5s cubic-bezier(.22,1,.36,1), background-color .2s; } .ds-pill-soft:hover { background: color-mix(in srgb, var(--accent, #0F7B6C) 16%, var(--surface, #FFFFFF)); } .ds-pill-soft:active { transform: scale(.95); } .ds-pill-soft:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; }"
+    },
+    {
+      "name": "Stock Switch",
+      "kind": "custom",
+      "refersTo": "switch-option-checked",
+      "description": "The page's one control: a native radio group drawn as a two-option teal-outlined pill.",
+      "html": "<fieldset class=\"ds-seg\"><input type=\"radio\" name=\"ds-sg\" id=\"ds-sp\" checked><label for=\"ds-sp\">S&amp;P 500 stocks</label><input type=\"radio\" name=\"ds-sg\" id=\"ds-ot\"><label for=\"ds-ot\">Other stocks</label></fieldset>",
+      "css": ".ds-seg { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; display: inline-flex; padding: 2px; margin: 0; border: 2px solid var(--accent, #0F7B6C); border-radius: 999px; background: var(--surface, #FFFFFF); color: var(--ink, #17201D); } .ds-seg input { position: absolute; opacity: 0; width: 1px; height: 1px; } .ds-seg label { display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 999px; font-weight: 600; cursor: pointer; transition: transform .5s cubic-bezier(.22,1,.36,1), background-color .2s, color .2s; } .ds-seg label:hover { background: var(--accent-soft, #E3F1ED); } .ds-seg input:checked + label { background: var(--accent, #0F7B6C); color: var(--on-accent, #FFFFFF); box-shadow: 0 8px 18px -10px rgb(12 32 27 / .45); } .ds-seg label:active { transform: scale(.95); } .ds-seg:has(input:focus-visible) { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "One idea per card: white, 24px corners, lift shadow, no border; Title heading, a secondary sub-line, hairline value rows.",
+      "html": "<section class=\"ds-card\"><h2>Fees</h2><p class=\"ds-sub\">Checked Nov 2, 2026</p><dl class=\"ds-rows\"><div><dt>Commission per stock trade</dt><dd>$0</dd></div><div><dt>Margin rate<small>about a $25,000 balance</small></dt><dd>5.25%</dd></div><div><dt>Interest on idle cash</dt><dd class=\"ds-unknown\">Not confirmed</dd></div></dl></section>",
+      "css": ".ds-card { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; max-width: 420px; background: var(--surface, #FFFFFF); color: var(--ink, #17201D); border-radius: 24px; padding: 30px 32px; box-shadow: 0 1px 2px rgb(16 40 34 / .05), 0 14px 30px -18px rgb(16 40 34 / .28); } .ds-card h2 { margin: 0; font-size: 1.375rem; line-height: 1.25; font-weight: 800; letter-spacing: -.015em; } .ds-sub { margin: 6px 0 0; color: var(--ink-2, #55615C); } .ds-rows { margin: 16px 0 0; } .ds-rows > div { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 52px; padding: 8px 0; border-top: 1px solid var(--border, #E1E8E5); } .ds-rows dt small { display: block; margin-top: 2px; font-size: .875rem; color: var(--ink-2, #55615C); } .ds-rows dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; } .ds-rows dd.ds-unknown { font-weight: 600; color: var(--ink-2, #55615C); }"
+    },
+    {
+      "name": "Price Scale",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "The signature: a neutral rail placing this broker's ink dot between cheapest and most expensive, with the typical tick.",
+      "html": "<div class=\"ds-scale\" style=\"--lo:0%;--hi:100%;--typ:57%;--you:49%\"><div class=\"ds-rail\"><span class=\"ds-track\"></span><span class=\"ds-end\"></span><span class=\"ds-end ds-r\"></span><span class=\"ds-typ\"></span><b class=\"ds-you-l\">Robinhood</b><span class=\"ds-you\"></span></div><div class=\"ds-mid\"><span class=\"ds-typ-l\">Typical <b>$0.96</b></span></div><div class=\"ds-ends\"><p><small>Cheapest</small>Fidelity &minus;$0.09</p><p class=\"ds-r\"><small>Most expensive</small>eToro $1.77</p></div></div>",
+      "css": ".ds-scale { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; width: 520px; padding: 8px 16px; color: var(--ink, #17201D); background: var(--surface, #FFFFFF); } .ds-rail { position: relative; height: 62px; } .ds-track { position: absolute; left: 0; right: 0; top: 41px; height: 8px; border-radius: 999px; background: var(--track, #E1E9E6); } .ds-end { position: absolute; left: var(--lo); top: 40px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--mark, #7C8984); box-shadow: 0 0 0 2px var(--surface, #FFFFFF); } .ds-end.ds-r { left: var(--hi); } .ds-typ { position: absolute; left: var(--typ); top: 34px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--mark, #7C8984); box-shadow: 0 0 0 2px var(--surface, #FFFFFF); } .ds-you { position: absolute; left: var(--you); top: 34px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; background: var(--ink, #17201D); box-shadow: 0 0 0 3px var(--surface, #FFFFFF), 0 3px 8px rgb(16 40 34 / .25); transition: left .8s cubic-bezier(.22,1,.36,1); } .ds-you-l { position: absolute; left: var(--you); top: 6px; transform: translateX(-50%); white-space: nowrap; font-weight: 700; } .ds-mid { position: relative; height: 1.6rem; margin-top: 4px; } .ds-typ-l { position: absolute; left: var(--typ); transform: translateX(-50%); white-space: nowrap; font-size: .875rem; color: var(--ink-2, #55615C); } .ds-typ-l b { font-size: 1rem; color: var(--ink, #17201D); } .ds-ends { display: flex; justify-content: space-between; margin-top: 6px; } .ds-ends p { margin: 0; font-weight: 700; line-height: 1.35; } .ds-ends small { display: block; font-size: .875rem; font-weight: 500; color: var(--ink-2, #55615C); } .ds-ends .ds-r { text-align: right; }"
+    },
+    {
+      "name": "Ranked Table",
+      "kind": "custom",
+      "refersTo": "table-row-here",
+      "description": "Every comparison as a real table; the page's own broker on a Here-tinted row with 14px ends.",
+      "html": "<table class=\"ds-tbl\"><thead><tr><th class=\"ds-l\">Rank</th><th class=\"ds-l\">Broker</th><th>Above fair price</th><th>Broker is paid</th></tr></thead><tbody><tr><td class=\"ds-l ds-2\">9</td><th class=\"ds-l\"><a href=\"#\">E*TRADE</a></th><td class=\"ds-b\">$0.59</td><td class=\"ds-2\">$0.06</td></tr><tr class=\"ds-you\"><td class=\"ds-l\">10</td><th class=\"ds-l\">Robinhood</th><td>$0.82</td><td>$0.83</td></tr><tr><td class=\"ds-l ds-2\">11</td><th class=\"ds-l\"><a href=\"#\">UBS Wealth</a></th><td class=\"ds-b\">$0.84</td><td class=\"ds-2\">$0.00</td></tr></tbody></table>",
+      "css": ".ds-tbl { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; width: 520px; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; color: var(--ink, #17201D); background: var(--surface, #FFFFFF); } .ds-tbl th, .ds-tbl td { padding: 13px 12px; border-top: 1px solid var(--border, #E1E8E5); text-align: right; white-space: nowrap; } .ds-tbl thead th { border-top: 0; font-size: .875rem; font-weight: 600; color: var(--ink-2, #55615C); } .ds-tbl .ds-l { text-align: left; } .ds-tbl tbody th { font-weight: 600; } .ds-tbl .ds-2 { color: var(--ink-2, #55615C); } .ds-tbl .ds-b { font-weight: 700; } .ds-tbl a { color: var(--ink, #17201D); text-decoration: none; } .ds-tbl a:hover { text-decoration: underline 2px var(--accent, #0F7B6C); text-underline-offset: 5px; } .ds-tbl a:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; } .ds-tbl tr.ds-you > * { background: var(--here, #E6F0EC); border-top-color: transparent; font-weight: 700; } .ds-tbl tr.ds-you > :first-child { border-radius: 14px 0 0 14px; } .ds-tbl tr.ds-you > :last-child { border-radius: 0 14px 14px 0; } .ds-tbl tr.ds-you + tr > * { border-top-color: transparent; }"
+    },
+    {
+      "name": "Header Navigation",
+      "kind": "nav",
+      "refersTo": "nav-link-current",
+      "description": "Nav pills on the ground; the current page is a white pill with teal text and lift.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\">Home</a><a href=\"#\">Compare</a><a href=\"#\">Calculator</a><a href=\"#\" aria-current=\"page\">Brokers</a><a href=\"#\">Trading firms</a></nav>",
+      "css": ".ds-nav { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; display: flex; gap: 2px; padding: 12px; background: var(--page, #EDF2F0); } .ds-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; font-weight: 600; color: var(--ink, #17201D); text-decoration: none; transition: background-color .2s, color .2s; } .ds-nav a:hover { background: var(--surface, #FFFFFF); } .ds-nav a[aria-current=page] { background: var(--surface, #FFFFFF); color: var(--accent, #0F7B6C); box-shadow: 0 1px 2px rgb(16 40 34 / .05), 0 14px 30px -18px rgb(16 40 34 / .28); } .ds-nav a:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; }"
+    },
+    {
+      "name": "Go Link",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Teal text action with a trailing arrow, 44px tall: Details, See all.",
+      "html": "<a class=\"ds-go\" href=\"#\">Details<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></a>",
+      "css": ".ds-go { font-family: \"Figtree Variable\", Figtree, system-ui, sans-serif; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--accent, #0F7B6C); font-weight: 700; text-decoration: none; } .ds-go:hover { color: var(--accent-hover, #0B6155); text-decoration: underline; } .ds-go:focus-visible { outline: 3px solid var(--accent, #0F7B6C); outline-offset: 3px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Calm Answer",
+    "overview": "Every page is one soft card stating one answer in plain words, laid on a pale ground tinted from the action teal. The system is a warm consumer app, not a trading dashboard: white cards with generous corners and a shadow you notice only as lift, Figtree for everything, the number first and set big, and a single teal that appears only on things you can press. Nothing on the page sells, celebrates or alarms. Meaning is carried by words (\"above the fair price\", \"10th cheapest of 25\", \"Not confirmed\"), never by a red or green figure.\n\nDensity is low and deliberate: one idea per card, cards stacked in columns, explanations one click away behind an (i) or a \"How we measure\" link. The product's signature is the neutral price scale, a grey rail that places one broker's ink dot between the cheapest and the most expensive with a tick at the typical broker, drawn in CSS and gliding when the stock switch flips. Every comparison that the scale summarises is also given as a real table.\n\nLight is the default; dark follows the system until the visitor picks a theme, and both themes are tuned separately rather than auto-inverted. The world rejects gradients, glow, icon tiles, uppercase kickers, colour-coded verdicts, ratings and \"Open account\" buttons.",
+    "keyCharacteristics": [
+      "Soft white cards (24px corners, 20px on phones) on a teal-tinted neutral ground (light page, dark page with darker cards).",
+      "One typeface, Figtree, weight 800 for headings and the big figure, tabular numerals for every number.",
+      "One action colour, teal, reserved for pressable things; everything else is ink and tinted greys.",
+      "The neutral price scale as the signature visual; tables for every comparison.",
+      "Pill-shaped controls, 44px minimum hit areas, a 3px teal focus ring clear of the element.",
+      "One motion curve, an exponential ease-out with no overshoot; nothing moves under reduced motion."
+    ],
+    "rules": [
+      {
+        "name": "The Press-Only Teal Rule",
+        "body": "Teal marks only what can be pressed or what has keyboard focus. A heading, a figure, a badge, a decorative shape or a \"good\" value is never teal. If it is teal, clicking it does something.",
+        "section": "colors"
+      },
+      {
+        "name": "The Words-Not-Colour Rule",
+        "body": "Good and bad are stated in words (\"below the fair price\", \"11th cheapest of 20\", \"Pays $0.01\", \"Not confirmed\"), never by colouring a figure red or green. Prices, ranks and payments are all ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The Contrast Floor Rule",
+        "body": "All text reaches at least 4.5:1 on its own background in both themes (light: ink-2 on surface 6.5:1, accent on surface 5.2:1, accent on page 4.6:1; dark: ink-2 on surface 8.0:1, accent on surface 7.7:1). Non-text marks reach at least 3:1 against the card (mark on surface 3.6:1 light, 5.6:1 dark). Text on Soft Teal is Deep Teal, never Action Teal (accent on accent-soft is 4.4:1 in light, below the floor).",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Tuned Themes Rule",
+        "body": "Light and dark are each tuned by hand; in dark the teal lightens, the on-teal text turns near-black and hover goes lighter, not darker. The two dark blocks in the stylesheet (picked and system) stay identical.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Numbers Rule",
+        "body": "Every figure that can sit beside another figure (big amounts, table cells, fee values) uses tabular numerals.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Kicker Rule",
+        "body": "No uppercase eyebrows or letter-spaced labels above headings. A heading says what the card holds; a sub-line in secondary ink gives the scope and date.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Glow Rule",
+        "body": "No gradients, glows, coloured shadows or blurred backdrops. A shadow only says \"this sits above the ground\" or \"this can be pressed\".",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do lead each page with one answer card: the figure at Display size, its unit in words beside it, then the rank and the scale.",
+      "Do keep teal for pressable things and focus rings only; use ink for every number and verdict.",
+      "Do state good or bad in words next to the figure (\"above the fair price\", \"10th cheapest of 25\").",
+      "Do pair every scale or ranked summary with a real table of all the brokers, the page's own row tinted Here.",
+      "Do keep text at 4.5:1 or more and marks at 3:1 or more in both themes; put Deep Teal, not Action Teal, on Soft Teal.",
+      "Do give every control a 44px minimum hit area and the 3px teal focus ring 3px clear.",
+      "Do use the one curve `cubic-bezier(.22, 1, .36, 1)` for every movement and turn all motion off under reduced motion.",
+      "Do name unknowns plainly (\"Not confirmed\", \"Not offered\", \"Varies\") in secondary ink."
+    ],
+    "donts": [
+      "Don't use gradients, glow, coloured shadows or the old gradient text and hero glow.",
+      "Don't put icons in coloured tiles; icons are line icons beside a word or the face of a round control.",
+      "Don't add uppercase, letter-spaced kickers or eyebrows above headings.",
+      "Don't colour figures red or green to mean good or bad, and don't colour the scale.",
+      "Don't add ratings, stars, badges, \"Open account\" buttons or cheerleading copy.",
+      "Don't build a dashboard of equal KPI tiles; one idea per card.",
+      "Don't introduce a second typeface or px font sizes outside the seven-step scale.",
+      "Don't use series colours outside charts."
+    ]
+  }
+}

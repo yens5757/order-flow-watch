@@ -156,6 +156,9 @@ export interface Metric {
   gap: number | null;
   /** average time to fill in milliseconds (meta.timeUnit); the same value as t */
   speedMs: number | null;
+  /** points of the spread its customers paid on fractional-share orders minus whole-share orders (odd and round lots,
+   *  dollar-weighted): plain market orders under $200,000 in meta.detailMonth (Lot rows); null without both kinds */
+  fract: number | null;
   /** from fees.csv (see Fee): null when the broker has no row or the fact is not verified */
   commission: number | null; optionsFee: number | null; marginRate: number | null; cashYield: number | null; transferOut: number | null;
 }
@@ -176,6 +179,11 @@ export function metric(d: Data, f: Firm, s: Filters): Metric {
   const qsBps = base?.qs != null ? base.qs * 1e4 : null;
   const cust = pct(e?.efq);
   const fee: Fee | undefined = d.fees[f.id];
+  // fractional vs whole shares, from the detailed report's lot types (one month, plain market orders, all sizes under $200k)
+  const lots = d.lots.filter((l) => l.id === f.id && l.sp === s.sp);
+  const fr = lots.find((l) => l.lot === "FRACT"), whole = lots.filter((l) => l.lot !== "FRACT" && l.dollars > 0);
+  const wholeDollars = whole.reduce((a, l) => a + l.dollars, 0);
+  const fract = fr && wholeDollars > 0 ? fr.efq - whole.reduce((a, l) => a + l.efq * l.dollars, 0) / wholeDollars : null;
   return {
     f, id: f.id, name: nameOf(f), payPct, cph, payQ, cust,
     pi: pct(e?.pi), aq: pct(e?.aq), sz: e?.sz ?? null, px: e?.px ?? null, t: e?.t ?? null, qsBps,
@@ -183,6 +191,7 @@ export function metric(d: Data, f: Firm, s: Filters): Metric {
     pay10k: cph != null && base?.px ? cph / base.px : null,
     gap: d.sameStock.brokers.find((g) => g.id === f.id && g.sp === s.sp && g.cells >= 100)?.gap ?? null,
     speedMs: e?.t ?? null,
+    fract,
     commission: fee?.commission ?? null, optionsFee: fee?.optionsFee ?? null, marginRate: fee?.marginRate ?? null,
     cashYield: fee?.cashYield ?? null, transferOut: fee?.transferOut ?? null,
   };

@@ -25,3 +25,15 @@ desktop.ini
 
 # Superseded by this file (it was missing the leading dot)
 /gitignore
+
+# Impeccable design-tool working files: decision sketches, MVPs, review captures,
+# critique snapshots and live-mode sessions stay local; PRODUCT.md, DESIGN.md,
+# .impeccable/design.json, config.json and surfaces/ are committed
+.impeccable/mocks/
+.impeccable/review/
+.impeccable/critique/
+.impeccable/questions/
+.impeccable/live/sessions/
+.impeccable/live/annotations/
+.impeccable/hook.cache.json
+.impeccable/config.local.json

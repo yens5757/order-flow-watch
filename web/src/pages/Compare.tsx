@@ -12,6 +12,7 @@ import { go } from "../lib/hooks";
 import { METRICS, type MetricKey } from "../lib/metrics";
 import { brokerPath, comparePath, DEFAULT_PAIR, href, pagePath, pairOrder } from "../lib/routes";
 import { useTheme } from "../lib/theme";
+import { payment } from "../lib/broker";
 
 const SIZE_SHORT: Record<number, string> = { 0: "<$250", 250: "$250", 1000: "$1k", 5000: "$5k", 10000: "$10k", 20000: "$20k", 50000: "$50k", 200000: "$200k+" };
 /** The pairs people search for most, in the order they are shown. */
@@ -37,7 +38,7 @@ const winner = (better: Better, av: number | null, bv: number | null): "a" | "b"
 const fair = (v: number) => (v < 0 ? `a price ${usd2(-v)} better than the fair price` : `${usd2(v)} above the fair price`);
 
 /** The short answer, generated from the numbers: who is cheaper on a $10,000 trade, by how much, and whether fees change it. */
-function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm; rA: Metric; rB: Metric; feeA?: Fee; feeB?: Fee }) {
+function Verdict({ d, f, A, B, rA, rB, feeA, feeB }: { d: Data; f: Filters; A: Firm; B: Firm; rA: Metric; rB: Metric; feeA?: Fee; feeB?: Fee }) {
   const stocks = f.sp === "Y" ? "S&P 500 stocks" : "other stocks";
   const order = f.ot === "M" ? "market order" : "marketable limit order";
   const price: ReactNode[] = [], money: ReactNode[] = [];
@@ -69,15 +70,24 @@ function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm
 
   // 3. what the broker is paid
   const pa = rA.pay10k, pb = rB.pay10k;
-  const paid = (F: Firm, v: number | null) =>
-    v == null ? `${F.short} files no payment report of its own (another firm routes its orders)`
-      : v > 0.005 ? `${F.short} is paid about ${usd2(v)} per $10,000 order`
-      : v < -0.005 ? `${F.short} pays its trading firm about ${usd2(-v)} per $10,000 order`
-      : `${F.short} isn't paid for orders`;
+  // the broker pages' rule (lib/broker.ts payment): "pays its trading firm" only when a trading firm's rate is below zero;
+  // money that goes to exchanges is exchange fees
+  const paid = (F: Firm, r: Metric) => {
+    const p = payment(d, r, f.sp, f.ot);
+    const amt = p.v != null ? `${usd2(Math.abs(p.v))} per $10,000 order` : `${Math.abs(p.cph ?? 0).toFixed(1)}¢ per 100 shares`;
+    switch (p.kind) {
+      case "none": return `${F.short} files no payment report of its own (another firm routes its orders)`;
+      case "missing": return `${F.short}'s payment report has no figure for these orders this quarter`;
+      case "paid": return `${F.short} is paid about ${amt}`;
+      case "pays": return `${F.short} pays its trading firm about ${amt}`;
+      case "fees": return `${F.short} isn't paid by trading firms and pays about ${amt} in exchange fees`;
+      default: return `${F.short} isn't paid for orders`;
+    }
+  };
   if (pa != null && pb != null && pa > 0.005 && pb > 0.005) {
     money.push(<>Trading firms pay {A.short} about {usd2(pa)} and {B.short} about {usd2(pb)} per $10,000 order.</>);
   } else {
-    money.push(<>{paid(A, pa)}; {paid(B, pb)}.</>);
+    money.push(<>{paid(A, rA)}; {paid(B, rB)}.</>);
   }
 
   // 4. do fees change the picture?
@@ -102,8 +112,8 @@ function Verdict({ f, A, B, rA, rB, feeA, feeB }: { f: Filters; A: Firm; B: Firm
 
   return (
     <Card title="The short answer" sub={`${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot]} orders · all sizes under $200,000`}>
-      <p className="text-[15.5px] leading-relaxed text-ink2">{price}</p>
-      <p className="mt-3 text-[15.5px] leading-relaxed text-ink2">{money}</p>
+      <p className="text-[15.5px] leading-relaxed text-ink2">{price.map((x, i) => <Fragment key={i}>{x}</Fragment>)}</p>
+      <p className="mt-3 text-[15.5px] leading-relaxed text-ink2">{money.map((x, i) => <Fragment key={i}>{x}</Fragment>)}</p>
       <p className="mt-3 text-[13.5px] leading-relaxed text-muted">
         Not a verdict on which broker is better overall; for your own habits, use the <a href={href(pagePath("calculator"))} className="font-semibold text-accent hover:underline">yearly cost calculator</a>.
       </p>
@@ -258,7 +268,7 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
         </div>
       )}
 
-      <Verdict f={f} A={A} B={B} rA={rA} rB={rB} feeA={feeA} feeB={feeB} />
+      <Verdict d={d} f={f} A={A} B={B} rA={rA} rB={rB} feeA={feeA} feeB={feeB} />
 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1.1fr_1fr]">
         <Card title="Side by side" sub="Tap a name for its report"
@@ -308,9 +318,9 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
             ) : <Empty>No price data with these filters.</Empty>}
           </Card>
 
-          <div className="relative overflow-hidden rounded-2xl p-6 text-white shadow-card sm:p-7" style={{ background: "var(--grad)" }}>
+          <div className="on-accent relative overflow-hidden rounded-2xl p-6 text-white shadow-card sm:p-7" style={{ background: "var(--grad)" }}>
             <h2 className="font-display text-[22px] font-extrabold tracking-tight">What does this add up to in a year?</h2>
-            <a href={`${href(pagePath("calculator"))}?b=${A.slug}`} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[14px] font-semibold text-[#1b2a55] hover:bg-white/90">
+            <a href={`${href(pagePath("calculator"))}?b=${A.slug}`} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[14px] font-semibold text-[#0B6155] hover:bg-white/90">
               See your yearly cost<Icon name="arrow" size={15} />
             </a>
           </div>

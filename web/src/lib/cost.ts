@@ -16,7 +16,29 @@ export interface CostLine {
   gaps: string[];
 }
 
-export const DEFAULT_INPUTS: CostInputs = { trades: 24, size: 2000, spMix: 50, options: 0, idleCash: 5000, margin: 0 };
+/** No idle cash and no margin by default: those costs only count once the visitor says they have them (the broker pages'
+ *  yearly figure uses the same habit, lib/broker.ts HABIT, so every page agrees on what a year costs). */
+export const DEFAULT_INPUTS: CostInputs = { trades: 24, size: 2000, spMix: 50, options: 0, idleCash: 0, margin: 0 };
+
+/** Each input's key in the calculator's query string (calculator/?n=24&s=2000&mix=50&o=0&c=5000&m=0&b=robinhood). */
+export const CALC_KEYS: [keyof CostInputs, string][] = [["trades", "n"], ["size", "s"], ["spMix", "mix"], ["options", "o"], ["idleCash", "c"], ["margin", "m"]];
+
+/** The calculator's query for a set of inputs and a broker's slug: only the inputs that differ from the defaults, so a
+ *  key a link leaves out means the default. A link always names at least one input (n= when every input is a default),
+ *  so it opens on exactly these inputs, never on the recipient's own saved ones (calculator/?n=24&b=robinhood). */
+export const calcQuery = (inp: CostInputs, slug: string): Record<string, string | number | null> => {
+  const q: Record<string, string | number | null> = Object.fromEntries(CALC_KEYS.map(([field, key]) => [key, inp[field] !== DEFAULT_INPUTS[field] ? inp[field] : null]));
+  if (Object.values(q).every((v) => v == null)) q.n = inp.trades;
+  return { ...q, b: slug };
+};
+
+/** The same query as a string ("?c=0&b=robinhood"), for a link into the calculator that opens on exactly these inputs. */
+export function calcSearch(inp: CostInputs, slug: string): string {
+  const p = new URLSearchParams();
+  for (const [k, v] of Object.entries(calcQuery(inp, slug))) if (v != null) p.set(k, String(v));
+  const s = p.toString();
+  return s ? `?${s}` : "";
+}
 
 export type PartKey = "spread" | "commissions" | "optionsFees" | "cashDrag" | "marginInterest";
 /** The five parts of the total in stack order, each with its series colour slot (t.s[slot]) and the `missing` labels it owns.

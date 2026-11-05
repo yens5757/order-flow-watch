@@ -1,153 +1,123 @@
-import { useMemo } from "react";
-import { EChart } from "../charts/EChart";
-import { bandLine, donut, hBars, lines, stackedColumns } from "../charts/options";
-import { FeesCard } from "../components/FeesCard";
-import { FilterBar } from "../components/Filters";
-import { TrustCard } from "../components/TrustCard";
-import { Card, Empty, Icon, Kpi, Select } from "../components/ui";
-import { brokerRows, execKey, files606, metric, nameOf, SIZE_STEPS, slugOf, SP_LABEL, type Data, type Filters } from "../lib/data";
-import { cents, dollars, monthLong, ms, num, pct, quarterLong, quarterShort, signed, usd2 } from "../lib/format";
-import { go } from "../lib/hooks";
-import { median } from "../lib/stats";
-import { METRICS } from "../lib/metrics";
-import { brokerPath, comparePath, href, pagePath } from "../lib/routes";
-import { useTheme } from "../lib/theme";
+// brokers/<slug>/: one broker, one calm answer. First what its customers paid above the fair price per $10,000 traded and
+// where that ranks among the brokers, then what a typical year costs; then what it is paid for orders, its registration,
+// every broker around it in a table, its fees and where to go next. The page keeps its own filters (market orders, all
+// sizes under $200,000, the latest month and payment quarter) whatever was picked elsewhere; its one control is the
+// S&P 500 / other stocks switch. Composition: .impeccable/mocks/mvp/consumer-app-sage.html (owner-approved).
+// Routing, payment history and cost by order size moved: the payment line's "Details" opens this broker's section on the
+// trading-firms page, and the brokers explorer has order size, execution speed and fractional shares as measures.
+import { useEffect, useMemo, useRef, useState } from "react";
+import "../components/broker/broker.css";
+import { CompareCard } from "../components/broker/CompareCard";
+import { FeesCard } from "../components/broker/FeesCard";
+import { PaymentLine, TrustLine } from "../components/broker/OneLiners";
+import { PriceCard } from "../components/broker/PriceCard";
+import { StockSwitch } from "../components/broker/StockSwitch";
+import { WhereSits } from "../components/broker/WhereSits";
+import { YearCard } from "../components/broker/YearCard";
+import { Icon } from "../components/ui";
+import { cents, groupOf, money, yearFor, type Group } from "../lib/broker";
+import type { Data, Sp } from "../lib/data";
+import { monthLong } from "../lib/format";
+import { href, pagePath } from "../lib/routes";
 
-const SIZE_SHORT: Record<number, string> = { 0: "<$250", 250: "$250", 1000: "$1k", 5000: "$5k", 10000: "$10k", 20000: "$20k", 50000: "$50k", 200000: "$200k+" };
-const LOTS: Record<string, string> = { FRACT: "Fractional shares", ODD: "Odd lots (<100 shares)", ROUND: "Round lots (100+ shares)" };
+/** What the live region says when the switch flips: the group, the price and the rank, in one line. */
+function status(v: Group, month: string): string {
+  const c = v.m.cost10k;
+  if (c == null) return `${v.name}: no price report for ${month}.`;
+  const side = cents(c) > 0 ? "above" : cents(c) < 0 ? "below" : "at";
+  const rank = v.rank ? `, ${v.rank.charAt(0).toLowerCase()}${v.rank.slice(1)}` : "";
+  return `${v.name}: ${money(Math.abs(c))} ${side} the fair price per $10,000 traded${rank}.`;
+}
 
-export default function BrokerProfile({ d, f, set, id }: { d: Data; f: Filters; set: (p: Partial<Filters>) => void; id: string }) {
-  const { t } = useTheme();
-  const firm = d.byId[id] ?? d.brokers[0];
-  const r = metric(d, firm, f);
-  const all = brokerRows(d, f);
-  const rank = r.cust == null ? null : all.filter((o) => o.cust! < r.cust!).length + 1;
-  const gap = d.sameStock.brokers.find((g) => g.id === firm.id && g.sp === f.sp);
-  const order = [...d.firms].sort((a, b) => a.short.localeCompare(b.short));
-  const idx = order.findIndex((o) => o.id === firm.id);
-  const prev = order[(idx - 1 + order.length) % order.length], next = order[(idx + 1) % order.length];
-  const others = order.filter((o) => o.id !== firm.id && o.type === "broker"); // "Compare with…" choices
-  const has606 = files606(d, firm.crd); // a CRD alone is not a 606: five brokers have one without filing
-  // execution speed: the 605 time fields are in meta.timeUnit (ms), so the formatter only applies to that unit
-  const time = (v: number | null) => (d.meta.timeUnit === "ms" ? ms(v) : v == null ? "–" : `${num(v, 1)} ${d.meta.timeUnit}`);
-  const medSpeed = median(all.map((o) => o.t).filter((x): x is number => x != null));
-
-  // cost by order size: this broker vs every broker
-  const size = SIZE_STEPS.map((b) => {
-    const v = (bid: string) => { const e = d.exec.get(execKey(bid, f.month, f.sp, f.ot, b)); return e?.efq == null ? null : e.efq * 100; };
-    const others = d.brokers.map((o) => v(o.id)).filter((x): x is number => x != null);
-    return { v: v(firm.id), med: median(others), lo: others.length ? Math.min(...others) : null, hi: others.length ? Math.max(...others) : null };
+/** Each shown table row's top, relative to the "Where … sits" card, by broker id. */
+function rowTops(): Map<string, number> {
+  const where = document.getElementById("where"), out = new Map<string, number>();
+  if (!where) return out;
+  const top = where.getBoundingClientRect().top;
+  where.querySelectorAll<HTMLElement>("tbody tr[data-id]").forEach((tr) => {
+    if (tr.offsetParent) out.set(tr.dataset.id!, tr.getBoundingClientRect().top - top);
   });
-  const sizeChart = useMemo(() => bandLine(t, SIZE_STEPS.map((b) => SIZE_SHORT[b]),
-    { v: size.map((s) => s.v), med: size.map((s) => s.med), lo: size.map((s) => s.lo), hi: size.map((s) => s.hi) },
-    { name: firm.short, fmt: (v) => `${v.toFixed(0)}%` }), [t, firm, f]); // eslint-disable-line react-hooks/exhaustive-deps
+  return out;
+}
 
-  // routing: where its orders go (top 6 + other)
-  const venues = d.venues.filter((v) => v.crd === firm.crd && v.q === f.quarter && v.sp === f.sp)
-    .map((v) => ({ venue: v.venue, share: v.share[f.ot] ?? 0, cph: v.cph[f.ot] })).filter((v) => v.share > 0).sort((a, b) => b.share - a.share);
-  const head = venues.slice(0, 6), tail = venues.slice(6);
-  const slices = [
-    ...head.map((v, i) => ({ name: v.venue, v: v.share, color: t.s[i], rows: [[t.s[i], "Share of orders", pct(v.share, 1)], [null, "Paid per 100 shares", cents(v.cph)]] as [string | null, string, string][] })),
-    ...(tail.length ? [{ name: `Other (${tail.length})`, v: tail.reduce((a, v) => a + v.share, 0), color: t.context }] : []),
-  ];
-  // some 606s list only their main venues (Futu Clearing: ~56%); show the rest rather than stretch the ring
-  const listed = venues.reduce((a, v) => a + v.share, 0);
-  if (venues.length && listed < 97) slices.push({ name: "Not broken down", v: 100 - listed, color: t.neutral });
-  const routing = useMemo(() => donut(t, slices, (v) => `${v.toFixed(0)}%`), [t, firm, f]); // eslint-disable-line react-hooks/exhaustive-deps
+export default function BrokerProfile({ d, id }: { d: Data; id: string }) {
+  const firm = d.byId[id] ?? d.brokers[0];
+  const clearing = firm.type === "clearing_firm";
+  const views = useMemo(() => (["Y", "N"] as Sp[]).map((sp) => groupOf(d, firm, sp)), [d, firm]);
+  const year = useMemo(() => (clearing ? null : yearFor(d, firm.id)), [d, firm, clearing]);
+  const month = monthLong(d.meta.month);
+  // "See all" (the table's button, and the link under the rank) shows every broker in place
+  const [all, setAll] = useState(false);
+  const [said, setSaid] = useState("");
 
-  // payments over time
-  const qs = d.meta.quarters;
-  const hist = qs.map((q) => (firm.crd ? d.pay.get(`${firm.crd}|${q}|${f.sp}`)?.[f.ot] ?? null : null));
-  // anchored at zero on whichever side the payments are: most brokers are paid, a few pay their market maker (Cash App: −12¢)
-  const known = hist.filter((v): v is number => v != null);
-  const anchor = { min: known.some((v) => v < 0) ? undefined : 0, max: known.some((v) => v > 0) ? undefined : 0 };
-  const histChart = useMemo(() => lines(t, qs.map(quarterShort), [{ name: "Paid per 100 shares", values: hist, color: t.s[0] }],
-    { fmt: (v) => `${Number.isInteger(v) ? v : v.toFixed(1)}¢`, area: false, ...anchor }), [t, firm, f]); // eslint-disable-line react-hooks/exhaustive-deps
-  const segs = [["SP500", "S&P 500", t.s[0]], ["OtherStocks", "Other stocks", t.s[1]], ["Options", "Options", t.s[2]]] as const;
-  const usd = segs.map(([k, name, color]) => ({ name, color, values: qs.map((q) => d.usd.filter((u) => u.crd === firm.crd && u.q === q && u.seg === k).reduce((a, u) => a + Math.max(0, u.usd), 0)) }));
-  const usdTotal = usd.reduce((a, s) => a + s.values.reduce((x, y) => x + y, 0), 0);
-  const usdChart = useMemo(() => stackedColumns(t, qs.map(quarterShort), usd, dollars), [t, firm]); // eslint-disable-line react-hooks/exhaustive-deps
+  // the re-ranking: when the switch flips, every row that is in both tables glides from its old place to its new one and
+  // the rows that only the new group lists fade in (a FLIP by broker id). Nothing moves under reduced motion; without a
+  // script the switch still swaps the tables, just without the glide.
+  const before = useRef<Map<string, number> | null>(null);
+  const snapshot = () => { before.current = rowTops(); };
+  const rerank = () => {
+    const was = before.current;
+    before.current = null;
+    if (!was || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const now = rowTops(); // read after the switch: the new group's table is the one laid out
+    document.querySelectorAll<HTMLElement>("#where tbody tr[data-id]").forEach((tr) => {
+      const y = now.get(tr.dataset.id!), from = was.get(tr.dataset.id!);
+      if (y == null) return;
+      if (from == null) tr.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 280, easing: "ease-out" });
+      else if (Math.abs(from - y) > 0.5) tr.animate([{ transform: `translateY(${from - y}px)` }, { transform: "translateY(0)" }], { duration: 650, easing: "cubic-bezier(.22, 1, .36, 1)" });
+    });
+  };
 
-  // fractional / odd / round lots
-  const lots = d.lots.filter((l) => l.id === firm.id && l.sp === f.sp).sort((a, b) => ["FRACT", "ODD", "ROUND"].indexOf(a.lot) - ["FRACT", "ODD", "ROUND"].indexOf(b.lot));
-  const lotChart = useMemo(() => hBars(t, lots.map((l) => ({ id: l.lot, name: LOTS[l.lot], v: l.efq,
-    rows: [[t.s[1], METRICS.cust.short, pct(l.efq, 1)], [null, "Orders", num(l.orders)], [null, "Dollar volume", dollars(l.dollars)]] })),
-    { fmt: (v) => `${v.toFixed(0)}%`, color: t.s[1] }), [t, firm, f]); // eslint-disable-line react-hooks/exhaustive-deps
-  const fract = lots.find((l) => l.lot === "FRACT")?.efq, round = lots.find((l) => l.lot === "ROUND")?.efq;
-  const lotNote = fract != null && round != null
-    ? `${firm.short}'s fractional orders pay ${pct(fract, 0)} of the spread; round lots ${pct(round, 0)}.`
-    : "Fractional orders are often priced differently from whole shares.";
+  // the checked radio mirrored on <html data-sg>, for browsers without :has() (broker.css); read once on load too, since
+  // the browser may have restored "Other stocks"
+  useEffect(() => {
+    const html = document.documentElement;
+    html.dataset.sg = (document.getElementById("sg-ot") as HTMLInputElement | null)?.checked ? "ot" : "sp";
+    return () => { delete html.dataset.sg; };
+  }, []);
+  const announce = (sp: Sp) => {
+    document.documentElement.dataset.sg = sp === "N" ? "ot" : "sp";
+    const v = views.find((x) => x.sp === sp);
+    if (v) setSaid(status(v, month));
+    rerank();
+  };
 
   return (
-    <div className="rise">
-      <div className="flex flex-wrap items-end justify-between gap-4 pb-6 pt-10">
-        <div>
-          <a href={href(pagePath("brokers"))} className="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink2 hover:text-ink"><Icon name="back" size={15} />All brokers</a>
-          <h1 className="mt-2 font-display text-[34px] font-extrabold tracking-tight text-ink sm:text-[40px]">{firm.name}</h1>
-          <div className="mt-2 flex flex-wrap gap-2 text-[12px]">
-            {[firm.type === "clearing_firm" ? "Clearing firm" : "Retail broker", `Prices: ${monthLong(f.month)}`, has606 ? "Files a payment report" : "Files no payment report of its own"].map((s) => (
-              <span key={s} className="rounded-full border border-line bg-surface px-2.5 py-1 text-ink2">{s}</span>
-            ))}
-          </div>
-          <a href={`${href(pagePath("calculator"))}?b=${firm.slug}`} className="mt-3 inline-flex min-h-10 items-center gap-1.5 text-[14px] font-semibold text-accent transition-all hover:gap-2.5">
-            Yearly cost at {firm.short}<Icon name="arrow" size={15} />
-          </a>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2">
-            <a href={href(brokerPath(prev.slug))} aria-label={`Previous: ${prev.short}`} className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-surface text-ink2 hover:border-accent hover:text-ink"><Icon name="left" /></a>
-            <Select label="Broker" value={firm.id} onChange={(v) => go(brokerPath(slugOf(d, v)))} options={order.map((o) => [o.id, nameOf(o)])} />
-            <a href={href(brokerPath(next.slug))} aria-label={`Next: ${next.short}`} className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-surface text-ink2 hover:border-accent hover:text-ink"><Icon name="right" /></a>
-          </div>
-          <Select label="Compare with" value="" onChange={(v) => { if (v) go(comparePath(firm.slug, slugOf(d, v))); }}
-            options={[["", "Compare with…"], ...others.map((o): [string, string] => [o.id, o.short])]} />
-        </div>
+    <>
+      <nav className="bp-crumb" aria-label="Breadcrumb">
+        <ol>
+          <li><a href={href(pagePath("brokers"))}>Brokers</a></li>
+          <li><Icon name="right" size={16} /><span aria-current="page">{firm.short}</span></li>
+        </ol>
+      </nav>
+      <div className="bp-filter">
+        <StockSwitch onPick={announce} onBefore={snapshot} />
+        <p className="bp-scope">Market orders · {month}</p>
       </div>
-      <FilterBar d={d} f={f} set={set} show={["sp", "ot", "quarter"]} />
+      <h1 className="bp-h1">{firm.short}</h1>
+      <p className="sr-only" aria-live="polite">{said}</p>
 
-      <p className="mb-4 text-[13.5px] text-muted">
-        Spread = the gap between the best buy and sell quotes; 0% = filled at its midpoint, the fair price.
-      </p>
-      <section className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
-        <Kpi label={METRICS.cust.short} info={METRICS.cust.desc} value={pct(r.cust, 0)} sub={rank ? `of the spread · #${rank} lowest of ${all.length}` : "of the spread"} />
-        <Kpi label={METRICS.payPct.short} info={METRICS.payPct.desc} value={pct(r.payPct, 1)} sub={r.cph != null ? `${cents(r.cph)} per 100 shares${r.payQ && r.payQ !== f.quarter ? ` (${quarterLong(r.payQ)}, latest filed)` : ""}` : has606 ? "not in this quarter's report" : "no payment report"} />
-        <Kpi label={METRICS.gap.short} info={METRICS.gap.desc} value={gap ? signed(gap.gap, 1) : "–"} tone={gap ? (gap.gap < 0 ? "good" : "bad") : undefined}
-          sub={gap ? `points vs other brokers, same stocks and sizes` : "no detailed data"} />
-        <Kpi label={METRICS.cost10k.short} info={METRICS.cost10k.desc} value={usd2(r.cost10k)} sub="above the fair price" />
-        <Kpi label={METRICS.sz.short} info={METRICS.sz.desc} value={r.sz == null ? "–" : `$${num(r.sz)}`} sub={r.pi != null ? `${pct(r.pi, 0)} of orders beat the quoted price` : undefined} />
-        <Kpi label={METRICS.speed.short} info={METRICS.speed.desc} value={time(r.t)} sub={r.t != null && medSpeed != null ? `typical broker ${time(medSpeed)}` : "no timing data"} />
-      </section>
-
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <Card title="Cost by order size" sub={`${SP_LABEL[f.sp]} · vs all brokers`}>
-          <EChart option={sizeChart} height={300} label="Cost by order size" />
-        </Card>
-        <Card title="Where its orders go" sub={`By trading firm · ${quarterLong(f.quarter)}`}>
-          {slices.length ? <EChart option={routing} height={300} label="Routing by trading firm" /> : (
-            <Empty><span className="px-6">{has606
-              ? "No routing data."
-              : "No payment report of its own."}</span></Empty>
-          )}
-        </Card>
-        <FeesCard d={d} id={firm.id} />
-        <TrustCard d={d} firm={firm} />
-        {has606 && <><Card title="Payment rate over time" sub="Cents per 100 shares, averaged across its trading firms">
-          {hist.some((v) => v != null) ? <EChart option={histChart} height={280} label="Payment rate" /> : (
-            <Empty><span className="px-6">No rate reported.</span></Empty>
-          )}
-        </Card>
-        <Card title="Paid, by type of trade" sub="Dollars per quarter (SEC Rule 606)">
-          {usdTotal > 0 ? <EChart option={usdChart} height={280} label="Payments per quarter" /> : (
-            <Empty><span className="px-6">No dollar amounts reported.</span></Empty>
-          )}
-        </Card></>}
-        {lots.length > 0 && (
-          <Card className="lg:col-span-2" title="Fractional vs whole shares" sub={`${SP_LABEL[f.sp]} · customer pays, by lot type`}
-            info={lotNote}>
-            <EChart option={lotChart} height={lots.length * 40 + 20} label="Cost by lot type" />
-          </Card>
+      {/* Two independent stacks on a desktop (broker.css), so no card stretches to the other column's height: the answer
+          and its evidence on the left, the year, fees and next steps on the right. The yearly card is in the page twice
+          and CSS shows one: on phones and tablets the copy right after the price card (the answer, then the year, then the
+          rest), on a desktop the copy heading the right-hand column. The hidden copy is display:none, so it is neither
+          read nor reached by Tab. */}
+      <div className={`bp-board${clearing ? " is-clearing" : ""}`}>
+        <div className="bp-col">
+          <PriceCard d={d} views={views} onSeeAll={() => setAll(true)} />
+          {year && <YearCard d={d} firm={firm} y={year} at="flow" />}
+          {!clearing && <PaymentLine firm={firm} views={views} />}
+          {!clearing && <TrustLine d={d} firm={firm} />}
+          <WhereSits d={d} firm={firm} views={views} all={all} setAll={setAll} />
+        </div>
+        {!clearing && (
+          <div className="bp-col">
+            {year && <YearCard d={d} firm={firm} y={year} at="side" />}
+            <FeesCard d={d} firm={firm} />
+            <CompareCard d={d} firm={firm} />
+          </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

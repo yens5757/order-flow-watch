@@ -38,3 +38,10 @@ export const dayLong = (iso: string, month: "short" | "long" = "short") => {
 };
 /** Axis tick for dollar values: −$0.50, $1.00. */
 export const usdTick = (v: number) => `${v < 0 ? "−" : ""}$${Math.abs(v).toFixed(2)}`;
+/** Yearly dollars: cents under $10 ($3.40), whole dollars with commas from there (−$1,250). */
+export const perYear = (v: number) => (Math.abs(v) < 10 ? usd2(v) : `${v < 0 ? "−" : ""}$${num(Math.abs(v), 0)}`);
+/** 1st, 2nd, 3rd, 4th … 11th, 12th, 13th … 21st, 22nd. */
+export const ordinal = (n: number) => {
+  const s = ["th", "st", "nd", "rd"], v = n % 100;
+  return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
+};

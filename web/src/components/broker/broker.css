@@ -1,0 +1,227 @@
+/* The broker page (pages/BrokerProfile.tsx and the components beside this file). Composition: the owner-approved MVP,
+   .impeccable/mocks/mvp/consumer-app-sage.html. Colours, type steps, radii and shadows are the tokens in src/index.css. */
+
+/* tablet and phone: a reading width, the header and footer with it */
+@media (max-width: 1023px) {
+  [data-page="broker"] .wrap { width: min(100% - 2 * var(--gut), 44rem); }
+}
+
+/* The stock-group switch is plain CSS: the checked radio decides which group's figures show, so it works before any
+   script runs (and without one); React only announces the change. Every figure that differs by group is rendered twice,
+   once with data-g="sp" (S&P 500) and once with data-g="ot" (other stocks). */
+html:not(:has(#sg-ot:checked)) [data-g="ot"],
+html:has(#sg-ot:checked) [data-g="sp"] { display: none !important; }
+/* where :has() is missing, the page's script mirrors the checked radio on <html data-sg> (BrokerProfile.tsx) */
+@supports not selector(:has(*)) {
+  html:not([data-sg="ot"]) [data-g="ot"], html[data-sg="ot"] [data-g="sp"] { display: none !important; }
+  html[data-sg="ot"] .scale.sw { --lo: var(--lo-ot); --hi: var(--hi-ot); --typ: var(--typ-ot); --you: var(--you-ot); --youx: var(--youx-ot); --typx: var(--typx-ot); }
+}
+
+/* ---------- where you are: breadcrumb, the one switch, the name ---------- */
+.bp-crumb { margin-top: 14px; }
+.bp-crumb ol { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-weight: 600; color: var(--ink-2); }
+.bp-crumb li { display: inline-flex; align-items: center; gap: 4px; }
+.bp-crumb a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); text-decoration: underline 2px var(--accent); text-underline-offset: 6px; }
+.bp-crumb a:hover { text-decoration-thickness: 3px; }
+.bp-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.bp-scope { color: var(--ink-2); font-weight: 500; }
+.bp-h1 { margin-top: 18px; font-size: var(--fs-6); line-height: 1.05; font-weight: 800; letter-spacing: -.03em; text-wrap: balance; }
+
+/* ---------- the board of cards ---------- */
+.bp-board { display: grid; gap: 16px; margin-top: 22px; }
+.bp-col { display: grid; gap: 16px; align-content: start; }
+/* the yearly card's desktop copy, heading the right column; below 1024px the copy after the price card shows */
+.bp-year.bp-year-side { display: none; }
+.bp-sub { margin-top: 6px; color: var(--ink-2); }
+
+/* ---------- price card: the answer ---------- */
+.bp-fig { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; column-gap: 18px; row-gap: 6px; }
+.bp-amt { font-size: var(--fs-7); line-height: .92; font-weight: 800; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.bp-per { padding-bottom: 4px; font-size: var(--fs-4); line-height: 1.3; font-weight: 600; }
+.bp-def {
+  display: inline-grid; place-items: center; width: 44px; height: 44px; margin: -12px -10px -12px 0; border-radius: 50%;
+  color: var(--accent); vertical-align: middle;
+}
+.bp-def:hover { background: var(--accent-soft); color: var(--accent-hover); }
+.bp-def[aria-expanded="true"] { background: var(--accent); color: var(--on-accent); }
+/* the (i) opens a plain line of text in place: nothing floats over the figures. Without a script it is simply shown. */
+.bp-def-note { margin-top: 14px; max-width: 46ch; color: var(--ink-2); }
+.bp-def-note a { padding: 12px 0; }
+html.js .bp-def-note:not(.open) { display: none; }
+.bp-rank { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 16px; margin-top: 22px; }
+.bp-rank p { font-size: var(--fs-4); font-weight: 700; letter-spacing: -.01em; }
+.bp-diff { color: var(--ink-2); }
+.bp-say { margin-top: 22px; font-size: var(--fs-3); line-height: 1.55; max-width: 62ch; text-wrap: pretty; }
+.bp-none { font-size: var(--fs-3); line-height: 1.55; }
+
+/* ---------- the neutral scale: cheapest · this broker · typical · most expensive ---------- */
+.scale { --r: 11px; margin-top: 16px; }
+.scale.sm { --r: 9px; }
+/* a scale that follows the stock switch carries both groups' positions and swaps them; the dot glides between */
+.scale.sw { --lo: var(--lo-sp); --hi: var(--hi-sp); --typ: var(--typ-sp); --you: var(--you-sp); --youx: var(--youx-sp); --typx: var(--typx-sp); }
+html:has(#sg-ot:checked) .scale.sw { --lo: var(--lo-ot); --hi: var(--hi-ot); --typ: var(--typ-ot); --you: var(--you-ot); --youx: var(--youx-ot); --typx: var(--typx-ot); }
+.sc-rail { position: relative; height: 62px; }
+.sc-track { position: absolute; left: 0; right: 0; top: 41px; height: 8px; border-radius: 999px; background: var(--track); }
+.sc-end { position: absolute; left: var(--lo); top: 40px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--mark); box-shadow: 0 0 0 2px var(--surface); }
+.sc-end.r { left: var(--hi); }
+.sc-typ { position: absolute; left: var(--typ); top: 34px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--mark); box-shadow: 0 0 0 2px var(--surface); }
+.sc-you {
+  position: absolute; left: var(--you); top: 34px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%;
+  background: var(--ink); box-shadow: 0 0 0 3px var(--surface), 0 3px 8px rgb(16 40 34 / .25);
+}
+/* the dot's name sits above it on the card (a sibling, not inside the dot), centred or turned inward near an end */
+.sc-you-l { position: absolute; left: var(--you); top: 6px; transform: translateX(var(--youx, -50%)); white-space: nowrap; line-height: 1.2; font-weight: 700; }
+.sc-mid { position: relative; height: 1.6rem; margin-top: 4px; }
+.sc-typ-l { position: absolute; left: var(--typ); top: 0; transform: translateX(var(--typx, -50%)); white-space: nowrap; font-size: var(--fs-1); color: var(--ink-2); }
+.sc-typ-l b { font-size: var(--fs-2); color: var(--ink); }
+.sc-ends { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; }
+.sc-lab { max-width: 48%; font-weight: 700; line-height: 1.35; }
+.sc-lab small { display: block; font-size: var(--fs-1); font-weight: 500; color: var(--ink-2); }
+.sc-lab.r { text-align: right; }
+.sc-you, .sc-you-l, .sc-typ, .sc-typ-l, .sc-end { transition: left .8s var(--ease-out); }
+.scale.sm .sc-rail { height: 56px; }
+.scale.sm .sc-track { top: 37px; height: 6px; }
+.scale.sm .sc-end { top: 35px; }
+.scale.sm .sc-typ { top: 31px; height: 18px; }
+.scale.sm .sc-you { top: 31px; width: 18px; height: 18px; margin-left: -9px; }
+.scale.sm .sc-you-l { top: 3px; }
+
+/* ---------- yearly card ---------- */
+.bp-year { display: flex; flex-direction: column; }
+.bp-year h2 { font-size: var(--fs-5); line-height: 1.1; letter-spacing: -.03em; }
+.bp-year .bp-sub { margin-top: 8px; }
+.bp-rows { margin-top: 16px; }
+.bp-rows > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; padding: 8px 0; border-top: 1px solid var(--border); }
+.bp-rows dt { line-height: 1.3; }
+.bp-rows dt small { display: block; margin-top: 2px; font-size: var(--fs-1); color: var(--ink-2); }
+.bp-rows dd { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.bp-rows dd.unknown { font-weight: 600; color: var(--ink-2); }
+.bp-yr-rank { margin-top: 20px; font-weight: 700; line-height: 1.4; text-wrap: balance; }
+.bp-note { margin-top: 14px; color: var(--ink-2); }
+.bp-act { margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding-top: 18px; border-top: 1px solid var(--border); }
+.bp-act p { flex: 1 1 13rem; color: var(--ink-2); line-height: 1.45; }
+
+/* ---------- one-line cards: the whole card is pressable when it has a link; the action colour marks where ---------- */
+.bp-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 28px; padding: 18px 24px 18px 28px; }
+.bp-line p { flex: 1 1 16rem; line-height: 1.5; }
+.bp-line .go::after { content: ""; position: absolute; inset: 0; border-radius: var(--r-card); }
+@supports selector(:has(*)) {
+  .bp-line .go:focus-visible { outline: none; }
+  .bp-line:has(.go:focus-visible) { outline: 3px solid var(--accent); outline-offset: 3px; }
+}
+.bp-line:has(.go) { transition: transform .5s var(--ease-out), box-shadow .25s; }
+.bp-line:has(.go):hover { box-shadow: var(--pop); }
+.bp-line:has(.go):active { transform: scale(.985); }
+.bp-facts { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; }
+.bp-facts .bp-legal { flex-basis: 100%; font-weight: 700; }
+.bp-facts span { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+
+/* ---------- where the broker sits: a real table, its neighbourhood first ---------- */
+.bp-tbl { margin-top: 14px; }
+.bp-tbl table { width: 100%; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+.bp-tbl th, .bp-tbl td { padding: 13px 12px; border-top: 1px solid var(--border); text-align: right; white-space: nowrap; }
+.bp-tbl thead th { padding-top: 6px; padding-bottom: 10px; border-top: 0; font-size: var(--fs-1); font-weight: 600; line-height: 1.3; color: var(--ink-2); vertical-align: bottom; white-space: normal; }
+.bp-tbl .c-rk { width: 3.25rem; text-align: left; color: var(--ink-2); }
+.bp-tbl .c-nm { text-align: left; font-weight: 600; white-space: normal; }
+.bp-tbl .c-pr { font-weight: 700; }
+.bp-tbl .c-lm, .bp-tbl .c-pd { color: var(--ink-2); }
+.bp-tbl .c-pd .word { font-weight: 500; }
+.bp-tbl .k { display: none; }
+/* each other broker's row opens its page: the name is the link, stretched over the row */
+.bp-tbl tbody tr { position: relative; }
+.bp-tbl .c-nm a { color: var(--ink); text-decoration: none; }
+.bp-tbl .c-nm a::after { content: ""; position: absolute; inset: 0; }
+.bp-tbl tbody tr:hover .c-nm a { text-decoration: underline 2px var(--accent); text-underline-offset: 5px; }
+@supports selector(:has(*)) {
+  .bp-tbl .c-nm a:focus-visible { outline: none; }
+  .bp-tbl tbody tr:has(a:focus-visible) { outline: 3px solid var(--accent); outline-offset: -3px; border-radius: 14px; }
+}
+.bp-tbl tr.you > * { background: var(--here); border-top-color: transparent; font-weight: 700; color: var(--ink); }
+.bp-tbl tr.you > :first-child { border-radius: 14px 0 0 14px; }
+.bp-tbl tr.you > :last-child { border-radius: 0 14px 14px 0; }
+.bp-tbl tr.you + tr > * { border-top-color: transparent; }
+html.js .bp-where:not(.all) tr.far { display: none; }
+.bp-cap-near { display: none; }
+html.js .bp-where:not(.all) .bp-cap-near { display: inline; }
+.bp-fn { margin-top: 12px; font-size: var(--fs-1); color: var(--ink-2); }
+.bp-fn + .bp-fn { margin-top: 4px; }
+html.js .bp-where:not(.all) .bp-fn.far { display: none; }
+.bp-more { margin-top: 18px; }
+.bp-more svg { transition: transform .35s var(--ease-out); }
+.bp-more[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+/* ---------- fees and next steps ---------- */
+/* an inline link keeps its line height but gets a 44px tall hit area (padding on an inline box adds no height to the line) */
+.bp-src a { padding: 13px 0; color: var(--accent); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.bp-src a:hover { color: var(--accent-hover); text-decoration-thickness: 2.5px; }
+.bp-src svg { display: inline; margin-left: 3px; vertical-align: -2px; }
+.bp-sources { margin-top: 10px; }
+.bp-sources summary { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--accent); font-weight: 600; cursor: pointer; list-style: none; }
+.bp-sources summary::-webkit-details-marker { display: none; }
+.bp-sources summary:hover { color: var(--accent-hover); }
+.bp-sources summary svg { transition: transform .35s var(--ease-out); }
+.bp-sources[open] summary svg { transform: rotate(180deg); }
+.bp-sources ul { display: grid; gap: 2px; }
+.bp-sources a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--ink); overflow-wrap: anywhere; text-decoration: underline 1.5px var(--accent); text-underline-offset: 4px; }
+.bp-pills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+.bp-wide { width: 100%; margin-top: 18px; padding: 12px 20px; text-align: center; text-wrap: balance; line-height: 1.35; }
+.nw { white-space: nowrap; }
+
+/* ---------- desktop: two independent stacks of cards; each card is as tall as its content ---------- */
+@media (min-width: 1024px) {
+  .bp-board { grid-template-columns: minmax(0, 648fr) minmax(0, 448fr); column-gap: 24px; align-items: start; }
+  .bp-year.bp-year-flow { display: none; }
+  .bp-year.bp-year-side { display: flex; }
+}
+
+/* ---------- phone ---------- */
+@media (max-width: 599px) {
+  .bp-crumb { margin-top: 6px; }
+  .bp-board, .bp-col { gap: 12px; }
+  .bp-board { margin-top: 14px; }
+  .bp-line { padding: 16px 20px; }
+  .bp-filter { row-gap: 4px; }
+  .bp-scope { font-size: var(--fs-1); line-height: 1.3; }
+  .bp-h1 { margin-top: 26px; }
+  .bp-per { font-size: var(--fs-3); }
+  .bp-rank { margin-top: 14px; }
+  .scale { margin-top: 12px; }
+  .bp-say { margin-top: 14px; }
+}
+/* the table restacks into a two-line list on phones; the ARIA roles keep it a table for screen readers */
+@media (max-width: 559px) {
+  .bp-tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .bp-tbl table, .bp-tbl tbody { display: block; }
+  .bp-tbl tr { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; column-gap: 8px; align-items: baseline; padding: 11px 10px; border-top: 1px solid var(--border); }
+  .bp-tbl th, .bp-tbl td { display: block; padding: 0; border: 0; width: auto; }
+  .bp-tbl .c-rk { grid-column: 1; grid-row: 1; }
+  .bp-tbl .c-nm { grid-column: 2; grid-row: 1; }
+  .bp-tbl .c-pr { grid-column: 3; grid-row: 1; }
+  .bp-tbl .c-lm { grid-column: 2; grid-row: 2; text-align: left; font-size: var(--fs-1); }
+  .bp-tbl .c-pd { grid-column: 3; grid-row: 2; font-size: var(--fs-1); }
+  .bp-tbl .c-lm, .bp-tbl .c-pd { white-space: normal; }
+  .bp-tbl .k { display: inline; }
+  .bp-tbl tr.you { background: var(--here); border-radius: 14px; border-top-color: transparent; }
+  .bp-tbl tr.you > * { background: none; border-radius: 0; }
+  .bp-tbl tr.you + tr { border-top-color: transparent; }
+}
+
+@media (max-width: 374px) {
+  .bp-tbl .c-pd { grid-column: 2 / -1; grid-row: 3; text-align: left; }
+}
+
+/* a forced-colours theme drops fills: the scale is drawn in system colours, and the broker's own row keeps an outline */
+@media (forced-colors: active) {
+  .scale { forced-color-adjust: none; color: CanvasText; }
+  .scale * { color: CanvasText; }
+  .sc-track { background: GrayText; }
+  .sc-end, .sc-typ { background: CanvasText; box-shadow: none; }
+  .sc-you { background: Highlight; box-shadow: none; }
+  .bp-tbl tr.you { outline: 2px solid CanvasText; outline-offset: -2px; }
+}
+
+/* no glide and no press give for anyone who asked for less motion (index.css stops every transition too) */
+@media (prefers-reduced-motion: reduce) {
+  .sc-you, .sc-you-l, .sc-typ, .sc-typ-l, .sc-end, .bp-more svg, .bp-sources summary svg, .bp-line { transition: none; }
+  .bp-line:has(.go):active { transform: none; }
+}

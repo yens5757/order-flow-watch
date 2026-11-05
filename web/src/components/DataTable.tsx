@@ -88,7 +88,7 @@ export function DataTable<R>({ rows, cols, initial, onRow, search, file, maxHeig
               <tr>
                 {cols.map((c) => (
                   <th key={c.key} scope="col" title={c.hint} aria-sort={sort.key === c.key ? (sort.dir === 1 ? "ascending" : "descending") : undefined}
-                    className={`whitespace-nowrap border-b border-line px-3 py-2.5 font-semibold ${highlight?.includes(c.key) ? "text-accent" : "text-ink2"} ${c.num ? "text-right" : "text-left"} ${c.pin ? "sticky left-0 z-20 bg-surface2" : ""}`}>
+                    className={`whitespace-nowrap border-b border-line px-3 py-2.5 font-semibold ${highlight?.includes(c.key) ? "text-accent-hover" : "text-ink2"} ${c.num ? "text-right" : "text-left"} ${c.pin ? "sticky left-0 z-20 bg-surface2" : ""}`}>
                     <button type="button" className="inline-flex min-h-6 items-center gap-1 hover:text-ink"
                       onClick={() => setSort((s) => ({ key: c.key, dir: s.key === c.key ? (-s.dir as 1 | -1) : c.num ? -1 : 1 }))}>
                       {c.label}

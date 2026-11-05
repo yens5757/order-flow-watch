@@ -11,6 +11,7 @@ import { METRICS } from "../lib/metrics";
 import { href, pagePath } from "../lib/routes";
 import { median } from "../lib/stats";
 import { useTheme } from "../lib/theme";
+import { payment } from "../lib/broker";
 
 const verdict = (e: Evidence) => (e.p >= 0.05 ? "neutral" : Math.sign(e.rho) === e.expect ? "good" : "bad") as "good" | "bad" | "neutral";
 const VERDICT = { good: "Holds up", bad: "Goes the other way", neutral: "Could be chance" };
@@ -70,7 +71,8 @@ function questions(d: Data, x: Tests): [string, ReactNode][] {
   // brokers paid nothing (or paying) that still get worse prices than most on the same stocks and sizes
   const unpaid = gaps.filter((r) => r.pay10k != null && r.pay10k <= 0.005 && r.gap! > gapMed).sort((a, b) => b.gap! - a.gap!).slice(0, 2);
   const pts = (v: number) => `${signed(v, 1)} points`;
-  const paidHow = (r: Metric) => (r.pay10k! < -0.005 ? "actually pays its trading firm" : "is paid nothing");
+  // "pays its trading firm" only when a trading firm's rate is below zero (lib/broker.ts payment); exchange fees aren't that
+  const paidHow = (r: Metric) => (payment(d, r, "Y").kind === "pays" ? "actually pays its trading firm" : "is paid nothing");
   const unmatched = d.brokers.filter((b) => !(d.fees[b.id]?.crd ?? b.crd)).length;
 
   const items: [string, ReactNode][] = [

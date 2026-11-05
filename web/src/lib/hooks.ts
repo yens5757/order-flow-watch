@@ -25,10 +25,11 @@ export function onNavigate(l: Listener): () => void {
 /** Tells every listener the URL changed (App calls it on popstate). */
 export const navigated = () => { for (const l of [...listeners]) l(); };
 
-/** Opens a page path (with any query), e.g. go("brokers/robinhood/") or go("calculator/?b=fidelity"). */
+/** Opens a page path (with any query and hash), e.g. go("brokers/robinhood/"), go("calculator/?b=fidelity") or
+ *  go("trading-firms/#robinhood") (that page reads the hash to open the broker's section). */
 export function go(path: string) {
   const url = href(path);
-  if (url === location.pathname + location.search) return; // the hash router ignored a change to the same route too
+  if (url === location.pathname + location.search + location.hash) return; // the hash router ignored a change to the same route too
   history.pushState(null, "", url);
   navigated();
 }
@@ -48,7 +49,8 @@ export function fixLocation(d: Data): boolean {
   const { path, search } = readLocation();
   const fixed = normalizeLocation(d, path, search, location.hash);
   if (!fixed) return false;
-  history.replaceState(null, "", href(fixed.path) + fixed.search);
+  // a #/ hash was the old route itself; any other hash (trading-firms/#robinhood) is an anchor and comes along
+  history.replaceState(null, "", href(fixed.path) + fixed.search + (location.hash.startsWith("#/") ? "" : location.hash));
   return true;
 }
 

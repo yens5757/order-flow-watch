@@ -3,8 +3,9 @@
 // in the pre-render. Every page path is relative to the Vite base (import.meta.env.BASE_URL, ends with "/") and
 // ends with "/": "" home · "compare/" · "compare/<a>-vs-<b>/" · "calculator/" · "brokers/" (the explorer, its
 // state in the query string) · "brokers/<slug>/" · "trading-firms/" · "firms/" · "how-we-measure/".
-import { asData, brokerRows, metric, type Data, type Filters, type Firm, type Raw } from "./data";
-import { monthLong, usd2 } from "./format";
+import { cents, money, placeBrokers, rankWords } from "./broker";
+import { asData, metric, type Data, type Filters, type Firm, type Raw } from "./data";
+import { monthLong } from "./format";
 import { METRICS, type MetricKey } from "./metrics";
 import { SITE_NAME, SITE_URL } from "./site";
 
@@ -134,7 +135,9 @@ export function describeRoute(data: Data | Raw, path: string, search: string): {
   // descriptions are what a search result shows under the title: each page carries its own numbers where it has them
   const s: Filters = { sp: "Y", ot: "M", b: 199999, month: d.meta.month, quarter: d.meta.quarter, clearing: false };
   const when = monthLong(d.meta.month);
-  const fair = (v: number) => `${usd2(Math.abs(v))} ${v < 0 ? "below" : "above"} the fair price`;
+  // above, below or at, decided on the whole cents shown, as the broker page decides it
+  const side = (v: number) => (cents(v) < 0 ? "below" : cents(v) > 0 ? "above" : "at");
+  const fair = (v: number) => `${money(Math.abs(v))} ${side(v)} the fair price`;
   const cost = (f: Firm) => metric(d, f, s).cost10k;
   let text: string, description: string;
   switch (r.page) {
@@ -147,13 +150,19 @@ export function describeRoute(data: Data | Raw, path: string, search: string): {
       break;
     }
     case "broker": {
-      text = `${r.firm.short} prices and fees: what a $10,000 trade really costs`;
+      // a clearing firm's page has prices only: no fees, no yearly cost, no account to open
+      text = r.firm.type === "clearing_firm"
+        ? `${r.firm.short}, a clearing firm: the prices on the orders it handles`
+        : `${r.firm.short} prices and fees: what a $10,000 trade really costs`;
       const c = cost(r.firm);
-      const ranked = brokerRows(d, s).filter((x) => x.cost10k != null).sort((x, y) => x.cost10k! - y.cost10k!);
-      const rank = ranked.findIndex((x) => x.id === r.firm.id) + 1;
+      // the rank as the page states it (lib/broker.ts), S&P 500 stocks, the page's default
+      const places = placeBrokers(d, "Y");
+      const p = places.find((x) => x.m.id === r.firm.id);
       description = c == null
-        ? `${r.firm.short}: its fees, who fills its orders and what it is paid for them, from the reports US brokers must publish.`
-        : `${r.firm.short} customers paid ${fair(c)} per $10,000 traded in ${when}${rank ? ` (#${rank} of ${ranked.length})` : ""}. Its fees, who fills its orders and what it is paid.`;
+        ? `${r.firm.short}: its fees, what it is paid for orders and where its prices rank, from the reports US brokers must publish.`
+        : r.firm.type === "clearing_firm"
+          ? `${r.firm.short} is a clearing firm: orders it handled cost ${fair(c)} per $10,000 of S&P 500 stocks traded in ${when}, from the reports US brokers must publish.`
+          : `${r.firm.short}'s customers paid ${fair(c)} per $10,000 of S&P 500 stocks traded in ${when}${p ? `, ${rankWords(places, p)} brokers` : ""}. Yearly cost, payments and fees.`;
       break;
     }
     // the bare "compare/" page (the nav link) is a page of its own, not a second copy of the default pair's page
@@ -163,7 +172,7 @@ export function describeRoute(data: Data | Raw, path: string, search: string): {
       description = !r.explicit
         ? "Pick any two of 25 US brokers and compare trade prices, fees, payment for order flow and registration side by side."
         : ca != null && cb != null
-          ? `${when}, per $10,000 traded: ${r.a.short} customers paid ${fair(ca)}, ${r.b.short} customers ${usd2(Math.abs(cb))} ${cb < 0 ? "below" : "above"}. Fees and yearly cost compared.`
+          ? `${when}, per $10,000 traded: ${r.a.short} customers paid ${fair(ca)}, ${r.b.short} customers ${money(Math.abs(cb))} ${side(cb)}. Fees and yearly cost compared.`
           : `${r.a.short} vs ${r.b.short}: trade prices, fees, payment for order flow and registration side by side.`;
       break;
     }

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Tokens } from "../lib/theme";
 import type { Option } from "./EChart";
-import { base, catAxis, hEnd, legend, tip, tooltip, valueAxis, vEnd } from "./kit";
+import { base, catAxis, colourAt, hEnd, legend, readableOn, tip, tooltip, valueAxis, vEnd } from "./kit";
 
 type Row = [string | null, string, string];
 const CLICK = "Click to open the broker profile";
@@ -254,7 +254,8 @@ export function heatmap(t: Tokens, rows: string[], cols: string[], cells: [numbe
 }): Option {
   const vals = cells.map((c) => c[2]).filter((v): v is number => v != null);
   const max = Math.max(1, ...vals);
-  const ink = (v: number) => (v > max * 0.55 ? (t.dark ? "#0b0e14" : "#ffffff") : t.ink2);
+  // each label takes the ink or the ground colour, whichever reads better on its own cell (the visual map's colour there)
+  const ink = (v: number) => readableOn(colourAt(t.seq, v / max), [t.ink, t.page]);
   return {
     baseOption: {
       ...base(t),

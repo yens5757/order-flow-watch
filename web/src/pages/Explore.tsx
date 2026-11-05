@@ -6,7 +6,7 @@ import { labeledScatter, ranked } from "../charts/options";
 import { DataTable, type Col } from "../components/DataTable";
 import { Card, Empty, Icon, Info, PageHeader, Segmented, Select, Switch } from "../components/ui";
 import { brokerRows, BUCKET_LABEL, BUCKETS, idFromUrl, slugOf, type Data, type Metric, type Ot, type Sp } from "../lib/data";
-import { dayLong, quarterLong, strength } from "../lib/format";
+import { dayLong, monthLong, quarterLong, strength } from "../lib/format";
 import { go, onNavigate, readLocation, readQuery, writeQuery } from "../lib/hooks";
 import { METRIC_KEYS, METRICS, type MetricKey } from "../lib/metrics";
 import { brokerPath, href, pagePath, parseRoute } from "../lib/routes";
@@ -158,8 +158,10 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
   const feeScope = `fees${d.meta.feesChecked ? ` checked ${dayLong(d.meta.feesChecked)}` : ""}`;
   const sub = isFee(s.m) && (!V || isFee(s.vs)) ? cap(feeScope) : feeOn ? `${scope} · ${feeScope}` : scope;
   const usesGap = s.m === "gap" || s.vs === "gap";
+  const usesLots = s.m === "fract" || s.vs === "fract";
   const foot = [
     usesGap ? "Same-trade gap: market orders of every size; the order filters don't apply." : "",
+    usesLots ? `Fractional vs whole: market orders under $200,000 in ${monthLong(d.meta.detailMonth)}; the order type, size and quarter filters don't apply.` : "",
     feeOn ? "Fees ignore the stock and order filters; a broker without a confirmed figure is left out." : "",
   ].filter(Boolean).join(" ");
   const sortOpts: [Sort, string][] = M.better ? [["best", "Best first"], ["worst", "Worst first"], ["az", "A–Z"]] : [["best", "High → low"], ["worst", "Low → high"], ["az", "A–Z"]];
@@ -252,7 +254,7 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
       </button>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className={`${open ? "block" : "hidden"} self-start lg:sticky lg:top-[84px] lg:block lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto`}>{controls}</aside>
+        <aside className={`${open ? "block" : "hidden"} self-start lg:sticky lg:top-5 lg:block lg:max-h-[calc(100vh-40px)] lg:overflow-y-auto`}>{controls}</aside>
 
         <div className="min-w-0 space-y-5">
           <div className="rounded-2xl border border-line p-5 shadow-card" style={{ background: "linear-gradient(120deg, color-mix(in srgb, var(--accent) 10%, var(--surface)), var(--surface))" }}>

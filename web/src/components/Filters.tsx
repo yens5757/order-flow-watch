@@ -1,4 +1,5 @@
-// One row of filters, pinned under the header while the charts scroll.
+// One row of filters, pinned to the top of the window while the charts scroll (from tablet width up; on a phone it
+// scrolls away with the page, so it never takes a third of the screen).
 import { BUCKETS, type Data, type Filters, type Ot, type Sp } from "../lib/data";
 import { monthLong, quarterLong } from "../lib/format";
 import { Info, Segmented, Select, Switch } from "./ui";
@@ -7,7 +8,7 @@ type Key = "sp" | "ot" | "b" | "month" | "quarter" | "clearing";
 
 export function FilterBar({ d, f, set, show }: { d: Data; f: Filters; set: (p: Partial<Filters>) => void; show: Key[] }) {
   return (
-    <div className="sticky top-[88px] z-30 -mx-4 mb-6 border-b border-line bg-[color-mix(in_srgb,var(--page)_88%,transparent)] px-4 py-3 backdrop-blur sm:top-[64px]">
+    <div className="z-30 -mx-4 mb-6 border-b border-line bg-[color-mix(in_srgb,var(--page)_88%,transparent)] px-4 py-3 backdrop-blur sm:sticky sm:top-0">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5">
         {show.includes("sp") && <Segmented<Sp> label="Stocks" value={f.sp} onChange={(sp) => set({ sp })} options={[["Y", "S&P 500"], ["N", "Other stocks"]]} />}
         {show.includes("ot") && (

@@ -7,7 +7,7 @@ import { ms, num, pct, signed, usd2, usdTick } from "./format";
 /** The reference price, glossed the same way wherever it is first used on a page. */
 export const FAIR_PRICE = "the fair price (midpoint of the best buy and sell quotes)";
 
-export type MetricKey = "cost10k" | "cust" | "pay10k" | "payPct" | "gap" | "pi" | "sz" | "speed" | "commission" | "optionsFee" | "marginRate" | "cashYield";
+export type MetricKey = "cost10k" | "cust" | "pay10k" | "payPct" | "gap" | "pi" | "sz" | "speed" | "fract" | "commission" | "optionsFee" | "marginRate" | "cashYield";
 
 export interface MetricDef {
   label: string;
@@ -67,6 +67,13 @@ export const METRICS: Record<MetricKey, MetricDef> = {
     label: "Average execution speed", noun: "average execution speed", short: "Time to fill",
     desc: "Average time from receiving a market order to completing it; faster is not better here, as brokers whose orders took longer got better prices.",
     better: null, source: "measured", get: (r) => r.speedMs, fmt: ms, axis: (v) => ms(v), slot: 3,
+  },
+  // context, not a score: it compares a broker with itself, and some brokers' customers buy fractional shares far more often.
+  // Violet (shared with order size and the options fee, rarely shown together): red or green would read as a verdict.
+  fract: {
+    label: "Fractional vs whole shares", noun: "extra paid on fractional-share orders", short: "Fractional vs whole",
+    desc: "Points of the spread customers paid on fractional-share orders minus whole-share orders (market orders under $200,000, from the detailed monthly report); above zero = fractional orders got worse prices.",
+    better: null, source: "measured", get: (r) => r.fract, fmt: (v) => signed(v, 1, " pts"), axis: (v) => `${v > 0 ? "+" : ""}${v}`, slot: 6,
   },
   // the fee measures come from fees.csv, checked by hand on each broker's own pages; brokers without a verified fact are left out.
   // Their colour slots match the calculator's stack (PARTS in lib/cost.ts), where the set was checked for colour-blind safety.

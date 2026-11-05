@@ -2,55 +2,244 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Design tokens. Dark is the default; light is opt-in via the header toggle.
-   Series colours are the validated dataviz palette, stepped separately per mode (not auto-flipped). */
-:root, :root[data-theme="dark"] {
-  color-scheme: dark;
-  --page: #0b0e14; --surface: #131821; --surface-2: #1a2130; --surface-3: #212a3b;
-  --ink: #eceef3; --ink-2: #b5bcc9; --muted: #8790a2;
-  --grid: #222a37; --baseline: #3a4352; --border: rgba(255, 255, 255, 0.08);
-  --accent: #7ea2ff; --accent-2: #b392ff; --accent-soft: rgba(126, 162, 255, 0.12);
-  --grad: linear-gradient(120deg, #4f7cff, #9d6bff);
-  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
-  --better: #3987e5; --worse: #e66767; --context: #4a5263; --neutral: #383e4a;
-  --good: #0ca30c; --warning: #fab219; --critical: #d03b3b;
-  --seq-0: #162238; --seq-1: #184f95; --seq-2: #2a78d6; --seq-3: #6da7ec; --seq-4: #b7d3f6;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.25);
+/* Design tokens. The world: soft cards on a ground tinted from the action teal, Figtree, one action colour (--accent)
+   that only ever marks something you can press.
+   Light is the default; dark follows the system until the visitor picks a theme (index.html applies a saved pick before
+   first paint). lib/theme.tsx reads the custom properties of every :root block below as text, for the charts: a block
+   whose selector names [data-theme="dark"] or :not([data-theme="light"]) is dark, every other :root block is light.
+   Keep one custom property per declaration, and keep the two dark blocks identical.
+   Series colours (--s1..--s8) are the validated dataviz palette, stepped separately per mode (not auto-flipped). */
+:root {
+  /* type scale, seven steps, in rem so it follows the reader's own text size */
+  --fs-1: .875rem; --fs-2: 1rem; --fs-3: 1.125rem; --fs-4: 1.375rem;
+  --fs-5: clamp(2rem, 1.55rem + 1.5vw, 2.5rem);
+  --fs-6: clamp(2.5rem, 2.05rem + 1.5vw, 3rem);
+  --fs-7: clamp(3.75rem, 2.85rem + 3vw, 4.75rem);
+  --r-card: 24px; --gut: 24px; --pad: 32px;
+  /* one motion curve, an exponential ease-out with no overshoot: a press settles, the scale's dot glides to its true place */
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
 }
-:root[data-theme="light"] {
+:root, :root[data-theme="light"] {
   color-scheme: light;
-  --page: #f5f6f8; --surface: #ffffff; --surface-2: #f0f2f5; --surface-3: #e6e9ee;
-  --ink: #121620; --ink-2: #434a58; --muted: #6b7280;
-  --grid: #e9ebef; --baseline: #c3c8d0; --border: rgba(16, 24, 40, 0.09);
-  --accent: #2f5fe3; --accent-2: #7c4ddb; --accent-soft: rgba(47, 95, 227, 0.08);
-  --grad: linear-gradient(120deg, #2f5fe3, #7c4ddb);
+  --page: #EDF2F0; --surface: #FFFFFF; --surface-2: #E6F0EC; --surface-3: #E1E9E6; --raise: #FFFFFF;
+  --ink: #374642; --ink-2: #55615C; --muted: #5E6B66; --mark: #7C8984;
+  --grid: #E1E8E5; --baseline: #BCC8C3; --border: #E1E8E5; --rule: #D5DEDA;
+  --track: #E1E9E6; --here: #E6F0EC; --sel: #D3E3DD;
+  --accent: #0F7B6C; --accent-2: #0B6155; --accent-hover: #0B6155; --accent-soft: #E3F1ED; --on-accent: #FFFFFF;
+  --grad: #0F7B6C;
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #6250d6; --s8: #e34948;
-  --better: #2a78d6; --worse: #e34948; --context: #c4c9d1; --neutral: #e5e7eb;
-  --good: #0ca30c; --warning: #fab219; --critical: #d03b3b;
+  --better: #2a78d6; --worse: #e34948; --context: #C3CDC9; --neutral: #E1E8E5;
+  --good: #0ca30c; --warning: #fab219; --critical: #d03b3b; --good-ink: #0a7a0a; --critical-ink: #b42f2f;
   --seq-0: #eef4fd; --seq-1: #b7d3f6; --seq-2: #5598e7; --seq-3: #256abf; --seq-4: #104281;
-  --shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 8px 24px rgba(16, 24, 40, 0.06);
+  --shadow: 0 1px 2px rgb(16 40 34 / .05), 0 14px 30px -18px rgb(16 40 34 / .28);
+  --lift: 0 1px 2px rgb(16 40 34 / .05), 0 14px 30px -18px rgb(16 40 34 / .28);
+  --pop: 0 2px 6px rgb(16 40 34 / .08), 0 24px 48px -20px rgb(16 40 34 / .4);
+  --press: 0 8px 18px -10px rgb(12 32 27 / .45);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #1A2220; --surface: #232D2A; --surface-2: #2C3733; --surface-3: #36443F; --raise: #2C3733;
+  --ink: #EAF1EE; --ink-2: #B0BEB9; --muted: #A5B3AE; --mark: #93A29C;
+  --grid: #33403B; --baseline: #4A5853; --border: #33403B; --rule: #2E3A36;
+  --track: #36443F; --here: #2E3D38; --sel: #3A4D46;
+  --accent: #5CCBB6; --accent-2: #7AD8C6; --accent-hover: #7AD8C6; --accent-soft: #24403A; --on-accent: #0F1F1B;
+  --grad: #0E6E61;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  --better: #3987e5; --worse: #e66767; --context: #4A5551; --neutral: #404C47;
+  --good: #0ca30c; --warning: #fab219; --critical: #d03b3b; --good-ink: #3dbf3d; --critical-ink: #ea7a7a;
+  --seq-0: #162238; --seq-1: #184f95; --seq-2: #2a78d6; --seq-3: #6da7ec; --seq-4: #b7d3f6;
+  --shadow: 0 1px 0 rgb(255 255 255 / .03) inset, 0 16px 32px -22px rgb(0 0 0 / .8);
+  --lift: 0 1px 0 rgb(255 255 255 / .03) inset, 0 16px 32px -22px rgb(0 0 0 / .8);
+  --pop: 0 2px 8px rgb(0 0 0 / .35), 0 24px 48px -20px rgb(0 0 0 / .7);
+  --press: 0 8px 18px -10px rgb(0 0 0 / .6);
+}
+/* the system's dark mode when the visitor has not picked a theme: the same values as [data-theme="dark"] above */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #1A2220; --surface: #232D2A; --surface-2: #2C3733; --surface-3: #36443F; --raise: #2C3733;
+    --ink: #EAF1EE; --ink-2: #B0BEB9; --muted: #A5B3AE; --mark: #93A29C;
+    --grid: #33403B; --baseline: #4A5853; --border: #33403B; --rule: #2E3A36;
+    --track: #36443F; --here: #2E3D38; --sel: #3A4D46;
+    --accent: #5CCBB6; --accent-2: #7AD8C6; --accent-hover: #7AD8C6; --accent-soft: #24403A; --on-accent: #0F1F1B;
+    --grad: #0E6E61;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+    --better: #3987e5; --worse: #e66767; --context: #4A5551; --neutral: #404C47;
+    --good: #0ca30c; --warning: #fab219; --critical: #d03b3b; --good-ink: #3dbf3d; --critical-ink: #ea7a7a;
+    --seq-0: #162238; --seq-1: #184f95; --seq-2: #2a78d6; --seq-3: #6da7ec; --seq-4: #b7d3f6;
+    --shadow: 0 1px 0 rgb(255 255 255 / .03) inset, 0 16px 32px -22px rgb(0 0 0 / .8);
+    --lift: 0 1px 0 rgb(255 255 255 / .03) inset, 0 16px 32px -22px rgb(0 0 0 / .8);
+    --pop: 0 2px 8px rgb(0 0 0 / .35), 0 24px 48px -20px rgb(0 0 0 / .7);
+    --press: 0 8px 18px -10px rgb(0 0 0 / .6);
+  }
+}
+/* phones: a narrower gutter, card padding and corner */
+@media (max-width: 599px) {
+  :root { --gut: 16px; --pad: 20px; --r-card: 20px; }
 }
 
-html { scroll-behavior: smooth; }
+/* ---------- the parts of the page the browser draws ---------- */
+html { scroll-behavior: smooth; scrollbar-color: var(--mark) var(--page); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 html, body { background: var(--page); color: var(--ink); }
-body { -webkit-font-smoothing: antialiased; transition: background-color .25s, color .25s; }
+body { font-size: var(--fs-2); line-height: 1.55; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; transition: background-color .25s, color .25s; }
+::selection { background: var(--sel); color: var(--ink); }
+input, textarea { caret-color: var(--accent); accent-color: var(--accent); }
+a { text-underline-offset: .3em; }
+p { text-wrap: pretty; }
+h1, h2 { text-wrap: balance; }
+/* every focusable element shows where the keyboard is: a 3px ring in the action colour, clear of the element. :where()
+   keeps it at zero specificity, so a control that draws its own ring (focus-visible:ring-*, outline-none) keeps just that
+   one; on a panel painted in the action colour the ring turns white (.on-accent) */
+:where(:focus-visible) { outline: 3px solid var(--accent); outline-offset: 3px; }
+.on-accent :focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+#main:focus { outline: none; }
 .tnum { font-variant-numeric: tabular-nums; }
-::selection { background: var(--accent-soft); }
-.grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* the old gradient text and hero glow: flat now (no gradients anywhere); the classes stay so older pages still render */
+.grad-text { color: inherit; }
+.glow { display: none; }
 
-/* hero glow + dotted grid, as on the portfolio */
-.glow { position: absolute; inset: 0; pointer-events: none; overflow: hidden;
-  background:
-    radial-gradient(560px 360px at 10% 10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%),
-    radial-gradient(520px 340px at 90% 0%, color-mix(in srgb, var(--accent-2) 16%, transparent), transparent 70%); }
-.glow::after { content: ""; position: absolute; inset: 0;
-  background-image: radial-gradient(color-mix(in srgb, var(--ink) 12%, transparent) 1px, transparent 1px);
-  background-size: 22px 22px; mask-image: linear-gradient(to bottom, #000, transparent 85%); }
+/* controls that only work with JavaScript are hidden without it (index.html adds .js to <html> before first paint) */
+html:not(.js) .js-only { display: none !important; }
+/* the calculator opened with a query (index.html adds .q, App removes it once it has rendered): the pre-rendered default
+   figures wait behind a short line instead of naming another broker and amount for a moment */
+.calc-wait { display: none; }
+html.q .calc-wait { display: block; margin-bottom: 12px; }
+html.q .calc-live { visibility: hidden; }
+/* the app couldn't load its data: one quiet line above the pre-rendered page (main.tsx) */
+.load-note { margin-top: 14px; font-size: var(--fs-1); color: var(--ink-2); }
 
-/* gentle fade-up for page changes */
-@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.rise { animation: rise .45s cubic-bezier(.2, .7, .2, 1) both; }
+/* The world's shared pieces: plain CSS, not Tailwind's components layer (Tailwind would also read a JS expression such as
+   "!top" as a request for an !important copy of .top and emit broken rules). Being plain CSS, they win over a utility on
+   the same element; give a page its own class rather than a utility to change one. */
+
+/* ---------- page width: one column of content between equal gutters ---------- */
+.wrap { width: min(100% - 2 * var(--gut), 70rem); margin-inline: auto; }
+
+/* ---------- skip link: the first thing a keyboard reaches ---------- */
+.skip {
+  position: absolute; left: 16px; top: 12px; z-index: 60; display: inline-flex; align-items: center; min-height: 44px;
+  padding: 0 20px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-weight: 700;
+  text-decoration: none; transform: translateY(-160%);
+}
+.skip:focus { transform: none; outline-color: var(--ink); }
+
+/* ---------- header: wordmark, the site's pages (the current one marked), the theme switch ---------- */
+.top { position: relative; border-bottom: 1px solid var(--rule); }
+.top-in { display: flex; align-items: center; gap: 16px; min-height: 76px; }
+.brand { display: flex; flex-direction: column; line-height: 1.2; }
+.brand a { font-size: var(--fs-4); font-weight: 800; letter-spacing: -.02em; text-decoration: none; color: var(--ink); }
+.brand small { font-size: var(--fs-1); font-weight: 500; color: var(--ink-2); }
+.nav { display: flex; gap: 2px; margin-left: auto; }
+.nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; font-weight: 600; color: var(--ink); text-decoration: none; }
+.nav a:hover { background: var(--surface); }
+.nav a[aria-current="page"] { background: var(--surface); color: var(--accent); box-shadow: var(--lift); }
+.tools { display: flex; align-items: center; gap: 8px; }
+.round {
+  display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 999px; background: var(--surface);
+  color: var(--accent); border: 2px solid var(--accent);
+}
+.round:hover { background: var(--accent-soft); color: var(--accent-hover); }
+/* the theme switch shows the moon in light and the sun in dark, whichever way the theme was chosen */
+.theme .i-sun { display: none; }
+html[data-theme="dark"] .theme .i-moon { display: none; }
+html[data-theme="dark"] .theme .i-sun { display: block; }
+.menu { display: none; }
+.menu > summary {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px 0 16px; border-radius: 999px;
+  background: var(--surface); color: var(--accent); font-weight: 700; border: 2px solid var(--accent);
+  list-style: none; cursor: pointer;
+}
+.menu > summary::-webkit-details-marker { display: none; }
+.menu > summary:hover { background: var(--accent-soft); color: var(--accent-hover); }
+.menu[open] > summary { background: var(--accent); color: var(--on-accent); }
+.menu-panel {
+  position: absolute; left: var(--gut); right: var(--gut); top: calc(100% - 6px); z-index: 50; display: grid; gap: 2px;
+  padding: 8px; border-radius: 20px; background: var(--raise); box-shadow: var(--pop);
+}
+.menu-panel a { display: flex; align-items: center; min-height: 48px; padding: 0 16px; border-radius: 14px; font-weight: 600; color: var(--ink); text-decoration: none; }
+.menu-panel a:hover { background: var(--page); }
+.menu-panel a[aria-current="page"] { color: var(--accent-hover); background: var(--accent-soft); }
+
+/* ---------- footer: plain text on the ground, links underlined in the action colour ---------- */
+.foot { margin-top: 56px; padding: 28px 0 48px; border-top: 1px solid var(--rule); color: var(--ink-2); }
+.foot p { max-width: 65ch; }
+.foot ul { display: flex; flex-wrap: wrap; align-items: center; gap: 0 24px; margin-top: 10px; }
+.foot a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); font-weight: 600; text-decoration: underline 2px var(--accent); text-underline-offset: 6px; }
+.foot a:hover { text-decoration-thickness: 3px; }
+.foot a.quiet { color: var(--ink-2); font-weight: 500; text-decoration: none; }
+.foot a.quiet:hover { text-decoration: underline 2px var(--rule); }
+
+/* ---------- cards and the things you press ---------- */
+.card { position: relative; background: var(--surface); border-radius: var(--r-card); box-shadow: var(--lift); padding: 30px var(--pad); }
+.card h2 { font-size: var(--fs-4); line-height: 1.25; font-weight: 800; letter-spacing: -.015em; text-wrap: balance; }
+.go { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--accent); font-weight: 700; text-decoration: none; white-space: nowrap; }
+.go:hover { color: var(--accent-hover); text-decoration: underline; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 20px; border: 2px solid transparent; border-radius: 999px; font-weight: 700; text-decoration: none; }
+.btn-solid { background: var(--accent); color: var(--on-accent); box-shadow: var(--press); }
+.btn-solid:hover { background: var(--accent-hover); }
+.btn-ghost { background: var(--surface); color: var(--accent); border-color: var(--accent); }
+.btn-ghost:hover { background: var(--accent-soft); color: var(--accent-hover); }
+.pill { display: flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 16px; border: 2px solid var(--accent); border-radius: 999px; color: var(--accent); font-weight: 700; text-decoration: none; text-align: center; }
+.pill:hover { background: var(--accent-soft); color: var(--accent-hover); }
+/* a quiet secondary: a tinted fill, no outline; the solid button stays the one loud action nearby */
+.pill-soft { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 48px; padding: 0 14px 0 18px; border: 2px solid transparent; border-radius: 999px; background: var(--accent-soft); color: var(--accent-hover); font-weight: 700; text-decoration: none; }
+.pill-soft:hover { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+html[data-theme="dark"] .pill-soft:hover { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
+/* an in-text link: ink, underlined in the action colour */
+.ulink { color: var(--ink); font-weight: 600; text-decoration: underline 2px var(--accent); text-underline-offset: 5px; }
+.ulink:hover { text-decoration-thickness: 3px; }
+
+/* the two-way switch (a native radio group): the checked option takes the action colour */
+.seg { position: relative; display: inline-flex; padding: 2px; border: 2px solid var(--accent); margin: 0; min-width: 0; border-radius: 999px; background: var(--surface); }
+.seg input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.seg label { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 20px; border-radius: 999px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.seg label:hover { background: var(--accent-soft); }
+.seg input:checked + label { background: var(--accent); color: var(--on-accent); box-shadow: var(--press); }
+.seg:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 3px; }
+/* where :has() is missing, the ring sits on the focused option instead */
+@supports not selector(:has(*)) {
+  .seg input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: 2px; }
+}
+
+/* press feedback: a soft give, only on things you can press */
+.btn, .pill, .pill-soft, .round, .menu > summary, .seg label { transition: transform .5s var(--ease-out), background-color .2s, color .2s, box-shadow .25s; }
+.btn:active, .pill:active, .pill-soft:active, .round:active, .menu > summary:active, .seg label:active { transform: scale(.95); }
+
+/* tablet and phone: the nav folds into the menu */
+@media (max-width: 1023px) {
+  .nav, .brand small { display: none; }
+  .tools { margin-left: auto; }
+  .menu { display: block; }
+}
+@media (max-width: 599px) {
+  .top-in { min-height: 64px; gap: 8px; }
+  .brand a { display: inline-flex; align-items: center; min-height: 44px; }
+  .card { padding: 20px var(--pad) 22px; }
+  .seg { display: flex; width: 100%; }
+  .seg label { flex: 1 1 0; padding: 0 10px; }
+}
+@media (max-width: 359px) {
+  .menu > summary { padding: 0 10px; }
+  .menu > summary .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+/* the theme switch's icon under the system's dark mode, when no theme was picked */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .theme .i-moon { display: none; }
+  html:not([data-theme="light"]) .theme .i-sun { display: block; }
+  html:not([data-theme="light"]) .pill-soft:hover { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
+}
+
+/* a forced-colours theme (Windows contrast themes) keeps the borders above; the switch's chosen option takes the system
+   highlight, since its fill alone would vanish */
+@media (forced-colors: active) {
+  .seg input:checked + label { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .nav a[aria-current="page"], .menu-panel a[aria-current="page"] { text-decoration: underline 2px; text-underline-offset: 6px; }
+}
+
+/* nothing moves for anyone who asked for less motion */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
+  .btn:active, .pill:active, .pill-soft:active, .round:active, .menu > summary:active, .seg label:active { transform: none; }
 }

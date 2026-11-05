@@ -7,7 +7,7 @@ import { EChart, type Option } from "../charts/EChart";
 import { base, catAxis, legend, tip, tooltip, valueAxis } from "../charts/kit";
 import { annualCost, DEFAULT_INPUTS, nobodyHas, PARTS, type CostInputs, type CostLine } from "../lib/cost";
 import type { Data } from "../lib/data";
-import { dayLong, monthLong, num, usd2 } from "../lib/format";
+import { dayLong, monthLong, perYear } from "../lib/format";
 import { useBrowserLayoutEffect } from "../lib/hooks";
 import { href, pagePath } from "../lib/routes";
 import { useTheme, type Tokens } from "../lib/theme";
@@ -18,8 +18,6 @@ const MIX: [number, string][] = [[100, "Big companies"], [50, "A mix"], [0, "Oth
 const STORE = "calc"; // localStorage: the visitor's inputs, shared by the home-page widget and the calculator page
 const BROKER = "broker"; // localStorage: the visitor's broker, the same key the home-page picker uses
 
-/** Yearly dollars: cents under $10 ($3.40), whole dollars with commas from there (−$1,250). */
-export const perYear = (v: number) => (Math.abs(v) < 10 ? usd2(v) : `${v < 0 ? "−" : ""}$${num(Math.abs(v), 0)}`);
 /** "cost about $12" or, when the prices beat the fair price, "leave you about $3 ahead" */
 const phrase = (v: number) => (v < -0.005 ? `leave you about ${perYear(-v)} ahead` : `cost about ${perYear(v)}`);
 /** "a", "a and b", "a, b and c" */
@@ -125,8 +123,11 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
   // one order everywhere (chart, "#" column, cheapest, rank): complete estimates first, cheapest first within each group
   const lines = useMemo(() => annualCost(d, inp), [d, inp]);
   const me = lines.find((l) => l.id === pick);
-  const cheapest = lines[0], priciest = lines[lines.length - 1];
-  const rank = me ? lines.indexOf(me) + 1 : null;
+  // the sentence and the rank name only brokers whose figure is complete (as the broker pages rank them), so an
+  // incomplete line, listed last, is never called the most expensive; the chart and the table still show every broker
+  const complete = lines.filter((l) => l.gaps.length === 0);
+  const cheapest = complete[0] ?? lines[0], priciest = complete[complete.length - 1] ?? lines[lines.length - 1];
+  const rank = me && complete.includes(me) ? complete.indexOf(me) + 1 : null;
   // the home page shows the five cheapest plus the visitor's own broker
   const top = lines.slice(0, 5);
   const shown = compact ? [...top, ...(me && !top.includes(me) ? [me] : [])] : lines;
@@ -143,7 +144,7 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
   const caveat = (l: CostLine) => (l.gaps.length ? <span className="text-muted"> {l.short}'s figure is incomplete: {list(l.gaps)} not available.</span> : null);
   let summary: ReactNode = null;
   if (me && cheapest && me !== cheapest) summary = <>At <b>{me.short}</b> this would {phrase(me.total)} a year; at <b>{cheapest.short}</b> it would {phrase(cheapest.total)}.{caveat(me)}{caveat(cheapest)}</>;
-  else if (me && priciest) summary = <>At <b>{me.short}</b> this would {phrase(me.total)} a year, the lowest of {lines.length} brokers; at <b>{priciest.short}</b> it would {phrase(priciest.total)}.{caveat(me)}</>;
+  else if (me && priciest) summary = <>At <b>{me.short}</b> this would {phrase(me.total)} a year, the lowest of {complete.length} brokers with a complete figure; at <b>{priciest.short}</b> it would {phrase(priciest.total)}.{caveat(me)}</>;
   else if (cheapest && priciest) summary = <>At <b>{cheapest.short}</b> this would {phrase(cheapest.total)} a year; at <b>{priciest.short}</b> it would {phrase(priciest.total)}.{caveat(cheapest)}</>;
 
   const checked = d.meta.feesChecked ? `checked ${dayLong(d.meta.feesChecked)}` : "not yet checked";
@@ -192,7 +193,7 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
     { key: "name", label: "Broker", pin: true, value: (r) => r.short, render: (r) => (
       <span className="inline-flex items-center gap-2">
         <span className={r.id === me?.id ? "font-bold text-ink" : "font-medium text-ink"}>{r.short}</span>
-        {r.id === me?.id && <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] font-semibold text-accent">you</span>}
+        {r.id === me?.id && <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] font-semibold text-accent-hover">you</span>}
       </span>
     ) },
     { key: "total", label: "Total / year", value: (r) => r.total, num: true, render: (r) => <b>{perYear(r.total)}</b> },
@@ -224,7 +225,7 @@ export default function Estimator({ d, compact, value, onChange, broker, onBroke
         {shown.length ? (
           <>
             <p className="text-[15.5px] leading-relaxed text-ink2">
-              {summary}{rank && me && <span className="text-muted"> {me.short} ranks #{rank} of {lines.length}.</span>}
+              {summary}{me && <span className="text-muted"> {rank ? `${me.short} ranks #${rank} of the ${complete.length} brokers with a complete figure.` : `${me.short} isn't ranked: its figure is incomplete.`}</span>}
             </p>
             <EChart option={chart} height={shown.length * 28 + 60} label="Yearly cost by broker and source" onClick={(p) => { if (p.data?.id) choose(p.data.id); }} />
             {starNote && <p className="text-[12.5px] text-muted">{starNote}.</p>}

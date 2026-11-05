@@ -6,6 +6,10 @@ const PATHS: Record<string, ReactNode> = {
   back: <path d="M19 12H5M11 18l-6-6 6-6" />,
   left: <path d="m15 18-6-6 6-6" />,
   right: <path d="m9 18 6-6-6-6" />,
+  down: <path d="m6 9 6 6 6-6" />,
+  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
+  tune: <><path d="M4 8h9M17 8h3M4 16h3M11 16h9" /><circle cx="15" cy="8" r="2.25" /><circle cx="9" cy="16" r="2.25" /></>,
+  checkCircle: <><circle cx="12" cy="12" r="8.75" /><path d="m8.5 12.25 2.4 2.4 4.6-5" /></>,
   swap: <><path d="M4 7h13M13 3l4 4-4 4" /><path d="M20 17H7M11 13l-4 4 4 4" /></>,
   info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></>,
   sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>,
@@ -166,9 +170,11 @@ export function Kpi({ icon, label, value, sub, tone, info }: { icon?: string; la
 /** Status chip: colour plus icon plus label, so meaning never rides on colour alone. */
 export function Status({ kind, children }: { kind: "good" | "bad" | "neutral"; children: ReactNode }) {
   const c = kind === "good" ? "var(--good)" : kind === "bad" ? "var(--critical)" : "var(--muted)";
+  // the text takes the theme's ink for that colour (index.css --good-ink, --critical-ink), which reaches 4.5:1 on the chip's tint
+  const ink = kind === "good" ? "var(--good-ink)" : kind === "bad" ? "var(--critical-ink)" : "var(--muted)";
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[12px] font-semibold"
-      style={{ color: c, borderColor: `color-mix(in srgb, ${c} 40%, transparent)`, background: `color-mix(in srgb, ${c} 10%, transparent)` }}>
+      style={{ color: ink, borderColor: `color-mix(in srgb, ${c} 40%, transparent)`, background: `color-mix(in srgb, ${c} 10%, transparent)` }}>
       <Icon name={kind === "good" ? "check" : kind === "bad" ? "x" : "minus"} size={13} />{children}
     </span>
   );

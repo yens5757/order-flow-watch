@@ -1,4 +1,6 @@
-// Theme state (dark by default) and the resolved colour tokens the charts need as plain hex.
+// Theme state and the resolved colour tokens the charts need as plain hex.
+// The page follows the system's light or dark setting until the visitor picks a theme with the header switch; the pick is
+// saved and wins from then on (index.html applies it to <html> before first paint, so there is no flash).
 // The tokens are read from index.css itself (imported as text), so they are the same on the server, where there is no
 // computed style, and in the browser; index.css stays the one place the palette is defined.
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
@@ -16,12 +18,13 @@ export interface Tokens {
   seq: string[];
 }
 
-/** The custom properties of each `:root` block in index.css: the first declares dark (the default), the one selected by
- *  [data-theme="light"] declares light. */
+/** The custom properties of each `:root` block in index.css (comments stripped first): a block whose selector names
+ *  [data-theme="dark"] or :not([data-theme="light"]) (the system's dark mode) declares dark, every other one light. */
 const VARS: Record<"dark" | "light", Record<string, string>> = (() => {
   const out = { dark: {} as Record<string, string>, light: {} as Record<string, string> };
-  for (const m of css.matchAll(/(:root[^{]*)\{([^}]*)\}/g)) {
-    const mode = /data-theme="light"/.test(m[1]) ? "light" : "dark";
+  const text = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const m of text.matchAll(/(:root[^{]*)\{([^}]*)\}/g)) {
+    const mode = /data-theme="dark"|:not\(\[data-theme="light"\]\)/.test(m[1]) ? "dark" : "light";
     for (const v of m[2].matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) out[mode][v[1]] = v[2].trim();
   }
   return out;
@@ -42,23 +45,39 @@ function read(dark: boolean): Tokens {
   };
 }
 
+const KEY = "theme"; // localStorage: "light" or "dark" once the visitor has picked one (index.html reads the same key)
+const SYSTEM_DARK = "(prefers-color-scheme: dark)";
+
+/** The browser's address-bar colour follows the page ground: both metas (light and dark system) take the picked theme's. */
+function paintBrowser(theme: "light" | "dark") {
+  const ground = VARS[theme].page;
+  if (ground) document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", ground));
+}
+
 const Ctx = createContext<{ dark: boolean; toggle: () => void; t: Tokens } | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // dark until the browser says otherwise: the saved choice (index.html applies it to <html> before first paint) is read
-  // in an effect, never while rendering, so the same render works on the server
-  const [dark, setDark] = useState(true);
+  // light until the browser says otherwise: what is painted is decided by the CSS (system setting or the saved pick on
+  // <html data-theme>), and the state that feeds the charts is read in an effect, never while rendering, so the server and
+  // the first browser render agree
+  const [dark, setDark] = useState(false);
   useBrowserLayoutEffect(() => {
-    let saved: string | null = null;
-    try { saved = localStorage.getItem("theme"); } catch { /* private mode: no saved choice */ }
-    const light = saved ? saved === "light" : document.documentElement.dataset.theme === "light";
-    document.documentElement.dataset.theme = light ? "light" : "dark";
-    if (light) setDark(false);
+    const root = document.documentElement;
+    const sys = window.matchMedia(SYSTEM_DARK);
+    const sync = () => {
+      const picked = root.dataset.theme;
+      setDark(picked === "dark" || (picked !== "light" && sys.matches));
+    };
+    sync();
+    // the system setting can change while the page is open (sunset, a manual switch); it only matters until a pick is saved
+    sys.addEventListener("change", sync);
+    return () => sys.removeEventListener("change", sync);
   }, []);
   const toggle = () => {
     const next = dark ? "light" : "dark";
     document.documentElement.dataset.theme = next;
-    try { localStorage.setItem("theme", next); } catch { /* private mode: the choice just won't persist */ }
+    try { localStorage.setItem(KEY, next); } catch { /* private mode: the choice just won't persist */ }
+    paintBrowser(next);
     setDark(!dark);
   };
   const t = useMemo(() => read(dark), [dark]);

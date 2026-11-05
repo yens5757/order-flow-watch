@@ -5,6 +5,7 @@ import { EChart } from "../charts/EChart";
 import { ranked } from "../charts/options";
 import Estimator, { loadBroker, saveBroker } from "../components/Estimator";
 import { Card, ChartTable, Icon, Segmented, Select } from "../components/ui";
+import { money, payment, placeBrokers, sameStockVerdict } from "../lib/broker";
 import { brokerRows, nameOf, slugOf, type Data, type Fee, type Metric, type Sp } from "../lib/data";
 import { dayLong, dollars, pct, quarterLong, usd2, usdTick } from "../lib/format";
 import { go, useBrowserLayoutEffect } from "../lib/hooks";
@@ -84,7 +85,9 @@ export default function Home({ d }: { d: Data }) {
   // the picker and the chart follow the stock toggle
   const rows = useMemo(() => brokerRows(d, { ...base, sp }).filter((r) => r.cost10k != null).sort((a, b) => a.cost10k! - b.cost10k!), [d, sp]); // eslint-disable-line react-hooks/exhaustive-deps
   const me: Metric | undefined = rows.find((r) => r.id === pick) ?? rows[0];
-  const rank = me ? rows.indexOf(me) + 1 : null;
+  // the rank the broker's own page gives (lib/broker.ts: brokers showing the same price share a rank)
+  const places = useMemo(() => placeBrokers(d, sp), [d, sp]);
+  const rank = me ? places.find((p) => p.m.id === me.id)?.rank ?? rows.indexOf(me) + 1 : null;
   const med = median(rows.map((r) => r.cost10k!)) ?? 0;
   const cheapest = rows[0], priciest = rows[rows.length - 1];
   const chart = useMemo(() => ranked(t, rows.map((r) => ({
@@ -92,13 +95,22 @@ export default function Home({ d }: { d: Data }) {
     rows: [[t.s[1], METRICS.cost10k.short, usd2(r.cost10k)], [t.s[0], METRICS.pay10k.short, r.pay10k == null ? "no report of its own" : usd2(r.pay10k)]],
   })), { fmt: (v) => usd2(v), axis: usdTick, color: t.s[1], median: med, tone: "low-better" }), [t, rows, me?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const payLine = !me ? "" : me.pay10k == null ? "Files no payment report of its own (another firm routes its orders)."
-    : me.pay10k > 0.005 ? `Paid about ${usd2(me.pay10k)} by trading firms for that order.`
-    : me.pay10k < -0.005 ? `Pays its trading firm about ${usd2(-me.pay10k)} for that order.`
+  // the broker pages' rule (lib/broker.ts payment): "pays its trading firm" only when a trading firm's rate is below zero
+  // (Cash App); money that goes to exchanges is exchange fees
+  const pay = me ? payment(d, me, sp) : null;
+  const payAmt = pay ? (pay.v != null ? money(Math.abs(pay.v)) : `${Math.abs(pay.cph ?? 0).toFixed(1)}¢ per 100 shares`) : "";
+  const payLine = !pay ? ""
+    : pay.kind === "none" ? "Files no payment report of its own (another firm routes its orders)."
+    : pay.kind === "missing" ? "Not in this quarter's payment report."
+    : pay.kind === "paid" ? `Paid about ${payAmt} by trading firms for that order.`
+    : pay.kind === "pays" ? `Pays its trading firm about ${payAmt} for that order.`
+    : pay.kind === "fees" ? `Not paid by trading firms; pays about ${payAmt} in exchange fees on that order.`
     : "Not paid for orders.";
-  const gapLine = !me || me.gap == null ? "No same-trade comparison available."
-    : me.gap < -3 ? "Better prices than most brokers on the same stocks and order sizes."
-    : me.gap > 3 ? "Worse prices than most brokers on the same stocks and order sizes."
+  // the same rule as the broker pages' sentence (lib/broker.ts), so the two never disagree
+  const verdict = sameStockVerdict(me?.gap);
+  const gapLine = verdict == null ? "No same-trade comparison available."
+    : verdict === "better" ? "Better prices than most brokers on the same stocks and order sizes."
+    : verdict === "worse" ? "Worse prices than most brokers on the same stocks and order sizes."
     : "About average on the same stocks and order sizes.";
   // fee facts checked by hand on the broker's own pages (fees.csv); each line only shows when the fact is verified
   const fee: Fee | undefined = me ? d.fees[me.id] : undefined;
@@ -310,14 +322,14 @@ export default function Home({ d }: { d: Data }) {
 
       {/* ---------- explorer CTA ---------- */}
       <section className="pt-14">
-        <div className="relative overflow-hidden rounded-3xl p-8 text-white shadow-card sm:p-12" style={{ background: "var(--grad)" }}>
+        <div className="on-accent relative overflow-hidden rounded-3xl p-8 text-white shadow-card sm:p-12" style={{ background: "var(--grad)" }}>
           <div className="relative max-w-2xl">
             <h2 className="font-display text-[28px] font-extrabold tracking-tight sm:text-[34px]">Want to dig deeper?</h2>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href={href(pagePath("brokers"))} className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-[15px] font-semibold text-[#1b2a55] hover:bg-white/90">
+              <a href={href(pagePath("brokers"))} className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-[15px] font-semibold text-[#0B6155] hover:bg-white/90">
                 Open the explorer<Icon name="arrow" size={16} />
               </a>
-              <button type="button" onClick={() => go(pagePath("trading-firms"))} className="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-[15px] font-semibold text-white hover:bg-white/20">
+              <button type="button" onClick={() => go(pagePath("trading-firms"))} className="inline-flex items-center gap-2 rounded-xl border border-white/70 px-5 py-3 text-[15px] font-semibold text-white hover:bg-white hover:text-[#0B6155]">
                 Trading firms
               </button>
             </div>

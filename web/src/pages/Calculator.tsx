@@ -1,15 +1,15 @@
 // calculator/: the full annual-cost estimator, every input exposed, all brokers ranked. The inputs live in the query
-// string (calculator/?n=24&s=2000&mix=50&o=0&c=5000&m=0&b=robinhood) so a view can be shared, and in localStorage so they stick.
+// string (calculator/?n=24&s=2000&mix=50&o=0&c=5000&m=0&b=robinhood) so a view can be shared, and in localStorage so they
+// stick. Only the visitor's own edits are saved (Estimator saves them as they type or pick): opening a link, such as a
+// broker page's "Change", shows its inputs without replacing the ones the visitor saved.
 import { useEffect, useState, type ReactNode } from "react";
-import Estimator, { loadBroker, loadInputs, saveBroker, saveInputs } from "../components/Estimator";
+import Estimator, { loadBroker, loadInputs } from "../components/Estimator";
 import { Card, Icon, PageHeader } from "../components/ui";
-import { DEFAULT_INPUTS, type CostInputs } from "../lib/cost";
+import { CALC_KEYS as KEYS, calcQuery, DEFAULT_INPUTS, type CostInputs } from "../lib/cost";
 import { idFromUrl, slugOf, type Data } from "../lib/data";
 import { dayLong, monthLong } from "../lib/format";
 import { onNavigate, readLocation, readQuery, useBrowserLayoutEffect, writeQuery } from "../lib/hooks";
 import { href, pagePath, parseRoute } from "../lib/routes";
-
-const KEYS: [keyof CostInputs, string][] = [["trades", "n"], ["size", "s"], ["spMix", "mix"], ["options", "o"], ["idleCash", "c"], ["margin", "m"]];
 
 /** True when the query carries any calculator input. */
 const hasInputs = (p: URLSearchParams) => KEYS.some(([, key]) => p.has(key));
@@ -33,9 +33,9 @@ function brokerFromUrl(d: Data, search: string): string | null {
   return id && d.byId[id].type === "broker" ? id : null;
 }
 
-/** The query for a set of inputs and a broker: only the inputs that differ from the defaults. */
-const query = (d: Data, inp: CostInputs, broker: string) =>
-  ({ ...Object.fromEntries(KEYS.map(([field, key]) => [key, inp[field] !== DEFAULT_INPUTS[field] ? inp[field] : null])), b: slugOf(d, broker) });
+/** The query for a set of inputs and a broker: only the inputs that differ from the defaults (lib/cost.ts, which the
+ *  broker pages' "Change" link uses too). */
+const query = (d: Data, inp: CostInputs, broker: string) => calcQuery(inp, slugOf(d, broker));
 
 function Line({ label, children }: { label: string; children: ReactNode }) {
   return <li className="flex gap-3"><span className="w-28 shrink-0 font-semibold text-ink">{label}</span><span>{children}</span></li>;
@@ -59,8 +59,6 @@ export default function Calculator({ d, search }: { d: Data; search: string }) {
   useEffect(() => {
     if (!ready) return; // not before the saved inputs are in, or the defaults would overwrite them
     writeQuery(query(d, inp, broker));
-    saveInputs(inp);
-    saveBroker(broker);
   }, [d, ready, inp, broker]);
 
   // the page and the address bar stay in step on a same-page navigation too: a link with inputs (a shared view, the
@@ -93,7 +91,13 @@ export default function Calculator({ d, search }: { d: Data; search: string }) {
             <Icon name={copied ? "check" : "ext"} size={16} />{copied ? "Link copied" : "Copy link"}
           </button>
         } />
-      <Estimator d={d} value={inp} onChange={setInp} broker={broker} onBroker={setBroker} />
+      {/* opened from a link with inputs, the page renders afresh once the data is in (main.tsx): until then the pre-rendered
+          default figures would name another broker and amount, so they wait behind a short line (index.html marks the
+          page; App clears the mark once it has rendered) */}
+      <p className="calc-wait text-[15px] text-ink2" role="status">Loading your numbers…</p>
+      <div className="calc-live">
+        <Estimator d={d} value={inp} onChange={setInp} broker={broker} onBroker={setBroker} />
+      </div>
 
       <div className="mt-5">
         <Card title="How this is calculated" sub="Five parts, added up">

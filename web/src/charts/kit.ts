@@ -1,7 +1,8 @@
 // Shared chart styling: recessive axes and grid, thin marks, one tooltip look. Colours come from theme tokens.
 import type { Tokens } from "../lib/theme";
 
-export const FONT = 'Inter, system-ui, -apple-system, "Segoe UI", sans-serif';
+/** The site's face (Figtree, self-hosted: see main.tsx), so chart labels match the text around them. */
+export const FONT = '"Figtree Variable", Figtree, system-ui, -apple-system, "Segoe UI", sans-serif';
 
 export const base = (t: Tokens) => ({
   backgroundColor: "transparent",
@@ -69,6 +70,23 @@ export function tip(title: string, rows: [string | null, string, string][], foot
   return `<div style="font-weight:600;margin-bottom:4px">${esc(title)}</div>` + rows.map(row).join("") +
     (foot ? `<div style="margin-top:6px;opacity:.6;font-size:11.5px;max-width:240px;white-space:normal">${esc(foot)}</div>` : "");
 }
+
+/* ---------- colour arithmetic for labels drawn on coloured cells ---------- */
+const rgb = (h: string) => { const n = h.replace("#", ""); return [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16)); };
+const luminance = (h: string) => {
+  const [r, g, b] = rgb(h).map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+/** WCAG contrast ratio of two hex colours. */
+export const contrast = (a: string, b: string) => { const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+/** The colour at `p` (0–1) along evenly spaced stops, as a visual map paints a value between its min and max. */
+export function colourAt(stops: string[], p: number): string {
+  const x = Math.max(0, Math.min(1, p)) * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(x)), f = x - i;
+  const a = rgb(stops[i]), b = rgb(stops[i + 1]);
+  return `#${a.map((v, k) => Math.round(v + (b[k] - v) * f).toString(16).padStart(2, "0")).join("")}`;
+}
+/** Whichever text colour reads best on a background. */
+export const readableOn = (bg: string, inks: string[]) => inks.reduce((best, c) => (contrast(c, bg) > contrast(best, bg) ? c : best));
 
 /** Rounded data-end (4px) on the outer side of a bar, flat against the baseline. */
 export const hEnd = (v: number) => (v >= 0 ? [0, 4, 4, 0] : [4, 0, 0, 4]);
