@@ -76,7 +76,7 @@ export function PriceCard({ d, views, onSeeAll }: { d: Data; views: Group[]; onS
         </div>
         <p id={`fair-${v.g}`} className={`bp-def-note${note.open ? " open" : ""}`} onMouseEnter={note.enter} onMouseLeave={note.leave} onFocus={note.enter} onBlur={note.leave}>
           The fair price is the midpoint of the best buy and sell quotes when the order arrived. From each broker's SEC Rule 605
-          report: market orders under $200,000, {month}. <a className="ulink" href={href(pagePath("how-we-measure"))}>How we measure</a>
+          report: market orders under $200,000, {month}. <a className="ulink" href={`${href(pagePath("how-we-measure"))}#fair-price`}>How we measure</a>
         </p>
         {v.rank && (
           <div className="bp-rank">

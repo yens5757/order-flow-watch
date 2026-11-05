@@ -47,6 +47,8 @@ export function DataTable<R>({ rows, cols, initial, rowHref, onRow, rowLabel, ro
     const f = q && search ? rows.filter((r) => search(r).toLowerCase().includes(q.toLowerCase())) : rows;
     return [...f].sort((a, b) => {
       const x = col.value(a), y = col.value(b);
+      // rows without a value keep their given order, last, whichever way the column is sorted
+      if (x == null && y == null) return 0;
       if (x == null) return 1;
       if (y == null) return -1;
       return (x < y ? -1 : x > y ? 1 : 0) * sort.dir;

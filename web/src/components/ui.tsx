@@ -1,4 +1,4 @@
-// The world's shared pieces (DESIGN.md), in the broker page's look: the page heading, the card, a figure card, the (i)
+// The world's shared pieces (DESIGN.md), in the broker page's look: the breadcrumb, the page heading, the card, the (i)
 // tooltip, the pill switch, select, toggle, status chip, chart legend, empty state and "Show as a table". Styles in ui.css.
 import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
@@ -26,6 +26,9 @@ const PATHS: Record<string, ReactNode> = {
   download: <><path d="M12 4v11" /><path d="m7 10 5 5 5-5" /><path d="M5 20h14" /></>,
   search: <><circle cx="11" cy="11" r="6" /><path d="m20 20-4.5-4.5" /></>,
   ext: <><path d="M14 4h6v6" /><path d="M20 4 10 14" /><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></>,
+  link: <><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4l-1.1 1.1" /><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1.1-1.1" /></>,
+  alert: <><circle cx="12" cy="12" r="9" /><path d="M12 7.5v5.5M12 16.5h.01" /></>,
+  undo: <><path d="M4 5v5h5" /><path d="M5.6 15a7.5 7.5 0 1 0 1.4-7.9L4 10" /></>,
   chart: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
   users: <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0" /><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6" /></>,
   scale: <><path d="M12 3v18M5 21h14" /><path d="m5 7 14-2" /><path d="M5 7 2 14a3.5 3.5 0 0 0 6 0zM19 5l-3 7a3.5 3.5 0 0 0 6 0z" /></>,
@@ -45,6 +48,18 @@ export function Icon({ name, size = 18, className = "" }: { name: keyof typeof P
 }
 
 /* ---------- layout ---------- */
+/** Where you are, above the page's h1: the way up (an ink link underlined in the action colour) and this page's name. */
+export function Breadcrumb({ up, upHref, here }: { up: string; upHref: string; here: ReactNode }) {
+  return (
+    <nav className="crumb" aria-label="Breadcrumb">
+      <ol>
+        <li><a href={upHref}>{up}</a></li>
+        <li><Icon name="right" size={16} /><span aria-current="page">{here}</span></li>
+      </ol>
+    </nav>
+  );
+}
+
 /** The page's h1 and, if it needs one, a single plain line under it; `right` holds the page's own controls (a pair of
  *  pickers, "Copy link") and sits beside the heading on a wide screen, under it on a phone. No kicker above the h1. */
 export function PageHeader({ title, intro, right }: { title: ReactNode; intro?: ReactNode; right?: ReactNode }) {
@@ -235,17 +250,6 @@ export function Switch({ label, checked, onChange }: { label: string; checked: b
 }
 
 /* ---------- figures ---------- */
-/** One figure on its own small card: a label, the number, a note. Words, not colour, say whether it is good. */
-export function Kpi({ label, value, sub, info }: { label: string; value: ReactNode; sub?: ReactNode; info?: ReactNode }) {
-  return (
-    <div className="card kpi">
-      <p className="kpi-label">{label}{info && <Info topic={label}>{info}</Info>}</p>
-      <p className="kpi-value">{value}</p>
-      {sub && <p className="kpi-sub">{sub}</p>}
-    </div>
-  );
-}
-
 /** Status chip: an icon and a word in ink (check, cross or dash), so meaning never rides on colour. */
 export function Status({ kind, children }: { kind: "good" | "bad" | "neutral"; children: ReactNode }) {
   return (

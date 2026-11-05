@@ -14,7 +14,7 @@ import { PriceCard } from "../components/broker/PriceCard";
 import { StockSwitch } from "../components/broker/StockSwitch";
 import { WhereSits } from "../components/broker/WhereSits";
 import { YearCard } from "../components/broker/YearCard";
-import { Icon } from "../components/ui";
+import { Breadcrumb } from "../components/ui";
 import { cents, groupOf, money, yearFor, type Group } from "../lib/broker";
 import type { Data, Sp } from "../lib/data";
 import { monthLong } from "../lib/format";
@@ -84,12 +84,7 @@ export default function BrokerProfile({ d, id }: { d: Data; id: string }) {
 
   return (
     <>
-      <nav className="bp-crumb" aria-label="Breadcrumb">
-        <ol>
-          <li><a href={href(pagePath("brokers"))}>Brokers</a></li>
-          <li><Icon name="right" size={16} /><span aria-current="page">{firm.short}</span></li>
-        </ol>
-      </nav>
+      <Breadcrumb up="Brokers" upHref={href(pagePath("brokers"))} here={firm.short} />
       <div className="bp-filter">
         <StockSwitch onPick={announce} onBefore={snapshot} />
         <p className="bp-scope">Market orders · {month}</p>

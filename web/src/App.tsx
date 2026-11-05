@@ -78,7 +78,7 @@ export function AppShell({ data, path, search }: { data: Data | Raw; path: strin
   return (
     <div className="min-h-screen overflow-x-clip bg-page font-sans text-ink" data-page={route.page}>
       <a className="skip" href="#main">Skip to content</a>
-      <header className="top">
+      <header className="site-top">
         <div className="wrap top-in">
           <div className="brand">
             <a href={href(pagePath("home"))}>{SITE_NAME}</a>
@@ -131,6 +131,8 @@ function internalPath(a: HTMLAnchorElement): string | null {
 export default function App({ data }: { data: Data }) {
   const [loc, setLoc] = useState<Loc>(readLocation);
   const shown = useRef<Loc>(loc);
+  // a link into another page's section (how-we-measure/#fair-price): set on the way, used once that page has rendered
+  const jump = useRef(false);
 
   // the app has rendered: a page opened with a query (calculator/?…) can show its own figures now (index.html marked it)
   useEffect(() => { document.documentElement.classList.remove("q"); }, []);
@@ -144,6 +146,7 @@ export default function App({ data }: { data: Data }) {
       shown.current = next;
       setLoc(next);
       if (samePage) return;
+      jump.current = location.hash.length > 1;
       window.scrollTo({ top: 0, behavior: "instant" }); // a new page starts at its top, without a scroll animation
       // a new page for a screen reader too: focus lands on <main>, not wherever it was on the old page
       (document.querySelector("main") as HTMLElement | null)?.focus({ preventScroll: true });
@@ -163,6 +166,15 @@ export default function App({ data }: { data: Data }) {
     document.addEventListener("click", click);
     return () => { off(); removeEventListener("popstate", pop); document.removeEventListener("click", click); };
   }, [data]);
+
+  // the new page is on screen: go to the section its link named, as a page load would (focus stays on <main>)
+  useEffect(() => {
+    if (!jump.current) return;
+    jump.current = false;
+    let id = location.hash.slice(1);
+    try { id = decodeURIComponent(id); } catch { /* a malformed hash names no section */ }
+    document.getElementById(id)?.scrollIntoView({ block: "start", behavior: "instant" });
+  }, [loc]);
 
   useEffect(() => {
     const { title, description, canonical, robots } = describeRoute(data, loc.path, loc.search);

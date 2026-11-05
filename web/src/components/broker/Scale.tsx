@@ -3,9 +3,10 @@
 // One dot (ScaleData.you): the broker page's scale, the name centred over the dot (turned inward near an end). Given two
 // sets (S&P 500 and other stocks) it follows the broker page's stock switch and the dot glides between them.
 // Several dots (`you` plus ScaleData.marks, or marks alone: Compare's two brokers): every dot the same ink, each name over
-// its own dot, and names that would run into each other stacked in rows. A page that re-renders the scale with new values
-// (React state, not the CSS switch) sees every dot glide to its new place.
-import { Fragment, type CSSProperties, type ReactNode } from "react";
+// its own dot, and names that would run into each other stacked in rows (judged for the narrowest phone until the page
+// has measured the scale's real width). A page that re-renders the scale with new values (React state, not the CSS
+// switch) sees every dot glide to its new place.
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { scalePositions, type ScaleData } from "../../lib/broker";
 import "./scale.css";
 
@@ -35,22 +36,26 @@ function dotsOf(s: ScaleData): { name: string; v: number; p: number }[] {
   return [...(s.you ? [{ ...s.you, p: p.you ?? 50 }] : []), ...(s.marks ?? []).map((m, i) => ({ ...m, p: p.marks[i] }))];
 }
 
-/** How far a name reaches along the scale, in percent of its width, from where its alignment anchors it. Estimated for the
- *  narrowest card (a scale about 250px wide on a 320px phone, a 700-weight character about 3.7% of it), so names placed
- *  side by side clear each other on every screen. */
-function reach(name: string, p: number): [number, number] {
-  const w = name.length * 3.7 + 3, a = alignOf(p);
-  return a === "center" ? [p - w / 2, p + w / 2] : a === "start" ? [p - 4.5, p - 4.5 + w] : [p + 4.5 - w, p + 4.5];
+/** The width the names are judged against before the page has measured the scale (and in the pre-render): a scale about
+ *  250px wide, on a 320px phone, so names placed side by side clear each other on every screen. */
+const NARROWEST = 250;
+
+/** How far a name reaches along a scale `w` pixels wide, in percent of it, from where its alignment anchors it: a
+ *  700-weight character about 9.25px, 7.5px to spare, and an end name starting 11px outside its dot. */
+function reach(name: string, p: number, w: number): [number, number] {
+  const k = 100 / w, len = (name.length * 9.25 + 7.5) * k, out = 11.25 * k, a = alignOf(p);
+  return a === "center" ? [p - len / 2, p + len / 2] : a === "start" ? [p - out, p - out + len] : [p + out - len, p + out];
 }
 
 /** The row each name sits in (0 = top), left to right: the first row where it clears the names already there. */
-function rowsOf(dots: { name: string; p: number }[]): number[] {
+function rowsOf(dots: { name: string; p: number }[], w: number): number[] {
   const order = dots.map((_, i) => i).sort((a, b) => dots[a].p - dots[b].p);
   const ends: number[] = []; // per row, where its last name ends
   const rows = dots.map(() => 0);
+  const gap = 3.75 * (100 / w);
   for (const i of order) {
-    const [from, to] = reach(dots[i].name, dots[i].p);
-    let row = ends.findIndex((e) => from > e + 1.5);
+    const [from, to] = reach(dots[i].name, dots[i].p, w);
+    let row = ends.findIndex((e) => from > e + gap);
     if (row < 0) { row = ends.length; ends.push(to); } else ends[row] = to;
     rows[i] = row;
   }
@@ -85,6 +90,18 @@ export function Scale({ sets: given, fmt, typFmt = fmt, small }: {
   const each = (render: (s: ScaleData) => string) => sets.map((s, i) => <span key={s.g ?? i} data-g={follows ? s.g : undefined}>{render(s.data)}</span>);
   const many = sets.some((s) => dotsOf(s.data).length > 1);
 
+  // several names: once in the browser, judge them against the scale's real width (kept current as it resizes), so names
+  // that fit side by side on a wide card share a row; the pre-render and the first paint use the narrowest phone's
+  const rail = useRef<HTMLDivElement>(null);
+  const [w, setW] = useState(NARROWEST);
+  useEffect(() => {
+    const el = rail.current;
+    if (!many || !el) return;
+    const ro = new ResizeObserver(() => { if (el.clientWidth > 0) setW(Math.max(120, Math.round(el.clientWidth))); });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [many]);
+
   let dots: ReactNode;
   if (!many) {
     // one dot: its name centred over it, gliding with the switch
@@ -95,7 +112,7 @@ export function Scale({ sets: given, fmt, typFmt = fmt, small }: {
     // lowered by one 22px row for every row of names past the first
     let deepest = 0;
     dots = sets.map((s, k) => {
-      const ds = dotsOf(s.data), rows = rowsOf(ds);
+      const ds = dotsOf(s.data), rows = rowsOf(ds, w);
       deepest = Math.max(deepest, ...rows);
       // keyed by slot, not name: when a page swaps one broker for another, its dot glides to the new place
       const layer = ds.map((d, i) => (
@@ -112,7 +129,7 @@ export function Scale({ sets: given, fmt, typFmt = fmt, small }: {
   return (
     <>
       <div className={`scale${follows ? " sw" : ""}${small ? " sm" : ""}${many ? " many" : ""}`} style={style as CSSProperties} aria-hidden="true">
-        <div className="sc-rail">
+        <div ref={rail} className="sc-rail">
           <span className="sc-track" />
           <span className="sc-end" />
           <span className="sc-end r" />

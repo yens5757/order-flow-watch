@@ -1,6 +1,7 @@
 // The measures a visitor can pick in the explorer, in plain words, with which direction is "better".
 // Every page names a measure through METRICS[k].label / .short, so one noun per measure holds across the site:
-// "Customer pays" (share of the spread, or "per $10,000 traded" in dollars), "Broker is paid", "Same-trade gap".
+// "Customer pays" (share of the spread, or "per $10,000 traded" in dollars), "Broker is paid", "Same-stock gap" (never
+// "same trade": brokers are compared on the same stocks and order sizes, not on identical trades).
 import type { Metric } from "./data";
 import { ms, num, pct, signed, usd2, usdTick } from "./format";
 
@@ -34,7 +35,7 @@ export const METRICS: Record<MetricKey, MetricDef> = {
   },
   cust: {
     label: "Customer pays, as a share of the spread", noun: "share of the spread its customers pay", short: "Customer pays (% spread)",
-    desc: "0% = you got the fair price, 100% = you paid the full gap between buy and sell quotes; lower is better.",
+    desc: "0% = you got the fair price, 100% = you traded at the quoted price; lower is better.",
     better: "low", source: "measured", get: (r) => r.cust, fmt: (v) => pct(v, 1), axis: (v) => `${v}%`, slot: 1,
   },
   pay10k: {
@@ -48,7 +49,7 @@ export const METRICS: Record<MetricKey, MetricDef> = {
     better: null, source: "measured", get: (r) => r.payPct, fmt: (v) => pct(v, 1), axis: (v) => `${v}%`, slot: 0,
   },
   gap: {
-    label: "Same-trade gap vs other brokers", noun: "same-trade gap", short: "Same-trade gap",
+    label: "Same-stock gap vs other brokers", noun: "same-stock gap", short: "Same-stock gap",
     desc: "Points of the spread vs other brokers on the same stocks and order sizes; below zero = better.",
     better: "low", source: "measured", get: (r) => r.gap, fmt: (v) => signed(v, 1), axis: (v) => `${v > 0 ? "+" : ""}${v}`, slot: 0, diverging: true,
   },

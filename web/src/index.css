@@ -26,7 +26,6 @@
   --grid: #E1E8E5; --baseline: #BCC8C3; --border: #E1E8E5; --rule: #D5DEDA;
   --track: #E1E9E6; --here: #E6F0EC; --sel: #D3E3DD;
   --accent: #0F7B6C; --accent-2: #0B6155; --accent-hover: #0B6155; --accent-soft: #E3F1ED; --on-accent: #FFFFFF;
-  --grad: #0F7B6C;
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #6250d6; --s8: #e34948;
   --better: #2a78d6; --worse: #e34948; --context: #C3CDC9; --neutral: #E1E8E5;
   --good: #0ca30c; --warning: #fab219; --critical: #d03b3b; --good-ink: #0a7a0a; --critical-ink: #b42f2f;
@@ -43,7 +42,6 @@
   --grid: #33403B; --baseline: #4A5853; --border: #33403B; --rule: #2E3A36;
   --track: #36443F; --here: #2E3D38; --sel: #3A4D46;
   --accent: #5CCBB6; --accent-2: #7AD8C6; --accent-hover: #7AD8C6; --accent-soft: #24403A; --on-accent: #0F1F1B;
-  --grad: #0E6E61;
   --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
   --better: #3987e5; --worse: #e66767; --context: #4A5551; --neutral: #404C47;
   --good: #0ca30c; --warning: #fab219; --critical: #d03b3b; --good-ink: #3dbf3d; --critical-ink: #ea7a7a;
@@ -62,7 +60,6 @@
     --grid: #33403B; --baseline: #4A5853; --border: #33403B; --rule: #2E3A36;
     --track: #36443F; --here: #2E3D38; --sel: #3A4D46;
     --accent: #5CCBB6; --accent-2: #7AD8C6; --accent-hover: #7AD8C6; --accent-soft: #24403A; --on-accent: #0F1F1B;
-    --grad: #0E6E61;
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
     --better: #3987e5; --worse: #e66767; --context: #4A5551; --neutral: #404C47;
     --good: #0ca30c; --warning: #fab219; --critical: #d03b3b; --good-ink: #3dbf3d; --critical-ink: #ea7a7a;
@@ -94,23 +91,20 @@ h1, h2 { text-wrap: balance; }
 .on-accent :focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 #main:focus { outline: none; }
 .tnum { font-variant-numeric: tabular-nums; }
-/* Leftover, to go: Home's old hero glow element is never drawn (a no-op until Home drops it). The gradient text, the glow
-   itself and its dot grid are gone; .grad-text and .rise have no rules (a page still naming them gets nothing), and
-   --grad above is plain action teal until no page uses it (use --accent, .btn-solid). */
-.glow { display: none; }
 
 /* controls that only work with JavaScript are hidden without it (index.html adds .js to <html> before first paint) */
 html:not(.js) .js-only { display: none !important; }
-/* the calculator opened with a query (index.html adds .q, App removes it once it has rendered): the pre-rendered default
-   figures wait behind a short line instead of naming another broker and amount for a moment */
-.calc-wait { display: none; }
-html.q .calc-wait { display: block; margin-bottom: 12px; }
-html.q .calc-live { visibility: hidden; }
+/* a page whose view lives in its query (calculator/?…, brokers/?…) opened from such a link (index.html adds .q, App
+   removes it once it has rendered): the pre-rendered default figures wait behind a short line instead of showing another
+   broker or view for a moment */
+.q-wait { display: none; }
+html.q .q-wait { display: block; margin-bottom: 16px; color: var(--ink-2); }
+html.q .q-live { visibility: hidden; }
 /* the app couldn't load its data: one quiet line above the pre-rendered page (main.tsx) */
 .load-note { margin-top: 14px; font-size: var(--fs-1); color: var(--ink-2); }
 
 /* The world's shared pieces: plain CSS, not Tailwind's components layer (Tailwind would also read a JS expression such as
-   "!top" as a request for an !important copy of .top and emit broken rules). Being plain CSS, they win over a utility on
+   "!top" as a request for an !important copy of a .top class and emit broken rules). Being plain CSS, they win over a utility on
    the same element; give a page its own class rather than a utility to change one. */
 
 /* ---------- page width: one column of content between equal gutters ---------- */
@@ -125,7 +119,8 @@ html.q .calc-live { visibility: hidden; }
 .skip:focus { transform: none; outline-color: var(--ink); }
 
 /* ---------- header: wordmark, the site's pages (the current one marked), the theme switch ---------- */
-.top { position: relative; border-bottom: 1px solid var(--rule); }
+/* the header's own class, named so that no page's "top" class can pick up its hairline */
+.site-top { position: relative; border-bottom: 1px solid var(--rule); }
 .top-in { display: flex; align-items: center; gap: 16px; min-height: 76px; }
 .brand { display: flex; flex-direction: column; line-height: 1.2; }
 .brand a { font-size: var(--fs-4); font-weight: 800; letter-spacing: -.02em; text-decoration: none; color: var(--ink); }

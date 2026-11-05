@@ -10,6 +10,13 @@
 .ph-intro { margin-top: 12px; max-width: 62ch; font-size: var(--fs-3); line-height: 1.55; color: var(--ink-2); }
 .ph-right { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; }
 
+/* ---------- breadcrumb (Breadcrumb): where you are, the way up an ink link underlined in the action colour ---------- */
+.crumb { margin-top: 14px; }
+.crumb ol { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-weight: 600; color: var(--ink-2); }
+.crumb li { display: inline-flex; align-items: center; gap: 4px; }
+.crumb a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); text-decoration: underline 2px var(--accent); text-underline-offset: 6px; }
+.crumb a:hover { text-decoration-thickness: 3px; }
+
 /* ---------- card: a Title heading, a secondary sub-line, the content, an optional ruled footer ---------- */
 .card-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 20px; margin-bottom: 18px; }
 .card-titles { flex: 1 1 16rem; min-width: 0; }
@@ -18,12 +25,6 @@
 .card-sub { margin-top: 6px; color: var(--ink-2); }
 .card-right { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-width: 0; max-width: 100%; }
 .card-foot { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); font-size: var(--fs-1); line-height: 1.5; color: var(--ink-2); }
-
-/* ---------- a figure on its own: label, the number, a note ---------- */
-.card.kpi { padding: 22px 24px 24px; }
-.kpi-label { display: flex; align-items: center; gap: 8px; font-size: var(--fs-1); font-weight: 600; line-height: 1.35; color: var(--ink-2); }
-.kpi-value { margin-top: 10px; font-size: var(--fs-5); line-height: 1.1; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-.kpi-sub { margin-top: 8px; font-size: var(--fs-1); line-height: 1.45; color: var(--ink-2); }
 
 /* ---------- the (i): a teal icon button; its line floats in a raised panel (portalled to <body>, placed by Info) ---------- */
 .tip { position: relative; display: inline-flex; vertical-align: middle; }
@@ -98,6 +99,14 @@ html:not(.js) .tip:is(:hover, :focus-within) .tip-text {
 .field input::placeholder { color: var(--ink-2); opacity: 1; }
 .field input:focus-visible { outline: none; }
 .field:focus-within { outline: 3px solid var(--accent); outline-offset: 3px; }
+/* a search field's clear button, drawn from the palette (it can be pressed, so it takes the action colour) */
+.field input::-webkit-search-cancel-button {
+  -webkit-appearance: none; appearance: none; width: 24px; height: 24px; margin: 0 -6px 0 6px; border-radius: 50%; cursor: pointer;
+  background: var(--accent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M7.5 7.5l9 9M16.5 7.5l-9 9'/%3E%3C/svg%3E") center / 22px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M7.5 7.5l9 9M16.5 7.5l-9 9'/%3E%3C/svg%3E") center / 22px no-repeat;
+}
+.field input::-webkit-search-cancel-button:hover { background: var(--accent-hover); }
 
 /* ---------- status chip: an icon and a word, in ink (the words carry good and bad, never a colour) ---------- */
 .chip {
@@ -153,9 +162,10 @@ html:not(.js) .tip:is(:hover, :focus-within) .tip-text {
 /* the header row stays at the top of a box given a height (DataTable maxHeight); without one the box never scrolls down.
    Headings keep to one line: a table with many columns scrolls sideways rather than stacking its headings word by word */
 .dt thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); white-space: nowrap; }
+/* room inside each side, given back as a negative margin, so the inset focus ring clears the label */
 .dt-sort {
-  display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin: -6px 0 -10px; color: inherit; font: inherit;
-  text-align: inherit; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin: -6px -8px -10px; padding: 0 8px; color: inherit;
+  font: inherit; text-align: inherit; cursor: pointer;
 }
 .dt .num .dt-sort { flex-direction: row-reverse; }
 .dt-sort svg { visibility: hidden; color: var(--mark); }
@@ -207,11 +217,11 @@ html:not(.js) .tip:is(:hover, :focus-within) .tip-text {
 
 /* ---------- phones ---------- */
 @media (max-width: 599px) {
+  .crumb { margin-top: 6px; }
   .ph { padding-top: 26px; margin-bottom: 16px; }
   .ph-intro { margin-top: 8px; }
   .card-head { margin-bottom: 14px; }
   .card-right { width: 100%; }
-  .card.kpi { padding: 18px 20px 20px; }
   /* the switch spans the width; options share it and wrap to a new row (inside the switch) when they don't fit */
   .segm { display: flex; width: 100%; }
   .segm > button { flex: 1 1 0; padding: 0 12px; }
@@ -231,6 +241,7 @@ html:not(.js) .tip:is(:hover, :focus-within) .tip-text {
   .tgl > button[aria-checked="true"] { border-color: Highlight; background: Highlight; }
   .tgl > button[aria-checked="true"] .tgl-k { background: HighlightText; }
   .dt tr.here { outline: 2px solid CanvasText; outline-offset: -2px; }
+  .field input::-webkit-search-cancel-button { forced-color-adjust: none; background: ButtonText; }
 }
 
 @media (prefers-reduced-motion: reduce) {

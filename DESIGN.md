@@ -38,6 +38,16 @@ colors:
   accent-hover-dark: "#7AD8C6"
   accent-soft-dark: "#24403A"
   on-accent-dark: "#0F1F1B"
+  critical-ink: "#B42F2F"
+  critical-ink-dark: "#EA7A7A"
+  seq-0: "#eef4fd"
+  seq-1: "#b7d3f6"
+  seq-3: "#256abf"
+  seq-4: "#104281"
+  seq-0-dark: "#162238"
+  seq-1-dark: "#184f95"
+  seq-3-dark: "#6da7ec"
+  seq-4-dark: "#b7d3f6"
   series-1: "#2a78d6"
   series-2: "#eb6834"
   series-3: "#1baf7a"
@@ -174,6 +184,25 @@ components:
     textColor: "{colors.ink}"
     rounded: "{rounded.panel}"
     padding: "8px"
+  text-field:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.pill}"
+    padding: "0 18px"
+    height: "48px"
+  filter-chip:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.pill}"
+    padding: "0 16px"
+    height: "44px"
+  filter-chip-on:
+    backgroundColor: "{colors.accent-soft}"
+    textColor: "{colors.accent-hover}"
+  bottom-sheet:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.panel}"
 ---
 
 # Design System: Fills and Fees
@@ -217,9 +246,11 @@ A near-monochrome system of teal-tinted greys with one saturated teal for action
 - **Track** (track): the scale's rail.
 - **Here** (here): the row of the broker the page is about, in every table.
 - **Selection** (selection): text selection.
+- **Error Ink** (critical-ink; dark: critical-ink-dark): only the edge and alert icon of a number box holding a mistake (the calculator). Never on data, figures or verdicts.
 
 ### Series (charts only)
-- **Validated series palette** (series-1 … series-8, stepped separately per theme): chart lines and bars, read into ECharts from the CSS custom properties. series-1 is "paid", series-2 is "cost"; better/worse reuse series-1/series-8. Never used for text, controls or cards.
+- **Validated series palette** (series-1 … series-8, stepped separately per theme): chart lines and bars, read into ECharts from the CSS custom properties. series-1 is "paid", series-2 is "cost"; better/worse reuse series-1/series-8. Never used for text, controls or cards. A trading firm keeps one series colour on every chart of the Trading firms page.
+- **Sequential steps** (seq-0, seq-1, seq-3, seq-4; the dark variants run the other way): the four shades of the routing heat table. Light cells take ink, dark cells the card colour, every pair at least 5.4:1; the number is written in every cell.
 
 ### Named Rules
 **The Press-Only Teal Rule.** Teal marks only what can be pressed or what has keyboard focus. A heading, a figure, a badge, a decorative shape or a "good" value is never teal. If it is teal, clicking it does something.
@@ -254,7 +285,18 @@ The scale has seven rem steps so it follows the reader's own text size; the top 
 
 ## Layout
 
-One centred column, `min(100% - 2 × gutter, 70rem)`, with 24px gutters (16px under 600px). Pages that read rather than browse narrow to a 44rem reading width under 1024px. On a desktop (1024px and up) the broker page is a board of two independent stacks of cards in a 648:448 ratio with a 24px column gap, each card as tall as its content; below 1024px it is one stack, with the secondary card placed straight after the answer card so its top edge peeks into the first screen. Cards are separated by 16px (12px on phones) and padded 30px 32px (20px on phones). Nothing is sticky.
+One centred column, `min(100% - 2 × gutter, 70rem)`, with 24px gutters (16px under 600px). Pages that read rather than browse (a broker, Home, Compare, the calculator, How we measure) narrow to a 44rem reading width under 1024px. On a desktop (1024px and up) the broker page is a board of two independent stacks of cards in a 648:448 ratio with a 24px column gap, each card as tall as its content; below 1024px it is one stack, with the secondary card placed straight after the answer card so its top edge peeks into the first screen. Cards are separated by 16px (12px on phones) and padded 30px 32px (20px on phones).
+
+The other pages use the same board or one column of full-width cards:
+- **Home:** the answer card, a one-line yearly card, the findings and popular comparisons on the left; every broker ranked in a table on the right (two equal columns from 1024px so the four-column table fits, 648:448 from 1200px). Below 1024px one stack with the ranking after the yearly line, opening on the picked broker and three either side, with "See all".
+- **Compare:** the answer card and the side-by-side table on the left; the typical year, what each is paid, registration and cost by order size on the right; other comparisons at full width under the board.
+- **Calculator:** the answer on the left, "How you trade" on the right; the ranking, every broker's table and "How it adds up" at full width beneath.
+- **How we measure:** the reading column on the left, "On this page" in the right column (straight after the first card below 1024px); the evidence card at full width last.
+- **Brokers (explorer), Trading firms, All firms:** one column of full-width cards under the page's controls.
+
+A card needed in two places (the broker page's and Compare's yearly card, Home's ranking) is rendered twice and CSS shows one, so the order on screen is the reading order at every width.
+
+At most one short sticky row per page, and none on a broker page or Home: the filter bar from 1024px (Trading firms, All firms) while it fits one row; Compare's row of the two names over its side-by-side table; the calculator's one-line answer echo above the inputs below 1024px. How we measure keeps "On this page" in view in its own column on a desktop, covering nothing. Each sticky row sets `scroll-padding-top`, so keyboard focus and in-page jumps land clear of it.
 
 The header is 76px tall (64px on phones): wordmark and tagline left, the nav pills and the theme button right; under 1024px the nav folds into a "Menu" pill that opens a raised panel. The footer is plain text on the ground above a hairline rule, links underlined in teal.
 
@@ -314,7 +356,40 @@ In-text links are ink, 600, underlined 2px in teal with a 5–6px offset; hover 
 A neutral rail (Track, 8px) with Mark Grey end dots at the cheapest and most expensive, a Mark Grey tick at the typical (median) broker labelled "Typical $0.96" below, and this broker's 22px ink dot with a 3px card-coloured ring, its name in bold above. End captions ("Cheapest" / "Most expensive" in label size, the broker and value in 700) sit under each end. Every mark sits at its true position; labels near an end turn inward. A small variant (18px dot, 6px rail) serves secondary cards. It is drawn in CSS, carries a screen-reader sentence listing the values in order, and when the stock switch flips, its marks glide 0.8s on the system curve to their new places. The scale is never coloured by verdict.
 
 ### Info Reveal
-An (i) icon button (44px circle, teal icon; hover Soft Teal; expanded filled teal) beside a figure's unit reveals one plain line of secondary text in place, with a "How we measure" link. Nothing floats over the figures; without a script the line is simply shown.
+An (i) icon button (44px circle, teal icon; hover Soft Teal; expanded filled teal) beside a figure's unit reveals one plain line of secondary text in place, with a "How we measure" link (to that page's fair-price section). Nothing floats over the figures; without a script the line is simply shown. This is the broker page's price card.
+
+Everywhere else the shared (i) sits beside a heading or a term, never inside a heading, and is named "About <topic>". Hover, focus or a press shows its one plain line in a raised panel (Raised Tint, 14px corners, Pop, label size) under the icon, or over it when there is no room, 12px clear of every edge of the window, so no card or scroll box clips it. The pointer can move onto the panel; Escape, a press elsewhere or focus leaving closes it. Plain text only. Without a script the line shows under the icon on hover or focus.
+
+### Controls and pickers
+- **Select:** a native select as a teal-outlined pill (48px, 1rem text at every width so phones don't zoom), its label shown beside it. It only reports the pick; nothing navigates on change. Home's "Your broker" changes the answer card in place (the dot slides, the tinted row moves) and a status line announces the new price and rank. Compare's two selects are followed by a ghost "Compare" link that opens the pair; picking in one box the broker the other shows swaps them, announced. Trading firms' broker select is followed by a solid "Show".
+- **Pill switch:** the stock switch's look for any small set of options: one Tab stop, the arrows, Home and End move and pick; the whole switch takes the ring; on phones it spans the width and wraps inside itself. A small variant sets the options in the label size, still 44px tall.
+- **Text field:** a pill with a 2px Mark Grey edge (3:1), 1rem text, the ring on the whole field; a search field's clear button is a teal cross.
+- **Number box (calculator):** the text field 10.5rem wide at the end of a value row (under its label at 359px and below). A mistake keeps what was typed and gets aria-invalid, an Error Ink edge, an alert icon and one line naming the problem and the value still in use ("Enter $1,000,000 or less. Counting $2,000 for now.").
+- **Question (calculator):** No or Yes on the pill switch, No first and the default; its amount box appears only after Yes, so a cost counts only once the visitor says they have it.
+- **Filter chips (explorer):** checkboxes drawn as 44px pills. Shown: Soft Teal fill, Deep Teal text, a 2px teal edge and a check icon. Hidden: Card White, ink text, a 2px Mark Grey edge, no icon. The ring sits on the pill.
+- **Bottom sheet (explorer, below 1024px):** a native modal dialog from the bottom edge: Card White, 20px top corners, Pop, the page dimmed behind it (rgb(16 40 34 / .42); dark rgb(0 0 0 / .6)) with at least 56px of it still visible. A ruled head (a Title-size h2 and a round close button), a body that scrolls inside, a ruled foot with the solid result button ("Show 25 brokers"). Escape, the close button or a tap on the dimmed page closes it, and focus returns to its opener. On a desktop the same controls sit on the ground in rows of labelled fields (label above, 0.875rem 600 secondary ink).
+- **Copy link:** a ghost button with the link icon; what happened is said in a status line beside it.
+
+### Figures and answers
+- **The yearly answer (calculator, Compare):** the dollar amount at Display size set inline in the headline's own words ("About $9 a year"), the rest at Title size; each cost part a value row with the rate behind it; unknowns in words, and "At least $X" with the reason when a part is missing.
+- **Answer echo (calculator, below 1024px):** the answer in one Here-tinted line pinned at the top of the inputs card while it is on screen (hidden from screen readers: the page's status line speaks for it).
+- **Verdict (How we measure):** a generated verdict in Headline small ("Not reliably."), its tests beside it as worded ink status chips ("Holds up", "Could be chance"), never coloured.
+- **Generated sentence:** Lead size; on a page without a reading width it is capped at 36.5rem, not 62ch, so it stays under about 80 characters a line.
+
+### Scales and rails (the price scale's anatomy, reused)
+- **Two dots (Compare):** both brokers are equal ink dots on the one neutral scale, each name over its own dot; names that would collide at the scale's measured width stack in rows (judged for a 250px phone scale until the page has measured it).
+- **Ranked rails (explorer):** the scale given to every broker, one row each: the name right-aligned (0.875rem 600), the value at the right (700, tabular), a 6px Track rail from the lowest to the highest value shown, a 14px ink dot with a 2px card ring, and the Mark Grey typical tick (3×14px) lined up through every row under "Typical $0.96". A 1px Mark hairline marks zero when values cross it. Rows re-sort in place (0.65s) and dots glide (0.8s) on the one curve. Drawn in CSS and pre-rendered; the chart library loads only when a second measure turns it into a scatter.
+- **Per-row rails (Trading firms):** each trading firm on its own small rail, other firms as the middle tick and the firm as the ink dot, the gap also written in words ("23.1 points less"); flipping the stock switch glides the dots and re-ranks the rows in place.
+- **Multi-rail (All firms):** the scale's track, typical tick and "Typical" label repeated for four groups on one shared axis. Dots are 10px, ink for the site's brokers and grey for every other firm, stacking upward 11px per lane where firms crowd; the tick hangs below the track so dots never hide it. The axis holds still across the stock group and month, so a gliding dot (0.8s) always means that firm's figure changed. A mouse hover names a dot in a raised panel the pointer can rest on and Escape closes; touch and keyboard read the same figures in the table.
+- **Worked example (How we measure):** the scale as a single trade: the best prices to sell and to buy at the ends, the fair price as the tick, the buy as the ink dot, the stretch paid drawn darker.
+- **Forest table (How we measure):** each test a row of a real table, its estimate and 95% interval drawn in CSS on the rail with a zero tick, beside strength, interval, p-value, broker count and a verdict in words. Points are never coloured by verdict.
+- Every rail is one image with a written label beside a real table, and nothing glides under reduced motion.
+
+### Tables beyond the ranked table
+- **Comparison table (Compare):** two value columns under a sticky row of the two names. A neutral ink check marks the better value (before it, after it on phones) with a screen-reader "better:"; rows without one are context, not a score. Unknowns in words; the (i)s in their own column so row headings stay clean.
+- **Heat table (Trading firms):** the routing matrix as a real table, each cell shaded in one of four sequential steps with 2px card-coloured borders as gaps and its number written in it; the first column is pinned while the table scrolls sideways, broker names link to their section below, and the broker shown there is on the Here tint.
+- **Sortable table:** column headings are 44px buttons with aria-sort, the ring inset and clear of the label; rows without a value stay last in their given order whichever way a column sorts. Charts rank only complete figures; a broker missing a part is named under the chart and shown "at least" in the table.
+- **Contents (How we measure):** "On this page" as a card of rows that jump to each section, the section being read on the Here tint. A teal disclosure (a summary with a chevron, like "Show as a table") holds anything longer than a line.
 
 ## Do's and Don'ts
 
@@ -327,6 +402,8 @@ An (i) icon button (44px circle, teal icon; hover Soft Teal; expanded filled tea
 - **Do** give every control a 44px minimum hit area and the 3px teal focus ring 3px clear.
 - **Do** use the one curve `cubic-bezier(.22, 1, .36, 1)` for every movement and turn all motion off under reduced motion.
 - **Do** name unknowns plainly ("Not confirmed", "Not offered", "Varies") in secondary ink.
+- **Do** let a select or switch only report a pick; anything that opens another page is a real link or button beside it.
+- **Do** give every chart its table and its key in HTML, and draw rankings and scales in CSS rather than loading a chart library for them.
 
 ### Don't:
 - **Don't** use gradients, glow, coloured shadows or the old gradient text and hero glow.
@@ -336,4 +413,6 @@ An (i) icon button (44px circle, teal icon; hover Soft Teal; expanded filled tea
 - **Don't** add ratings, stars, badges, "Open account" buttons or cheerleading copy.
 - **Don't** build a dashboard of equal KPI tiles; one idea per card.
 - **Don't** introduce a second typeface or px font sizes outside the seven-step scale.
-- **Don't** use series colours outside charts.
+- **Don't** use series colours outside charts and the routing heat table.
+- **Don't** make a table row a Tab stop; the row opens through the real link in its name.
+- **Don't** stick more than one short row to the top of a page.

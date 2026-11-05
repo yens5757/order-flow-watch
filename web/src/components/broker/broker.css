@@ -17,12 +17,7 @@ html:has(#sg-ot:checked) [data-g="sp"] { display: none !important; }
   html:not([data-sg="ot"]) [data-g="ot"], html[data-sg="ot"] [data-g="sp"] { display: none !important; }
 }
 
-/* ---------- where you are: breadcrumb, the one switch, the name ---------- */
-.bp-crumb { margin-top: 14px; }
-.bp-crumb ol { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-weight: 600; color: var(--ink-2); }
-.bp-crumb li { display: inline-flex; align-items: center; gap: 4px; }
-.bp-crumb a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); text-decoration: underline 2px var(--accent); text-underline-offset: 6px; }
-.bp-crumb a:hover { text-decoration-thickness: 3px; }
+/* ---------- where you are: the breadcrumb (ui.css), the one switch, the name ---------- */
 .bp-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .bp-scope { color: var(--ink-2); font-weight: 500; }
 .bp-h1 { margin-top: 18px; font-size: var(--fs-6); line-height: 1.05; font-weight: 800; letter-spacing: -.03em; text-wrap: balance; }
@@ -146,7 +141,6 @@ html.js .bp-where:not(.all) .bp-fn.far { display: none; }
 
 /* ---------- phone ---------- */
 @media (max-width: 599px) {
-  .bp-crumb { margin-top: 6px; }
   .bp-board, .bp-col { gap: 12px; }
   .bp-board { margin-top: 14px; }
   .bp-line { padding: 16px 20px; }
