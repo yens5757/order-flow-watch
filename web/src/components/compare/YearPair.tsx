@@ -2,7 +2,8 @@
 // $2,000, half S&P 500 and half other stocks; trade prices and commissions), the difference as the heading when both years
 // are complete, "at least" when a part is missing, ranked only among the brokers whose commission is confirmed, both on
 // the small scale, and "Change" into the calculator on exactly these inputs. Like the broker page's yearly card, the page
-// holds two copies (`at`): "flow" after the answer on phones and tablets, "side" heading the right column on a desktop.
+// holds two copies (`at`): "flow" after the answer on phones and tablets, "side" in the right column on a desktop, under
+// cost by order size.
 import { cents, HABIT, scaleOf, SP_GAP, yearly, yearPool, type Year } from "../../lib/broker";
 import { calcSearch, type CostLine } from "../../lib/cost";
 import type { Data, Firm } from "../../lib/data";

@@ -1,6 +1,7 @@
-// Two short cards beside the answer, as the broker page's one-liners say them for one broker: what trading firms paid each
-// broker for its customers' orders (Rule 606, the quarter named, a late filer's previous quarter named as such, "Details"
-// opening the broker's section on the trading-firms page), and who each is registered as (FINRA BrokerCheck, SIPC).
+// Two short cards at the foot of the right-hand column, as the broker page's one-liners say them for one broker: what
+// trading firms paid each broker for its customers' orders (Rule 606, the quarter named, a late filer's previous quarter
+// named as such, "Details" opening the broker's section on the trading-firms page), and who each is registered as (FINRA
+// BrokerCheck, SIPC).
 import { money, payAmount, payWhen, type Pay } from "../../lib/broker";
 import type { Data, Filters, Firm } from "../../lib/data";
 import { quarterLong } from "../../lib/format";

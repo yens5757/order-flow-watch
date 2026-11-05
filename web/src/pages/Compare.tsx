@@ -1,10 +1,11 @@
 // compare/<a>-vs-<b>/: two brokers as one calm answer, in the broker page's world. First how much less one broker's
 // customers paid above the fair price per $10,000 traded, each broker's figure and rank, and both on the neutral scale
-// among every broker, with the generated short answer; then a typical year at each, the two side by side, what each is
-// paid, their registration, cost by order size, and other comparisons. The URL names the pair in one order (alphabetical
-// by slug, see comparePath); compare/ shows Robinhood and Fidelity under its own heading, "Compare two brokers", so the
-// two addresses are not copies of one another. The stock and order-type filters are App's, shared with the trading-firm
-// and all-firm pages. Composition and direction: .impeccable/surfaces/web-src-pages-compare-tsx.md.
+// among every broker, with the generated short answer; then a typical year at each, the two side by side, cost by order
+// size (heading the right column on a desktop, beside the answer), what each is paid, their registration, and other
+// comparisons. The URL names the pair in one order (alphabetical by slug, see comparePath); compare/ shows Robinhood and
+// Fidelity under its own heading, "Compare two brokers", so the two addresses are not copies of one another. The stock
+// and order-type filters are App's, shared with the trading-firm and all-firm pages. Composition and direction:
+// .impeccable/surfaces/web-src-pages-compare-tsx.md.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnswerCard } from "../components/compare/AnswerCard";
 import "../components/compare/compare.css";
@@ -80,8 +81,10 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
           <p className="cmp-sub">Pick a second broker above, or open one of the comparisons below.</p>
         </section>
       ) : (
-        // two independent stacks on a desktop, as on the broker page; the yearly card is in the page twice and CSS shows
-        // one (after the answer on phones and tablets, heading the right column on a desktop)
+        // two independent stacks on a desktop, as on the broker page: the answer and the side-by-side table on the left;
+        // cost by order size heading the right column, beside the answer whose gap it breaks down, then the year, what
+        // each is paid and registration. The yearly card is in the page twice and CSS shows one: straight after the answer
+        // on phones and tablets (where cost by order size follows the table), under cost by order size on a desktop.
         <div className="cmp-board">
           <div className="cmp-col">
             <AnswerCard d={d} f={f} A={A} B={B} rA={rA} rB={rB} pA={pA} pB={pB} feeA={feeA} feeB={feeB} places={places} monthName={monthName} />
@@ -89,10 +92,10 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
             <SideBySide f={f} A={A} B={B} rA={rA} rB={rB} feeA={feeA} feeB={feeB} monthName={monthName} />
           </div>
           <div className="cmp-col">
+            <SizeCard d={d} f={f} A={A} B={B} monthName={monthName} />
             <YearPair d={d} A={A} B={B} years={years} at="side" />
             <PayCard f={f} pays={[[A, pA], [B, pB]]} />
             <TrustCard d={d} firms={[A, B]} />
-            <SizeCard d={d} f={f} A={A} B={B} monthName={monthName} />
           </div>
         </div>
       )}
