@@ -1,8 +1,9 @@
-// The answer: what this broker's customers paid above the fair price per $10,000 traded, its rank among the brokers, the
-// gap to the cheapest, the neutral scale and one sentence, all generated from the data, for both stock groups at once
-// (the page's switch shows one; see broker.css).
+// The answer: what this broker's customers paid above the fair price per $10,000 traded and its rank among the brokers,
+// then its rank on the same stocks and order sizes, the gap to the cheapest, the neutral scale and one sentence graded
+// by the two ranks, all generated from the data, for both stock groups at once (the page's switch shows one; see
+// broker.css).
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { cents, money, SP_GAP, type Group } from "../../lib/broker";
+import { cents, money, sameStockNote, sameStockWords, SP_GAP, type Group } from "../../lib/broker";
 import type { Data } from "../../lib/data";
 import { monthLong } from "../../lib/format";
 import { href, pagePath } from "../../lib/routes";
@@ -17,10 +18,11 @@ function amount(v: number): [string, string] {
   return [money(Math.abs(v)), c > 0 ? "above the fair price" : c < 0 ? "below the fair price" : "at the fair price"];
 }
 
-/** The (i) beside "per $10,000 traded": it reveals a plain line in place. Hover or keyboard focus opens it, and it stays
- *  open while the pointer or the focus is on the icon or the line (its link included); a click, tap or Enter pins it;
- *  Escape closes it, handing focus back to the (i) when focus was in the line (without opening it again). */
-function useNote() {
+/** An (i) on the card (beside "per $10,000 traded", after the same-stock line): it reveals a plain line in place. Hover or
+ *  keyboard focus opens it, and it stays open while the pointer or the focus is on the icon or the line (its link
+ *  included); a click, tap or Enter pins it; Escape closes it, handing focus back to the (i) when focus was in its own
+ *  line (without opening it again). `key` starts the ids of its lines (fair-sp, same-ot), so two notes never share one. */
+function useNote(key: string) {
   const [pinned, setPinned] = useState(false);
   const [hover, setHover] = useState(false);
   const timer = useRef<number | undefined>(undefined);
@@ -40,7 +42,7 @@ function useNote() {
       const line = (document.activeElement as HTMLElement | null)?.closest(".bp-def-note");
       setPinned(false);
       setHover(false);
-      if (line?.id) {
+      if (line?.id.startsWith(`${key}-`)) {
         quiet.current = true;
         (document.querySelector(`[aria-controls="${line.id}"]`) as HTMLElement | null)?.focus();
       }
@@ -53,7 +55,8 @@ function useNote() {
 }
 
 export function PriceCard({ d, views, onSeeAll }: { d: Data; views: Group[]; onSeeAll: () => void }) {
-  const note = useNote();
+  const note = useNote("fair");
+  const same = useNote("same");
   const month = monthLong(d.meta.month);
   const priced = views.filter((v) => v.m.cost10k != null && v.scale);
 
@@ -79,10 +82,26 @@ export function PriceCard({ d, views, onSeeAll }: { d: Data; views: Group[]; onS
           report: market orders under $200,000, {month}. <a className="ulink" href={`${href(pagePath("how-we-measure"))}#fair-price`}>How we measure</a>
         </p>
         {v.rank && (
-          <div className="bp-rank">
-            <p>{capital(v.rank)}</p>
+          <div className={`bp-rank${v.same ? " two" : ""}`}>
+            <p className="bp-rank-l">{capital(v.rank)}</p>
             <a className="go" href="#where" onClick={onSeeAll}>See all {v.places.length}<Icon name="down" size={20} /></a>
+            {/* the same stocks and order sizes, its own line under the rank, numbers first; a broker without a figure gets none */}
+            {v.same && (
+              <p className="bp-same">
+                <b>{capital(sameStockWords(v.same))}</b> on the same stocks and order sizes{" "}
+                <button type="button" className="bp-def js-only" aria-expanded={same.open} aria-controls={`same-${v.g}`}
+                  onClick={same.toggle} onMouseEnter={same.enter} onMouseLeave={same.leave} onFocus={same.enter} onBlur={same.leave}>
+                  <Icon name="info" size={22} /><span className="sr-only">What does “on the same stocks and order sizes” mean?</span>
+                </button>
+              </p>
+            )}
           </div>
+        )}
+        {v.same && (
+          <p id={`same-${v.g}`} className={`bp-def-note${same.open ? " open" : ""}`} onMouseEnter={same.enter} onMouseLeave={same.leave} onFocus={same.enter} onBlur={same.leave}>
+            {sameStockNote(d, v.same, v.places.length)}{" "}
+            <a className="ulink" href={`${href(pagePath("how-we-measure"))}#same-stocks`}>How we measure</a>
+          </p>
         )}
         {v.diff && <p className="bp-diff">{v.diff.lead}{v.diff.who && <> <span className="nw">({v.diff.who})</span></>}</p>}
       </>

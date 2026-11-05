@@ -3,7 +3,7 @@
 // One ranking measure everywhere: dollars paid above the fair price per $10,000 traded (Metric.cost10k).
 import { annualCost, type CostInputs, type CostLine } from "./cost";
 import { brokerRows, files606, metric, type Data, type Filters, type Firm, type Metric, type Sp } from "./data";
-import { ordinal, quarterLong, usd2 } from "./format";
+import { monthLong, ordinal, quarterLong, usd2 } from "./format";
 import { median } from "./stats";
 
 /** The broker page's filters, whatever the visitor last picked on other pages: market orders, all sizes under $200,000
@@ -49,28 +49,95 @@ export function third(rank: number, n: number): Third {
   return p < 1 / 3 ? "cheapest" : p > 2 / 3 ? "dearest" : "middle";
 }
 
+/** A rank in words, read from the rank as shown, so the answer card's sentence can never contradict its rank lines: the
+ *  first, the top third, the middle third, the bottom third, the last. Of 25: 1 first, 2–8 top, 9–17 middle, 18–24
+ *  bottom, 25 last. A broker level with another at an end takes the third it opens ("tied cheapest" is "among the
+ *  cheapest", never "the cheapest"). */
+export type Grade = "first" | "top" | "middle" | "bottom" | "last";
+export function gradeOf(rank: number, n: number, tied: boolean): Grade {
+  if (!tied && rank === 1) return "first";
+  if (!tied && rank === n) return "last";
+  const t = third(rank, n);
+  return t === "cheapest" ? "top" : t === "dearest" ? "bottom" : "middle";
+}
+
 /* ---------- the same stocks and order sizes ---------- */
 
-/** Points of the spread past which a broker is better or worse than most brokers on the same stocks and order sizes
- *  (Metric.gap). Home's broker card and the broker pages use this one rule, so they never disagree. */
+/** Points of the spread past which the best and worst brokers' same-stock gaps count as different (Home's first finding). */
 export const SAME_STOCK_MARGIN = 3;
-export type Verdict = "better" | "worse" | "average";
-export const sameStockVerdict = (gap: number | null | undefined): Verdict | null =>
-  gap == null ? null : gap < -SAME_STOCK_MARGIN ? "better" : gap > SAME_STOCK_MARGIN ? "worse" : "average";
 
-/** The price card's one sentence: where the broker sits on what its customers paid, then whether that holds on the same
- *  stocks and order sizes. "but" when the two point different ways (a broker can look cheap because of what its
- *  customers trade). */
-export function priceSentence(short: string, pos: Third, v: Verdict | null): string {
-  const lead = pos === "cheapest" ? `${short} is in the cheapest third on what its customers paid`
-    : pos === "dearest" ? `${short} is in the most expensive third on what its customers paid`
-      : `${short} sits near the middle on what its customers paid`;
-  if (v == null) return `${lead}; too few of its trades match other brokers' to compare them on the same stocks and order sizes.`;
-  const tone = (x: Third | Verdict) => (x === "cheapest" || x === "better" ? 1 : x === "dearest" || x === "worse" ? -1 : 0);
-  const conj = tone(pos) === tone(v) ? "and" : "but";
-  return v === "average"
-    ? `${lead}, ${conj} on the same stocks and order sizes its prices were about average.`
-    : `${lead}, ${conj} on the same stocks and order sizes its prices were ${v} than most brokers'.`;
+/** The same-stock figure as the site shows it (Metric.gap, points of the spread to one decimal), in whole tenths. */
+const tenths = (v: number) => Math.round(v * 10) || 0;
+
+export interface SamePlace { id: string; gap: number; rank: number; tied: boolean }
+
+/** Every retail broker with a same-stock figure for this stock group (Metric.gap's rule: at least 100 matching stock ×
+ *  lot × size cells), best first: the lowest gap, whose customers paid least against other brokers' customers on the same
+ *  stocks and order sizes. Ranked on the figure as shown, so brokers showing the same figure share a rank (1, 2, 2, 4),
+ *  as on the price card. */
+export function placeSameStock(d: Data, sp: Sp): SamePlace[] {
+  const rows = d.sameStock.brokers
+    .filter((g) => g.sp === sp && g.cells >= 100 && d.byId[g.id]?.type === "broker")
+    .sort((a, b) => a.gap - b.gap);
+  const t = rows.map((g) => tenths(g.gap)); // sorted by value, so the tenths never go down
+  return rows.map((g, i) => ({ id: g.id, gap: g.gap, rank: t.indexOf(t[i]) + 1, tied: t.filter((x) => x === t[i]).length > 1 }));
+}
+
+/** The same-stock verdict, graded by rank like the price, never by a margin around zero (a 3-point margin once called 19 of
+ *  25 brokers "worse than most"). Home's answer card and the broker pages read it through the price card's sentence. */
+export const sameStockVerdict = (rank: number, n: number, tied: boolean): Grade => gradeOf(rank, n, tied);
+
+export interface SameRank {
+  rank: number;
+  /** how many brokers have a figure: the line's real denominator */
+  n: number;
+  tied: boolean;
+  grade: Grade;
+}
+
+/** Where a broker ranks on the same stocks and order sizes; null for a broker without a figure (too few of its trades
+ *  match other brokers') or with no other broker to rank against. */
+export function sameStockRank(d: Data, id: string, sp: Sp): SameRank | null {
+  const places = placeSameStock(d, sp);
+  const p = places.find((x) => x.id === id);
+  if (!p || places.length < 2) return null;
+  return { rank: p.rank, n: places.length, tied: p.tied, grade: sameStockVerdict(p.rank, places.length, p.tied) };
+}
+
+/** The answer card's same-stock line, numbers first: "13th of 25", "1st of 25", "tied 9th of 25" (then "on the same
+ *  stocks and order sizes"). Plain ordinals, so it reads beside the price rank without a score's words. */
+export const sameStockWords = (s: SameRank) => `${s.tied ? "tied " : ""}${ordinal(s.rank)} of ${s.n}`;
+
+/** The line behind the same-stock line's (i), in plain words (the points of the spread stay on How we measure): what the
+ *  comparison holds equal, the pool when fewer brokers have a figure than a price, the source and month. */
+export function sameStockNote(d: Data, s: SameRank, priced: number): string {
+  const pool = s.n < priced ? ` ${s.n} of the ${priced} brokers had enough matching trades.` : "";
+  return `Each broker's customers compared with other brokers' customers on the same stocks and order sizes, so what they `
+    + `happen to trade doesn't count.${pool} From the detailed SEC Rule 605 reports: market orders under $200,000, ${monthLong(d.meta.detailMonth)}.`;
+}
+
+const PRICE_WORDS: Record<Grade, string> = {
+  first: "the cheapest", top: "among the cheapest", middle: "near the middle", bottom: "among the most expensive", last: "the most expensive",
+};
+const SAME_WORDS: Record<Grade, string> = {
+  first: "the best", top: "better than most", middle: "near the middle", bottom: "worse than most", last: "the worst",
+};
+const tone = (g: Grade) => (g === "first" || g === "top" ? 1 : g === "middle" ? 0 : -1);
+
+/** The answer card's one sentence, graded by the two ranks right above it so it can't contradict them: on average (the
+ *  figure and its rank), then on the same stocks and order sizes. Said once when both fall in the same place ("near the
+ *  middle either way": the two rank lines name the ways); "but" when they point different ways (a broker can look cheap
+ *  because of what its customers trade). `same` null: no same-stock rank, and `unmatched` says it is because too few of
+ *  its trades match other brokers'. */
+export function priceSentence(short: string, price: Grade, same: Grade | null, unmatched = false): string {
+  const on = "on the same stocks and order sizes";
+  if (same == null) {
+    return unmatched
+      ? `${short} is ${PRICE_WORDS[price]} on average; too few of its trades match other brokers' to compare them ${on}.`
+      : `${short} is ${PRICE_WORDS[price]} on average.`;
+  }
+  if (same === price) return `${short} is ${PRICE_WORDS[price]} either way.`;
+  return `${short} is ${PRICE_WORDS[price]} on average${tone(price) === tone(same) ? " and" : ", but"} ${SAME_WORDS[same]} ${on}.`;
 }
 
 /* ---------- what the broker is paid ---------- */
@@ -214,8 +281,12 @@ export interface Group {
   m: Metric;
   /** "10th cheapest of 25"; for a clearing firm "Not ranked: a clearing firm"; null without a price */
   rank: string | null;
+  /** the rank on the same stocks and order sizes (the answer card's second line, sameStockWords); null for a clearing
+   *  firm, without a price or without a same-stock figure (the card then says nothing) */
+  same: SameRank | null;
   /** "$0.91 more than the cheapest" + "Fidelity, −$0.09" */
   diff: GapLine | null;
+  /** graded by `rank` and `same` (priceSentence), so it never contradicts them */
   sentence: string | null;
   scale: ScaleData | null;
   pay: Pay;
@@ -251,14 +322,16 @@ export function groupOf(d: Data, firm: Firm, sp: Sp): Group {
   const last = prev ? new Map(placeBrokers(d, sp, prev).map((p) => [p.m.id, p])) : null;
   const points = places.map((p) => ({ name: p.m.f.short, v: p.m.cost10k! }));
   const you = m.cost10k == null ? null : { name: firm.short, v: m.cost10k };
-  const pos = me ? third(me.rank, places.length) : null;
+  // both grades from the ranks as shown: the price on the shown cents (rankWords' ends), the same stocks on the shown tenths
+  const same = me ? sameStockRank(d, firm.id, sp) : null;
   const sentence = clearing
     ? `${firm.short} is a clearing firm: it settles trades for other brokers, and you can't open an account with it.`
-    : pos ? priceSentence(firm.short, pos, sameStockVerdict(m.gap)) : null;
+    : me && places.length > 1 ? priceSentence(firm.short, gradeOf(me.rank, places.length, me.tied), same?.grade ?? null, m.gap == null) : null;
   return {
     sp, g: sp === "Y" ? "sp" : "ot", name: sp === "Y" ? `S&P${SP_GAP}500 stocks` : "Other stocks", orders: sp === "Y" ? `S&P${SP_GAP}500 orders` : "other-stock orders",
     places, me, m,
     rank: m.cost10k == null ? null : clearing ? "Not ranked: a clearing firm" : me ? rankWords(places, me) : null,
+    same,
     diff: gapLine(places, m, clearing),
     sentence,
     scale: you ? scaleOf(points, you) : null,

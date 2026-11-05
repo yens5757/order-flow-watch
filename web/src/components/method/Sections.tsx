@@ -121,6 +121,11 @@ export function SameStocks({ d }: { d: Data }) {
           the same stocks and order sizes, in points of the spread: below zero, its customers paid less.
           {sp.length > 1 && <> On S&P{SP_GAP}500 stocks the gap runs from {name(sp[0].id)} at {signed(sp[0].gap, 1)} to {name(sp[sp.length - 1].id)} at {signed(sp[sp.length - 1].gap, 1)}.</>}
         </p>
+        {/* the answer card's sentence rule (lib/broker.ts gradeOf, priceSentence): words follow the ranks, never a margin */}
+        <p>
+          Broker pages rank this gap beside the average price. Their sentence goes by thirds of the brokers: the best third
+          is “better than most”, the middle third “near the middle”, the worst third “worse than most”.
+        </p>
       </div>
       <a className="go mx-go" href={`${href(pagePath("brokers"))}?m=gap`}>Every broker's gap<Icon name="arrow" size={20} /></a>
     </Card>

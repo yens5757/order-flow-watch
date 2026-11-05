@@ -1,9 +1,10 @@
 // The answer for the visitor's broker, in the broker page's own words and look (its price card: broker.css): what its
-// customers paid above or below the fair price per $10,000 traded, its rank, the gap to the cheapest, the neutral scale
-// with its dot and one generated sentence; then its page and a comparison. Every figure comes from lib/broker.ts (the
-// broker page's Group), so the two pages never disagree. Picking another broker re-renders the card: the scale's dot
-// glides to the new broker's place (scale.css), and nothing moves under reduced motion.
-import { cents, money, SP_GAP, type Group } from "../../lib/broker";
+// customers paid above or below the fair price per $10,000 traded, its rank, its rank on the same stocks and order sizes,
+// the gap to the cheapest, the neutral scale with its dot and one sentence graded by the two ranks; then its page and a
+// comparison. Every figure comes from lib/broker.ts (the broker page's Group), so the two pages never disagree. Picking
+// another broker re-renders the card: the scale's dot glides to the new broker's place (scale.css), and nothing moves
+// under reduced motion.
+import { cents, money, sameStockNote, sameStockWords, SP_GAP, type Group } from "../../lib/broker";
 import type { Data, Firm } from "../../lib/data";
 import { monthLong } from "../../lib/format";
 import { brokerPath, comparePath, href } from "../../lib/routes";
@@ -47,9 +48,15 @@ export function AnswerCard({ d, g, onSeeAll }: { d: Data; g: Group; onSeeAll: ()
             </p>
           </div>
           {g.rank && (
-            <div className="bp-rank">
-              <p>{capital(g.rank)}</p>
+            <div className={`bp-rank${g.same ? " two" : ""}`}>
+              <p className="bp-rank-l">{capital(g.rank)}</p>
               <a className="go hm-see" href="#rank" onClick={onSeeAll}>See all {g.places.length}<Icon name="down" size={20} /></a>
+              {g.same && (
+                <p className="bp-same">
+                  <b>{capital(sameStockWords(g.same))}</b> on the same stocks and order sizes{" "}
+                  <Info topic="the same stocks and order sizes">{sameStockNote(d, g.same, g.places.length)}</Info>
+                </p>
+              )}
             </div>
           )}
           {g.diff && <p className="bp-diff">{g.diff.lead}{g.diff.who && <> <span className="nw">({g.diff.who})</span></>}</p>}

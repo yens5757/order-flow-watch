@@ -65,6 +65,8 @@
 }
 @media (min-width: 1024px) {
   .hm-more, .hm-see { display: none; }
+  /* without "See all" beside it the rank's row is only its own line: 4px keep the step between the two ranks (broker.css) */
+  .hm-ans .bp-same { margin-top: 4px; }
 }
 
 /* ---------- what the reports show: three findings, each with the caveat that cuts against it ---------- */
