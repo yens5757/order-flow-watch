@@ -61,6 +61,9 @@ const factOf = (fee: Fee | undefined, k: FeeKey): Fact => {
   if (v != null) return { v };
   return { w: fee?.notOffered.includes(k) ? "not offered" : fee?.varies.includes(k) ? "varies" : "not confirmed" };
 };
+/** Why a fact has no figure, said after its name as the fee tables say it ("Not offered", "Varies", "Not confirmed"):
+ *  "Cash interest isn't offered.", "SoFi's cash interest varies; tastytrade's isn't confirmed." */
+const isWord = (w: string) => (w === "varies" ? "varies" : w === "not offered" ? "isn't offered" : "isn't confirmed");
 
 /** A rate as the broker publishes it: 0.00%, 3.52%, 11.575%. */
 const rate = (v: number) => pct(v, Math.min(3, Math.max(2, (String(v).split(".")[1] ?? "").length)));
@@ -95,8 +98,9 @@ const priceListless = (f: Fee | undefined) =>
   !!f && !f.retail && f.commission == null && f.cashYield == null && f.transferOut == null;
 
 /** The broker page's line: "$1,000 of cash earns $38.80 a year less than at Vanguard. Moving out: $100." The best
- *  payer: "Cash earns 3.88%, the most of any broker." No interest, a rate that varies or one nobody confirmed: in words.
- *  Null for an advisor-only broker without a public price list (the card's note covers it). */
+ *  payer: "Cash earns 3.88%, the most of any broker." A rate it doesn't offer, one that varies or one nobody confirmed:
+ *  in the fee tables' words ("Cash interest isn't offered."). Null for an advisor-only broker without a public price list
+ *  (the card's note covers it). */
 export function cashLine(d: Data, F: Firm): PricedLine | null {
   const f = d.fees[F.id];
   if (priceListless(f)) return null;
@@ -113,10 +117,10 @@ export function cashLine(d: Data, F: Firm): PricedLine | null {
     info = `${F.short} pays ${rate(cash.v)} a year on uninvested cash; ${best.short} pays ${rate(best.rate)}, the most of any broker.`;
   } else if ("v" in cash && cash.v > 0) {
     runs.push("Cash earns ", { fig: rate(cash.v) }, missed != null ? ", the most of any broker. " : ". ");
-  } else if ("v" in cash || cash.w === "not offered") {
+  } else if ("v" in cash) {
     runs.push("Cash earns no interest. ");
   } else {
-    runs.push(cash.w === "varies" ? "Cash interest varies. " : "Cash interest isn't confirmed. ");
+    runs.push(`Cash interest ${isWord(cash.w)}. `);
   }
   return { runs: [...runs, ...moveSentence(move)], info, topic: "cash interest" };
 }
@@ -124,8 +128,9 @@ export function cashLine(d: Data, F: Firm): PricedLine | null {
 /** Compare's line, in the yearly card's terms (what is better where, and by how much): "At Fidelity, $1,000 of cash earns
  *  $35.20 a year more and moving out costs $100 less." Each broker's own rate and fee are in the side-by-side table on the
  *  same page, so the line needs no (i), and a fact that can't be compared names only the broker it is missing at
- *  ("tastytrade's cash interest isn't confirmed."; "Albert's cash interest and moving-out fee aren't confirmed."). Null
- *  when nothing can be compared and the card's note on an advisor-only broker already says why. */
+ *  ("tastytrade's cash interest isn't confirmed."; "Albert's cash interest and moving-out fee aren't confirmed."; "Cash
+ *  interest: 0.50% at Webull, not offered at Cash App."). Null when nothing can be compared and the card's note on an
+ *  advisor-only broker already says why. */
 export function cashPair(d: Data, A: Firm, B: Firm): PricedLine | null {
   const F = [A, B] as const;
   const cash = [factOf(d.fees[A.id], "cashYield"), factOf(d.fees[B.id], "cashYield")] as const;
@@ -158,14 +163,16 @@ export function cashPair(d: Data, A: Firm, B: Firm): PricedLine | null {
     // one of the two has no price report this month, so no estimate: the two rates
     cashRuns = ["Cash interest: ", { fig: rate(c0.v) }, ` at ${A.short}, `, { fig: rate(c1.v) }, ` at ${B.short}.`];
   } else {
-    // a rate that varies or isn't confirmed is named; one broker paying none beside one paying a rate, both said
+    // a rate that varies or isn't confirmed is named; a broker that doesn't offer interest on cash beside one paying a
+    // rate (two at no interest are said above): the rate first, then the fee tables' "not offered"
     const odd = [0, 1].filter((i) => "w" in cash[i] && (cash[i] as { w: string }).w !== "not offered");
     const word = (i: number) => (cash[i] as { w: string }).w;
-    const said = (i: number): Run => ("v" in cash[i] ? { fig: rate((cash[i] as { v: number }).v) } : "none");
-    if (!odd.length) cashRuns = [`Cash interest: ${A.short} `, said(0), `, ${B.short} `, said(1), "."];
-    else if (odd.length === 1) cashRuns = [`${F[odd[0]].short}'s cash interest ${word(odd[0]) === "varies" ? "varies" : "isn't confirmed"}.`];
+    if (!odd.length) {
+      const p = "v" in c0 ? 0 : 1;
+      cashRuns = ["Cash interest: ", { fig: rate((cash[p] as { v: number }).v) }, ` at ${F[p].short}, not offered at ${F[1 - p].short}.`];
+    } else if (odd.length === 1) cashRuns = [`${F[odd[0]].short}'s cash interest ${isWord(word(odd[0]))}.`];
     else if (word(0) === word(1)) cashRuns = [word(0) === "varies" ? "Cash interest varies at both." : "Cash interest isn't confirmed at either."];
-    else cashRuns = [`Cash interest: ${A.short} ${word(0)}, ${B.short} ${word(1)}.`];
+    else cashRuns = [`${A.short}'s cash interest ${isWord(word(0))}; ${B.short}'s ${isWord(word(1))}.`];
   }
 
   // moving out, compared on the cents shown
@@ -178,10 +185,9 @@ export function cashPair(d: Data, A: Firm, B: Firm): PricedLine | null {
   } else {
     const odd = [0, 1].filter((i) => "w" in move[i]);
     const word = (i: number) => (move[i] as { w: string }).w;
-    const is = (w: string) => (w === "varies" ? "varies" : w === "not offered" ? "isn't offered" : "isn't confirmed");
-    if (odd.length === 1) moveRuns = [`${F[odd[0]].short}'s moving-out fee ${is(word(odd[0]))}.`];
-    else if (word(0) === word(1)) moveRuns = [`The moving-out fee ${word(0) === "varies" ? "varies at both" : `${is(word(0))} at either`}.`];
-    else moveRuns = [`Moving-out fee: ${A.short} ${word(0)}, ${B.short} ${word(1)}.`];
+    if (odd.length === 1) moveRuns = [`${F[odd[0]].short}'s moving-out fee ${isWord(word(odd[0]))}.`];
+    else if (word(0) === word(1)) moveRuns = [`The moving-out fee ${word(0) === "varies" ? "varies at both" : `${isWord(word(0))} at either`}.`];
+    else moveRuns = [`${A.short}'s moving-out fee ${isWord(word(0))}; ${B.short}'s ${isWord(word(1))}.`];
   }
 
   // one broker better on both: one sentence

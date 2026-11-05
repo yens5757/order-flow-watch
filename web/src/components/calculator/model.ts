@@ -125,8 +125,9 @@ export function unknownWord(fact: string): string {
   return "Not confirmed";
 }
 
-/** A broker that pays no interest on cash (fees.csv NA): lib/cost.ts names its missing rate "cash yield (not offered)",
- *  so every table, card and note says "Not offered" for it, never "Not confirmed". */
+/** A broker that doesn't offer interest on cash (fees.csv NA): lib/cost.ts names its missing rate "cash yield (not
+ *  offered)", so every table, card and note says "Not offered" for it (the yearly cards' "Cash interest isn't offered"),
+ *  never "Not confirmed". */
 const paysNone = (fact: string) => fact === "cash yield (not offered)";
 
 /** A rate as the broker publishes it: 5.25%, 11.575% (two decimals, three when it has three). */
@@ -234,7 +235,7 @@ export function whyWords(d: Data, l: CostLine): string[] {
   else for (const m of fees) {
     const what = m.startsWith("commission") ? "commission" : m.startsWith("options") ? "options fee" : m.startsWith("cash") ? "interest on cash" : "margin rate";
     out.push(m === "options (not offered)" ? `${s} doesn't offer options trading, so options aren't counted.`
-      : paysNone(m) ? `${s} pays no interest on cash; its idle cash isn't counted.`
+      : paysNone(m) ? `${s} doesn't offer interest on cash, so its idle cash isn't counted.`
         : m.endsWith("(varies)") ? `${s}'s ${what} varies by balance or program, so it isn't counted.`
           : `${s}'s ${what} isn't confirmed, so it isn't counted.`);
   }

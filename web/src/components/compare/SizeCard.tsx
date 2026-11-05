@@ -8,6 +8,7 @@ import { tip } from "../../charts/kit";
 import { lines } from "../../charts/options";
 import { money } from "../../lib/broker";
 import { BUCKET_LABEL, execKey, SIZE_STEPS, type Data, type Filters, type Firm } from "../../lib/data";
+import { pct } from "../../lib/format";
 import { fairText } from "../../lib/metrics";
 import { useTheme } from "../../lib/theme";
 import { Card, ChartTable, Empty, Legend, Segmented } from "../ui";
@@ -21,7 +22,8 @@ const BIG = 200000;
 export function SizeCard({ d, f, A, B, monthName }: { d: Data; f: Filters; A: Firm; B: Firm; monthName: string }) {
   const { t } = useTheme();
   const [unit, setUnit] = useState<Unit>("usd");
-  const fmt = unit === "usd" ? money : (v: number) => `${v.toFixed(0)}%`;
+  // a share below zero with a true minus, never "-5%" or "-0%" (lib/format.ts pct), as every other percentage on the site
+  const fmt = unit === "usd" ? money : (v: number) => pct(v, 0);
   // a figure for a reader (the tooltip, the table, the foot): in dollars, "$0.12 below" rather than a minus sign; the
   // axis keeps the sign, where the zero line shows it
   const show = unit === "usd" ? fairText : fmt;

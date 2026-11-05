@@ -143,7 +143,7 @@ export function Payments({ d }: { d: Data }) {
       <div className="mx-prose">
         <p>
           Brokers report each quarter what trading firms paid for their customers' orders. Weighted by where the orders went,
-          that becomes dollars on a $10,000 order.
+          that becomes dollars per $10,000 of orders.
         </p>
         <p>
           As percentages the two sides don't compare (one counts the whole spread, the other half of it), so compare them in

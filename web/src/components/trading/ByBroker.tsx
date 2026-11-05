@@ -5,6 +5,8 @@
 // report of its own has nothing to show, and says so. Each firm's rate is given in dollars per $10,000 (the unit every
 // other page uses: cents per 100 shares over the broker's average share price in the latest month's price report, as
 // Metric.pay10k converts it) beside the report's own cents per 100 shares; the rate over time stays in cents, and says why.
+// The venues past the sixth share one row, "Other (4)", at their rate weighted by their share of the orders (as a
+// broker's own rate is), so no payment or fee hides in it.
 import { useMemo, useRef } from "react";
 import type { Option } from "../../charts/EChart";
 import { EChart } from "../../charts/EChart";
@@ -19,7 +21,11 @@ import { ChartTable, Empty, Legend, useSideScroll } from "../ui";
 import { quarterName, RULE_606, trim } from "./names";
 
 type Row = [string | null, string, string];
-interface Slice { name: string; venue: string | null; v: number; cph: number | null; hex: string; css: string }
+/** A venue the broker routed these orders to: its share of them and its rate in cents per 100 shares (null: none given). */
+interface Routed { venue: string; share: number; cph: number | null }
+/** A slice of the ring and a row of its key: one venue, the rest together ("Other (4)") or the part a report doesn't
+ *  break down; `of` is the venues behind it. */
+interface Slice { name: string; of: Routed[]; v: number; cph: number | null; hex: string; css: string }
 
 /** Dollars per $10,000 from cents per 100 shares at an average share price: a proper minus sign, never "−$0.00". */
 const per10k = (cph: number, px: number) => money(cph / px);
@@ -60,9 +66,13 @@ export function ByBroker({ d, f, firm, slot }: { d: Data; f: Filters; firm: Firm
   const prevQ = d.meta.quarters[d.meta.quarters.indexOf(f.quarter) - 1];
   const late = f.quarter === d.meta.quarter && !routed(f.quarter).length && routed(prevQ).length > 0;
   const routeQ = late ? prevQ : f.quarter;
-  const venues = routed(routeQ)
+  const venues: Routed[] = routed(routeQ)
     .map((v) => ({ venue: v.venue, share: v.share[f.ot] ?? 0, cph: v.cph[f.ot] })).filter((v) => v.share > 0).sort((a, b) => b.share - a.share);
   const head = venues.slice(0, 6), tail = venues.slice(6);
+  // the rest, together: their rate weighted by their share of the orders, as a broker's own rate is (none when one of
+  // them gives no rate), so J.P. Morgan's four exchanges on other stocks show what it pays them
+  const tailShare = tail.reduce((a, v) => a + v.share, 0);
+  const tailRate = tail.length && tail.every((v) => v.cph != null) ? tail.reduce((a, v) => a + v.share * v.cph!, 0) / tailShare : null;
   // a trading firm keeps its colour across the page (names.ts); any other venue, and the rest together, are grey. Names
   // are the short ones the rest of the page uses ("Virtu", "Wells Fargo")
   const tone = (venue: string) => {
@@ -70,20 +80,21 @@ export function ByBroker({ d, f, firm, slot }: { d: Data; f: Filters; firm: Firm
     return i == null ? { hex: t.context, css: "var(--context)" } : { hex: t.s[i], css: `var(--s${i + 1})` };
   };
   const slices: Slice[] = [
-    ...head.map((v) => ({ name: trim(v.venue), venue: v.venue, v: v.share, cph: v.cph, ...tone(v.venue) })),
-    ...(tail.length ? [{ name: `Other (${tail.length})`, venue: null, v: tail.reduce((a, v) => a + v.share, 0), cph: null, hex: t.context, css: "var(--context)" }] : []),
+    ...head.map((v) => ({ name: trim(v.venue), of: [v], v: v.share, cph: v.cph, ...tone(v.venue) })),
+    ...(tail.length ? [{ name: `Other (${tail.length})`, of: tail, v: tailShare, cph: tailRate, hex: t.context, css: "var(--context)" }] : []),
   ];
   // some 606s list only their main venues (Futu Clearing: ~56%); show the rest rather than stretch the ring
   const listed = venues.reduce((a, v) => a + v.share, 0);
-  if (venues.length && listed < 97) slices.push({ name: "Not broken down", venue: null, v: 100 - listed, cph: null, hex: t.neutral, css: "var(--neutral)" });
+  if (venues.length && listed < 97) slices.push({ name: "Not broken down", of: [], v: 100 - listed, cph: null, hex: t.neutral, css: "var(--neutral)" });
   // the broker's average share price for these orders in the latest month's price report: what turns cents per 100 shares
   // into dollars per $10,000 (null without that report: the rates then stay in cents and say so)
   const px = d.exec.get(execKey(firm.id, d.meta.month, f.sp, f.ot, 199999))?.px || null;
   const routing = useMemo(() => ring(t, slices, px), [t, firm, f]); // eslint-disable-line react-hooks/exhaustive-deps
-  // a rate below zero, in the broker pages' words: it pays the trading firm only at a venue that isn't an exchange;
-  // at an exchange, what it pays is the exchange's fees
-  const below = slices.filter((s) => s.cph != null && s.cph < 0);
-  const toFirm = below.some((s) => s.venue && !isExchange(s.venue)), toExchange = below.some((s) => s.venue && isExchange(s.venue));
+  // a row shown below zero (cents() writes a minus from −0.05¢), in the broker pages' words: it pays the trading firm only
+  // at a venue that isn't an exchange; at an exchange, what it pays is the exchange's fees. "Other" answers for the
+  // venues in it that are below zero
+  const below = slices.filter((s) => s.cph != null && s.cph <= -0.05).flatMap((s) => s.of.filter((v) => v.cph != null && v.cph < 0));
+  const toFirm = below.some((v) => !isExchange(v.venue)), toExchange = below.some((v) => isExchange(v.venue));
   const belowNote = !below.length ? null
     : `Below zero: ${firm.short} pays ${toFirm && toExchange ? "the trading firm or, at an exchange, its fees" : toFirm ? "the trading firm" : "the exchange's fees"}.`;
   const firstMonth = monthLong(d.meta.months[0] ?? d.meta.month);
