@@ -1,0 +1,279 @@
+/* How we measure (pages/Method.tsx and the parts beside this file): documentation in the broker page's world (DESIGN.md).
+   A reading column of cards at a 65-75 character measure, the contents beside it on a desktop, the evidence last at full
+   width. The worked spread and the forest table's rails are the neutral scale (scale.css), drawn again here.
+   Colours, type steps, radii and shadows are the tokens in src/index.css; nothing here is a new token. */
+
+/* tablet and phone: a reading width, the header and footer with it (as on the broker page) */
+@media (max-width: 1023px) {
+  [data-page="how-we-measure"] .wrap { width: min(100% - 2 * var(--gut), 44rem); }
+}
+
+/* ---------- the board: the reading column, and the contents beside it on a desktop ---------- */
+/* the reading measure: Figtree sets about 2.25 characters per em, so 31em holds some 70 characters a line at any size */
+.mx-board, .mx-ev { --measure: 31em; }
+.mx-board { display: grid; gap: 16px; }
+.mx-board > * { min-width: 0; }
+.mx-ev { margin-top: 16px; }
+/* an in-page jump lands with a little ground above the card */
+.mx-board > .card, .mx-ev { scroll-margin-top: 16px; }
+
+/* ---------- reading text ---------- */
+.mx-prose { max-width: var(--measure); }
+/* index.css wraps paragraphs "pretty"; the lists and definitions here read as paragraphs too */
+.mx-terms dd, .mx-list li, .mx-a, .mx-rows dt { text-wrap: pretty; }
+.mx-prose p + p { margin-top: 12px; }
+.mx-after { margin-top: 18px; }
+.mx-h3 { margin-top: 30px; font-size: var(--fs-3); line-height: 1.3; font-weight: 800; letter-spacing: -.01em; text-wrap: balance; }
+.mx-h3 + dl { margin-top: 8px; }
+/* detail one press away, inside a card: a teal summary with a turning chevron (as "Show as a table" under a chart) */
+.mx-more-d { margin-top: 10px; }
+.mx-more-d > summary {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--accent); font-weight: 600;
+  cursor: pointer; list-style: none; text-underline-offset: 4px; border-radius: 10px;
+}
+.mx-more-d > summary::-webkit-details-marker { display: none; }
+.mx-more-d > summary:hover { color: var(--accent-hover); text-decoration: underline; }
+.mx-more-d > summary svg { transition: transform .35s var(--ease-out); }
+.mx-more-d[open] > summary svg { transform: rotate(180deg); }
+.mx-more-d > .mx-prose { margin-top: 4px; }
+/* an in-text link keeps its line height but gets a 44px tall hit area (padding on an inline box adds no height) */
+.mx-hit { padding: 13px 0; }
+.mx-src { padding: 14px 0; color: var(--accent); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.mx-src:hover { color: var(--accent-hover); text-decoration-thickness: 2.5px; }
+.mx-src svg { display: inline; margin-left: 3px; vertical-align: -2px; }
+/* a card's way onward: the world's go link (index.css .go), on its own line at the card's end */
+.mx-go { margin-top: 10px; margin-bottom: -10px; }
+
+/* a plain list: the scale's end dot as the bullet */
+.mx-list { display: grid; gap: 8px; max-width: var(--measure); margin-top: 16px; }
+.mx-list li { position: relative; padding-left: 22px; }
+.mx-list li::before { content: ""; position: absolute; left: 4px; top: .6em; width: 8px; height: 8px; border-radius: 50%; background: var(--mark); }
+
+/* ---------- value rows: label left, value right in 700 tabular ink, hairlines between (the broker page's rows) ---------- */
+.mx-rows > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; padding: 10px 0; border-top: 1px solid var(--border); }
+.mx-rows dt { line-height: 1.35; }
+.mx-rows dt small { display: block; margin-top: 3px; font-size: var(--fs-1); font-weight: 500; line-height: 1.4; color: var(--ink-2); }
+.mx-rows dd { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.mx-srcs dt { font-weight: 600; }
+.mx-srcs dt small { font-weight: 500; }
+.mx-srcs > div { min-height: 64px; padding: 12px 0; }
+.mx-calc { margin-top: 14px; }
+.mx-calc > div:last-child dt { font-weight: 700; }
+
+/* terms and their meaning: a definition per row, the term in bold */
+.mx-terms > div { padding: 14px 0; border-top: 1px solid var(--border); }
+.mx-terms > div:first-child { border-top: 0; padding-top: 0; }
+/* after a paragraph the terms start on a hairline of their own */
+.mx-prose + .mx-terms { margin-top: 18px; }
+.mx-prose + .mx-terms > div:first-child { padding-top: 14px; border-top: 1px solid var(--border); }
+.mx-terms dt { font-weight: 700; line-height: 1.4; }
+.mx-terms dd { margin-top: 2px; max-width: var(--measure); }
+/* the term beside its meaning where the list is wide enough, so the terms scan as a column; stacked otherwise */
+.mx-terms { container-type: inline-size; }
+@container (min-width: 540px) {
+  .mx-terms > div { display: grid; grid-template-columns: 10rem minmax(0, 1fr); column-gap: 20px; }
+  .mx-terms dd { margin-top: 0; }
+}
+
+/* ---------- On this page ---------- */
+.mx-toc h2 { margin-bottom: 8px; }
+.mx-toc li + li { border-top: 1px solid var(--border); }
+/* each row reaches 12px past the text on both sides, so the section being read can take the Here tint with 14px ends */
+.mx-toc a {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; margin-inline: -12px;
+  padding: 6px 12px; border-radius: 14px; color: var(--ink); font-weight: 600; line-height: 1.35; text-decoration: none;
+}
+.mx-toc a svg { color: var(--accent); }
+.mx-toc a:hover span { text-decoration: underline 2px var(--accent); text-underline-offset: 5px; }
+.mx-toc a:hover svg { color: var(--accent-hover); }
+.mx-toc a[aria-current] { background: var(--here); font-weight: 700; }
+.mx-toc li:has(> a[aria-current]), .mx-toc li:has(> a[aria-current]) + li { border-top-color: transparent; }
+.mx-srcs + .card-foot { margin-top: 8px; }
+
+/* ---------- the worked spread: the neutral scale with the quotes at its ends (scale.css, at the same sizes) ---------- */
+.mx-sp { margin: 26px 0 0; }
+.mx-sp-rail { position: relative; height: 62px; }
+.mx-sp-track { position: absolute; left: 0; right: 0; top: 41px; height: 8px; border-radius: 999px; background: var(--track); }
+/* the stretch from the fair price to the buy: what the trade paid */
+.mx-sp-paid { position: absolute; left: 50%; width: 16.667%; top: 41px; height: 8px; background: var(--ink-2); }
+.mx-sp-end { position: absolute; left: 0; top: 40px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--mark); box-shadow: 0 0 0 2px var(--surface); }
+.mx-sp-end.r { left: 100%; }
+.mx-sp-fair { position: absolute; left: 50%; top: 34px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--mark); box-shadow: 0 0 0 2px var(--surface); }
+.mx-sp-you {
+  position: absolute; left: 66.667%; top: 34px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%;
+  background: var(--ink); box-shadow: 0 0 0 3px var(--surface), 0 3px 8px rgb(16 40 34 / .25);
+}
+.mx-sp-you-l { position: absolute; left: 66.667%; top: 6px; transform: translateX(-50%); white-space: nowrap; line-height: 1.2; font-weight: 700; }
+.mx-sp-mid { position: relative; height: 1.6rem; margin-top: 4px; }
+.mx-sp-fair-l { position: absolute; left: 50%; top: 0; transform: translateX(-50%); white-space: nowrap; font-size: var(--fs-1); color: var(--ink-2); }
+.mx-sp-fair-l b { font-size: var(--fs-2); color: var(--ink); font-variant-numeric: tabular-nums; }
+.mx-sp-ends { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; }
+.mx-sp-lab { max-width: 48%; font-weight: 700; line-height: 1.35; font-variant-numeric: tabular-nums; }
+.mx-sp-lab small { display: block; font-size: var(--fs-1); font-weight: 500; color: var(--ink-2); }
+.mx-sp-lab.r { text-align: right; }
+
+/* the example's answer, set as the broker page sets its figure: the amount, then its unit in words */
+.mx-fig { display: flex; flex-wrap: wrap; align-items: flex-end; column-gap: 16px; row-gap: 4px; margin-top: 26px; }
+.mx-amt { font-size: var(--fs-5); line-height: .95; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.mx-per { padding-bottom: 2px; font-size: var(--fs-3); line-height: 1.3; font-weight: 600; }
+
+/* ---------- common questions: native disclosures on hairlines ---------- */
+.mx-faq details { border-top: 1px solid var(--border); }
+.mx-faq details:first-child { border-top: 0; }
+.mx-faq summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px; padding: 8px 0;
+  font-weight: 600; line-height: 1.35; cursor: pointer; list-style: none; border-radius: 10px;
+}
+.mx-faq summary::-webkit-details-marker { display: none; }
+.mx-faq summary svg { color: var(--accent); transition: transform .35s var(--ease-out); }
+.mx-faq summary:hover .mx-q { text-decoration: underline 2px var(--accent); text-underline-offset: 5px; }
+.mx-faq summary:hover svg { color: var(--accent-hover); }
+.mx-faq details[open] > summary svg { transform: rotate(180deg); }
+.mx-a { max-width: var(--measure); padding: 0 0 20px; }
+.mx-a p + p { margin-top: 10px; }
+
+/* ---------- the evidence: the answer, its table, the statistics under a button ---------- */
+.mx-ans { display: grid; gap: 18px; }
+/* the answer set as an answer, like the broker page's "About $9 a year" (Headline small) */
+.mx-verdict { font-size: var(--fs-5); line-height: 1.1; font-weight: 800; letter-spacing: -.03em; text-wrap: balance; }
+.mx-sum-box { container-type: inline-size; min-width: 0; }
+.mx-sum { width: 100%; border-collapse: separate; border-spacing: 0; }
+.mx-sum th, .mx-sum td { padding: 12px 10px; border-top: 1px solid var(--border); text-align: left; vertical-align: middle; }
+.mx-sum thead th { padding-top: 0; padding-bottom: 10px; border-top: 0; font-size: var(--fs-1); font-weight: 600; line-height: 1.3; color: var(--ink-2); vertical-align: bottom; }
+.mx-sum tbody th { font-weight: 600; line-height: 1.35; }
+.mx-sum tr > :first-child { padding-left: 0; }
+.mx-sum tr > :last-child { padding-right: 0; }
+.mx-k { display: none; }
+.mx-none { font-weight: 600; color: var(--ink-2); }
+/* a narrow card: each test becomes a short list, the group named beside each verdict (the roles keep it a table) */
+@container (max-width: 520px) {
+  .mx-sum thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .mx-sum, .mx-sum tbody, .mx-sum tr { display: block; }
+  .mx-sum tr { padding: 12px 0; border-top: 1px solid var(--border); }
+  .mx-sum tbody tr:first-child { border-top: 0; padding-top: 0; }
+  .mx-sum th, .mx-sum td { padding: 0; border: 0; }
+  .mx-sum tbody th { display: block; margin-bottom: 4px; }
+  .mx-sum td { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 38px; }
+  .mx-sum .mx-k { display: inline; color: var(--ink-2); }
+}
+
+.mx-more { margin-top: 24px; }
+.mx-more svg { transition: transform .35s var(--ease-out); }
+.mx-more[aria-expanded="true"] svg { transform: rotate(180deg); }
+/* closed until "Show the statistics"; without a script they are simply open */
+html.js .mx-ev:not(.open) .mx-sb { display: none; }
+.mx-sb { margin-top: 24px; padding-top: 6px; border-top: 1px solid var(--border); }
+html:not(.js) .mx-sb { margin-top: 28px; }
+.mx-sb-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-top: 22px; }
+.mx-sb-head .mx-h3 { margin-top: 0; }
+
+/* the switch shows one stock group: the checked radio picks the figures and the marks' places (as on the broker page) */
+.mx-sb .mx-row { --v: var(--v-sp); --lo: var(--lo-sp); --hi: var(--hi-sp); }
+.mx-sb:has(#ev-ot:checked) .mx-row { --v: var(--v-ot); --lo: var(--lo-ot); --hi: var(--hi-ot); }
+.mx-sb:not(:has(#ev-ot:checked)) [data-grp="ot"], .mx-sb:has(#ev-ot:checked) [data-grp="sp"] { display: none; }
+.mx-sb:not(:has(#ev-ot:checked)) .mx-row.no-sp .mx-plot, .mx-sb:has(#ev-ot:checked) .mx-row.no-ot .mx-plot { visibility: hidden; }
+/* where :has() is missing, EvidenceCard mirrors the checked radio on the box (data-sg) */
+@supports not selector(:has(*)) {
+  .mx-sb[data-sg="ot"] .mx-row { --v: var(--v-ot); --lo: var(--lo-ot); --hi: var(--hi-ot); }
+  .mx-sb:not([data-sg="ot"]) [data-grp="ot"], .mx-sb[data-sg="ot"] [data-grp="sp"] { display: none; }
+}
+
+/* the key to the drawn column */
+.mx-key { display: flex; flex-wrap: wrap; gap: 4px 22px; margin-top: 16px; font-size: var(--fs-1); color: var(--ink-2); }
+.mx-key li { display: inline-flex; align-items: center; gap: 8px; min-height: 24px; }
+.mx-key-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--ink); }
+.mx-key-ci { width: 22px; height: 6px; border-radius: 999px; background: var(--ink-2); }
+.mx-key-zero { width: 4px; height: 18px; border-radius: 2px; background: var(--mark); }
+
+/* ---------- the forest table: each test's interval and estimate drawn on the neutral rail ---------- */
+.mx-ft-box { container-type: inline-size; margin-top: 10px; }
+.mx-ft { width: 100%; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+.mx-ft th, .mx-ft td { padding: 14px 12px; border-top: 1px solid var(--border); text-align: right; vertical-align: middle; white-space: nowrap; }
+.mx-ft thead th { padding-top: 6px; padding-bottom: 10px; border-top: 0; font-size: var(--fs-1); font-weight: 600; line-height: 1.3; color: var(--ink-2); vertical-align: bottom; white-space: normal; }
+.mx-ft tr > :first-child { padding-left: 0; }
+.mx-ft tr > :last-child { padding-right: 0; }
+.mx-ft .c-cl { text-align: left; white-space: normal; }
+.mx-ft tbody .c-cl { min-width: 13rem; font-weight: 600; line-height: 1.4; color: var(--ink); }
+.mx-ft .c-st { width: 30%; min-width: 15rem; text-align: left; }
+.mx-ft .c-vd { text-align: left; }
+.mx-arrow { display: inline-block; vertical-align: -3px; color: var(--ink-2); }
+
+.mx-st { display: flex; align-items: center; gap: 12px; }
+.mx-plot { position: relative; flex: 1 1 auto; min-width: 7rem; height: 24px; }
+.mx-plot::before { content: ""; position: absolute; left: 0; right: 0; top: 9px; height: 6px; border-radius: 999px; background: var(--track); }
+/* the zero tick sits under the interval, so an interval that crosses zero reads as one unbroken bar over the tick */
+.mx-zero { position: absolute; left: 50%; top: 1px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--mark); }
+.mx-ci { position: absolute; top: 9px; left: var(--lo); width: calc(var(--hi) - var(--lo)); height: 6px; border-radius: 999px; background: var(--ink-2); }
+.mx-dot { position: absolute; left: var(--v); top: 4px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 3px var(--surface); }
+/* the one motion on the page: flipping the stock group glides every estimate and interval to its new place */
+.mx-ci, .mx-dot { transition: left .8s var(--ease-out), width .8s var(--ease-out); }
+.mx-rho { flex: none; width: 3.25rem; text-align: right; font-weight: 700; color: var(--ink); }
+
+/* the scale over the drawn column: −1, 0 and +1 at the rail's ends and middle */
+.mx-axis-row { display: flex; gap: 12px; margin-top: 6px; }
+.mx-axis { position: relative; display: block; flex: 1 1 auto; min-width: 7rem; height: 1.3em; font-variant-numeric: tabular-nums; }
+.mx-axis i { position: absolute; top: 0; font-style: normal; }
+.mx-axis i:nth-child(2) { left: 50%; transform: translateX(-50%); }
+.mx-axis i:nth-child(3) { right: 0; }
+.mx-axis-sp { flex: none; width: 3.25rem; }
+.mx-axis-key { display: none; gap: 12px; padding-bottom: 8px; font-size: var(--fs-1); font-weight: 600; color: var(--ink-2); }
+
+/* a card narrower than the full table: each test restacks into a short block, the scale drawn once above them all */
+@container (max-width: 880px) {
+  .mx-axis-key { display: flex; }
+  .mx-ft thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .mx-ft, .mx-ft tbody { display: block; }
+  .mx-ft tr { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 16px 0; border-top: 1px solid var(--border); }
+  .mx-ft th, .mx-ft td { display: block; padding: 0; border: 0; text-align: left; }
+  .mx-ft tbody .c-cl, .mx-ft .c-st { flex-basis: 100%; min-width: 0; width: auto; }
+  .mx-ft .c-ci, .mx-ft .c-p, .mx-ft .c-n { font-size: var(--fs-1); color: var(--ink); }
+  .mx-ft .mx-k { display: inline; color: var(--ink-2); }
+}
+
+/* ---------- desktop: the reading column beside the contents, the evidence's answer beside its table ---------- */
+@media (min-width: 1024px) {
+  .mx-board { grid-template-columns: minmax(0, 648fr) minmax(0, 448fr); column-gap: 24px; align-items: start; }
+  .mx-board > * { grid-column: 1; }
+  /* the contents take the right-hand column beside every card of the reading column (--rows, set by Contents) and stay
+     in view while it scrolls: a column of their own, so they cover nothing */
+  .mx-board > .mx-toc {
+    grid-column: 2; grid-row: 1 / span var(--rows, 7); position: sticky; top: 24px; max-height: calc(100vh - 48px);
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  .mx-ans {
+    grid-template-columns: minmax(0, 648fr) minmax(0, 448fr); grid-template-areas: "verdict sum" "why sum";
+    grid-template-rows: auto 1fr; column-gap: 48px; row-gap: 18px; align-items: start;
+  }
+  .mx-verdict { grid-area: verdict; }
+  .mx-why { grid-area: why; }
+  .mx-sum-box { grid-area: sum; }
+  .mx-sum-box { padding-top: 4px; }
+}
+
+/* ---------- phone ---------- */
+@media (max-width: 599px) {
+  .mx-board { gap: 12px; }
+  .mx-ev { margin-top: 12px; }
+  .mx-h3 { margin-top: 26px; }
+  .mx-sp { margin-top: 20px; }
+  .mx-fig { margin-top: 20px; }
+  .mx-per { font-size: var(--fs-2); }
+  .mx-more { width: 100%; }
+  .mx-sb-head .seg { width: 100%; }
+}
+
+/* a forced-colours theme drops fills: the drawings are redrawn in system colours */
+@media (forced-colors: active) {
+  .mx-sp, .mx-plot, .mx-key { forced-color-adjust: none; }
+  .mx-sp-track, .mx-plot::before { background: GrayText; }
+  .mx-sp-paid, .mx-ci, .mx-key-ci { background: CanvasText; }
+  .mx-sp-end, .mx-sp-fair, .mx-zero, .mx-key-zero { background: CanvasText; box-shadow: none; }
+  .mx-sp-you, .mx-dot, .mx-key-dot { background: Highlight; box-shadow: none; }
+  .mx-sp, .mx-sp *, .mx-key { color: CanvasText; }
+  .mx-toc a[aria-current] { outline: 2px solid CanvasText; outline-offset: -2px; }
+}
+
+/* nothing glides or turns for anyone who asked for less motion (index.css stops every transition too) */
+@media (prefers-reduced-motion: reduce) {
+  .mx-ci, .mx-dot, .mx-faq summary svg, .mx-more svg, .mx-more-d > summary svg { transition: none; }
+}
