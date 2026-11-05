@@ -1,8 +1,10 @@
-// trading-firms/: who fills retail orders. One column of cards: the trading firms' prices on the same stocks and order sizes
-// (ranked rails that glide and re-rank when the stock switch flips), their share of off-exchange trading, which broker sends
-// orders where, and one broker's routing and payments ("By broker"), which a broker page's payment "Details" opens as
-// trading-firms/#<slug>. The filters are shared with the compare and all-firms pages (App.tsx); the Apex switch sits in the
-// routing card, the only part it changes, so the bar fits one row and sticks on a desktop. Styles: components/trading/.
+// trading-firms/: who fills retail orders. One column of cards in the order a visitor asks, the same on a phone: the trading
+// firms' prices on the same stocks and order sizes (ranked rails that glide and re-rank when the stock switch flips), which
+// broker sends orders where, one broker's routing and payments ("By broker", straight under the table whose names open it;
+// a broker page's payment "Details" opens it as trading-firms/#<slug>), and last the firms' share of off-exchange trading,
+// market context that no filter changes. The filters are shared with the compare and all-firms pages (App.tsx); the Apex
+// switch sits in the routing card, the only part it changes, so the bar fits one row and sticks on a desktop.
+// Styles: components/trading/.
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { EChart } from "../charts/EChart";
 import { lines } from "../charts/options";
@@ -133,21 +135,8 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
           ) : <Empty>No detailed reports for {detail} yet.</Empty>}
         </Card>
 
-        <Card title="Share of off-exchange stock trading"
-          sub={qs.length ? `FINRA volume data · full quarters, ${quarterName(firstQ)} to ${quarterName(lastQ)}` : "FINRA volume data"}
-          info="Each firm's share of the stock trading FINRA records away from the exchanges, by quarter. The quarter still in progress is left out."
-          infoTopic="off-exchange trading">
-          {volumeSay && <p className="tf-say">{volumeSay}</p>}
-          {qs.length ? (
-            <>
-              <Legend items={firms.map((name) => ({ color: `var(--s${colourOf(name) + 1})`, label: trim(name) }))} />
-              <EChart option={otcChart} height={300} label="Each firm's share of off-exchange stock trading by quarter" />
-              <ChartTable caption="Share of off-exchange stock trading by firm and quarter" head={["Quarter", ...firms.map(trim)]}
-                rows={qs.map((q) => [quarterLong(q), ...firms.map((name) => { const v = shareAt(name, q); return v == null ? NONE : pct(v, 1); })])} />
-            </>
-          ) : <Empty>No FINRA volume data yet.</Empty>}
-        </Card>
-
+        {/* straight after the prices, whose foot says a firm's figure mixes in the brokers that send it orders: this table
+            shows which ones; it stays directly above "By broker", which its names open */}
         <RoutingMatrix d={d} f={f} set={set} pick={pick} />
 
         <section ref={section} id="by-broker" className="card tf-by" aria-labelledby="by-broker-h">
@@ -171,6 +160,23 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
             </a>
           )}
         </section>
+
+        {/* last: market context (all off-exchange volume, not only retail orders) and the one card no filter changes, so the
+            cards the filters change sit together under the bar */}
+        <Card title="Share of off-exchange stock trading"
+          sub={qs.length ? `FINRA volume data · full quarters, ${quarterName(firstQ)} to ${quarterName(lastQ)}` : "FINRA volume data"}
+          info="Each firm's share of the stock trading FINRA records away from the exchanges, by quarter. The quarter still in progress is left out."
+          infoTopic="off-exchange trading">
+          {volumeSay && <p className="tf-say">{volumeSay}</p>}
+          {qs.length ? (
+            <>
+              <Legend items={firms.map((name) => ({ color: `var(--s${colourOf(name) + 1})`, label: trim(name) }))} />
+              <EChart option={otcChart} height={300} label="Each firm's share of off-exchange stock trading by quarter" />
+              <ChartTable caption="Share of off-exchange stock trading by firm and quarter" head={["Quarter", ...firms.map(trim)]}
+                rows={qs.map((q) => [quarterLong(q), ...firms.map((name) => { const v = shareAt(name, q); return v == null ? NONE : pct(v, 1); })])} />
+            </>
+          ) : <Empty>No FINRA volume data yet.</Empty>}
+        </Card>
       </div>
     </div>
   );
