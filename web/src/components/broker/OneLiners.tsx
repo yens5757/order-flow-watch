@@ -1,5 +1,5 @@
-// Two one-line cards under the answer: what the broker is paid for its customers' orders (Rule 606, the quarter named,
-// a late filer's previous quarter named as such), and who it is registered as (FINRA BrokerCheck, SIPC).
+// Two one-line cards under the ranked table: what the broker is paid for its customers' orders (Rule 606, the quarter
+// named, a late filer's previous quarter named as such), and who it is registered as (FINRA BrokerCheck, SIPC).
 import { payAmount, payWhen, type Group } from "../../lib/broker";
 import type { Data, Firm } from "../../lib/data";
 import { href, pagePath } from "../../lib/routes";

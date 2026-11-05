@@ -1,8 +1,9 @@
 // brokers/<slug>/: one broker, one calm answer. First what its customers paid above the fair price per $10,000 traded and
-// where that ranks among the brokers, then what a typical year costs; then what it is paid for orders, its registration,
-// every broker around it in a table, its fees and where to go next. The page keeps its own filters (market orders, all
+// where that ranks among the brokers, then what a typical year costs; then every broker around it in a table, what it is
+// paid for orders, its registration, its fees and where to go next. The page keeps its own filters (market orders, all
 // sizes under $200,000, the latest month and payment quarter) whatever was picked elsewhere; its one control is the
-// S&P 500 / other stocks switch. Composition: .impeccable/mocks/mvp/consumer-app-sage.html (owner-approved).
+// S&P 500 / other stocks switch, under the name and right above the cards, as every page's controls sit. Composition:
+// .impeccable/mocks/mvp/consumer-app-sage.html (owner-approved); placement reviewed Nov 2026 (the page's brief).
 // Routing, payment history and cost by order size moved: the payment line's "Details" opens this broker's section on the
 // trading-firms page, and the brokers explorer has order size, execution speed and fractional shares as measures.
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -84,26 +85,29 @@ export default function BrokerProfile({ d, id }: { d: Data; id: string }) {
 
   return (
     <>
+      {/* the page header as on every page: the breadcrumb, the name close under it, then the one switch with its scope
+          right above the cards it changes */}
       <Breadcrumb up="Brokers" upHref={href(pagePath("brokers"))} here={firm.short} />
+      <h1 className="bp-h1">{firm.short}</h1>
       <div className="bp-filter">
         <StockSwitch onPick={announce} onBefore={snapshot} />
         <p className="bp-scope">Market orders · {month}</p>
       </div>
-      <h1 className="bp-h1">{firm.short}</h1>
       <p className="sr-only" aria-live="polite">{said}</p>
 
-      {/* Two independent stacks on a desktop (broker.css), so no card stretches to the other column's height: the answer
-          and its evidence on the left, the year, fees and next steps on the right. The yearly card is in the page twice
-          and CSS shows one: on phones and tablets the copy right after the price card (the answer, then the year, then the
-          rest), on a desktop the copy heading the right-hand column. The hidden copy is display:none, so it is neither
-          read nor reached by Tab. */}
+      {/* Two independent stacks on a desktop (broker.css), so no card stretches to the other column's height. On the left
+          the answer, the ranked table straight under the rank it lists (so the switch's glide and re-sort read together),
+          then what the broker is paid and its registration; on the right the year, the fees behind it and next steps.
+          The yearly card is in the page twice and CSS shows one: on phones and tablets the copy right after the price card
+          (the answer, the year, the table, then the rest: Home's and Compare's order), on a desktop the copy heading the
+          right-hand column. The hidden copy is display:none, so it is neither read nor reached by Tab. */}
       <div className={`bp-board${clearing ? " is-clearing" : ""}`}>
         <div className="bp-col">
           <PriceCard d={d} views={views} onSeeAll={() => setAll(true)} />
           {year && <YearCard d={d} firm={firm} y={year} at="flow" />}
+          <WhereSits d={d} firm={firm} views={views} all={all} setAll={setAll} />
           {!clearing && <PaymentLine firm={firm} views={views} />}
           {!clearing && <TrustLine d={d} firm={firm} />}
-          <WhereSits d={d} firm={firm} views={views} all={all} setAll={setAll} />
         </div>
         {!clearing && (
           <div className="bp-col">
