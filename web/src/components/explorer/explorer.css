@@ -1,0 +1,178 @@
+/* The brokers explorer (pages/Explore.tsx and the components beside this file), in the broker page's world (DESIGN.md):
+   the controls on the ground over what they change, the chart card (a ranked rail chart in the price scale's anatomy,
+   or a named scatter), the table card, and on phones and tablets the bottom sheet that holds the controls. Colours,
+   type steps, radii and shadows are the tokens in src/index.css; the shared pieces (.sel, .segm, .tgl, .card, .btn)
+   come from ui.css and index.css and are only adjusted here inside the explorer's own classes. */
+
+/* ---------- beside the h1: "Change view" (phones and tablets) and "Copy link" ---------- */
+.ex-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ex-said { font-size: var(--fs-1); font-weight: 600; line-height: 1.35; color: var(--ink-2); }
+
+/* ---------- the controls: every label above its control ---------- */
+.ex-ctl { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+/* labels line up along the top of a row (a pill switch is a little taller than a select) */
+.ex-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 24px; }
+.ex-f { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; max-width: 100%; }
+.ex-l { font-size: var(--fs-1); font-weight: 600; line-height: 1.35; color: var(--ink-2); }
+.ex-with { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; }
+/* the shared select puts its label beside the pill; here it sits above, like every other label */
+.ex-ctl .sel { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 6px; }
+.ex-ctl .sel-box { max-width: 100%; }
+.ex-gsel select { width: min(24rem, 100%); }
+.ex-reset { align-self: flex-end; margin-left: auto; }
+
+/* the Brokers button: drawn like the select pills beside it; it opens the broker chips in place */
+.ex-pick {
+  display: inline-flex; align-items: center; justify-content: space-between; gap: 14px; min-width: 11rem; min-height: 48px;
+  padding: 0 16px 0 20px; border: 2px solid var(--accent); border-radius: 999px; background: var(--surface);
+  color: var(--ink); font-weight: 600; cursor: pointer;
+}
+.ex-pick:hover { background: var(--accent-soft); }
+.ex-pick svg { color: var(--accent); transition: transform .35s var(--ease-out); }
+.ex-pick:hover svg { color: var(--accent-hover); }
+.ex-pick[aria-expanded="true"] svg { transform: rotate(180deg); }
+/* the transparent edge only shows in forced colours, where the card's shadow is dropped */
+.ex-panel { padding: 22px 26px 18px; border: 1px solid transparent; }
+.ex-panel[hidden] { display: none; }
+
+/* the broker chips: checkboxes drawn as pills; a shown broker is teal-tinted with a check, a hidden one an outline */
+.ex-chipset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.ex-legend { float: left; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0; font-weight: 700; }
+.ex-count { font-weight: 500; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.ex-chip-acts { display: flex; justify-content: flex-end; gap: 4px 20px; min-height: 44px; }
+.ex-act {
+  display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); font-weight: 700; cursor: pointer;
+  text-underline-offset: 4px;
+}
+.ex-act:hover { color: var(--accent-hover); text-decoration: underline; }
+.ex-chips { clear: both; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.ex-chip { position: relative; display: inline-flex; }
+.ex-chip input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.ex-chip span {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; border: 2px solid var(--mark);
+  border-radius: 999px; background: var(--surface); color: var(--ink); font-weight: 600; white-space: nowrap; cursor: pointer;
+  user-select: none;
+}
+.ex-chip span:hover { background: var(--accent-soft); }
+.ex-chip input:checked + span { padding-left: 12px; border-color: var(--accent); background: var(--accent-soft); color: var(--accent-hover); }
+.ex-chip input:checked + span:hover { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+.ex-chip input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 3px; }
+.ex-switches { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 32px; margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--border); }
+
+/* ---------- the two cards ---------- */
+/* minmax(0, 1fr): the wide table scrolls inside its own box instead of stretching the cards past the page */
+.ex-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+/* the generated sentence: the answer, at lead size, right under the card's heading */
+/* 56ch of Figtree at this size is about 75 characters a line */
+.ex-say { max-width: 56ch; margin-bottom: 24px; font-size: var(--fs-3); line-height: 1.55; text-wrap: pretty; }
+.ex-say b { font-weight: 700; }
+.ex-quiet { color: var(--ink-2); }
+/* the sort switch's wrapper only exists to be hidden without a script: it adds no box of its own */
+.ex-sort { display: contents; }
+.ex-empty { align-content: center; gap: 16px; }
+.ex-empty p { max-width: 40ch; }
+.ex-cards .card-foot p + p { margin-top: 6px; }
+.ex-unk { font-weight: 600; color: var(--ink-2); }
+
+/* ---------- the ranked rail chart (RankChart.tsx): the price scale, one row per broker ---------- */
+.ex-rank { --r: 7px; --name: 8.5rem; --val: 5.5rem; --gap: 14px; }
+.ex-rank-edge, .ex-rank-row { display: grid; grid-template-columns: var(--name) minmax(0, 1fr) var(--val); column-gap: var(--gap); }
+.ex-rank-edge { height: 26px; }
+.ex-axis { position: relative; }
+.ex-rank-row { align-items: center; min-height: 32px; }
+.ex-rank-nm { font-size: var(--fs-1); font-weight: 600; line-height: 1.2; text-align: right; overflow-wrap: anywhere; }
+.ex-rank-v { font-size: var(--fs-1); font-weight: 700; line-height: 1.2; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ex-rail { position: relative; align-self: stretch; }
+.ex-rail::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 6px; margin-top: -3px; border-radius: 999px; background: var(--track); }
+/* a mark sits at its true place between the rail's ends, inset by the dot's radius so an end dot stays on the rail */
+.ex-zero, .ex-typ, .ex-dot, .ex-typ-l, .ex-zero-l { position: absolute; }
+.ex-zero { top: 0; bottom: 0; left: calc(var(--r) + (100% - 2 * var(--r)) * var(--z)); width: 1px; margin-left: -.5px; background: var(--mark); }
+.ex-typ {
+  top: 50%; left: calc(var(--r) + (100% - 2 * var(--r)) * var(--t)); width: 3px; height: 14px; margin: -7px 0 0 -1.5px;
+  border-radius: 2px; background: var(--mark); box-shadow: 0 0 0 2px var(--surface);
+}
+.ex-dot {
+  top: 50%; left: calc(var(--r) + (100% - 2 * var(--r)) * var(--p)); width: 14px; height: 14px; margin: -7px 0 0 -7px;
+  border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 2px var(--surface);
+}
+.ex-typ-l, .ex-zero-l { white-space: nowrap; font-size: var(--fs-1); line-height: 1.2; color: var(--ink-2); }
+.ex-typ-l { bottom: 6px; left: calc(var(--r) + (100% - 2 * var(--r)) * var(--t)); transform: translateX(var(--tx, -50%)); }
+.ex-typ-l b { font-weight: 700; color: var(--ink); }
+.ex-zero-l { top: 6px; left: calc(var(--r) + (100% - 2 * var(--r)) * var(--z)); transform: translateX(var(--zx, -50%)); }
+/* the glide: a dot, the typical tick and their labels travel to a new value on the one curve */
+.ex-dot, .ex-typ, .ex-zero, .ex-typ-l, .ex-zero-l { transition: left .8s var(--ease-out); }
+
+/* ---------- the bottom sheet (Sheet.tsx): phones and tablets ---------- */
+html.ex-locked { overflow: hidden; }
+.ex-sheet {
+  position: fixed; inset: auto 0 0 0; width: 100%; max-width: min(40rem, 100%); max-height: calc(100% - 72px); margin: 0 auto;
+  padding: 0; overflow: hidden; border: 1px solid transparent; border-bottom: 0; border-radius: 20px 20px 0 0;
+  background: var(--surface); color: var(--ink); box-shadow: var(--pop);
+}
+.ex-sheet[open] { display: flex; flex-direction: column; animation: ex-rise .4s var(--ease-out); }
+@keyframes ex-rise { from { transform: translateY(32px); opacity: 0; } to { transform: none; opacity: 1; } }
+.ex-sheet::backdrop { background: rgb(16 40 34 / .42); }
+:root[data-theme="dark"] .ex-sheet::backdrop { background: rgb(0 0 0 / .6); }
+.ex-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 14px 20px; border-bottom: 1px solid var(--border); }
+.ex-sheet-head h2 { font-size: var(--fs-4); line-height: 1.25; font-weight: 800; letter-spacing: -.015em; }
+.ex-sheet-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 18px 20px 26px; scrollbar-width: thin; scrollbar-color: var(--mark) transparent; }
+.ex-sheet-foot { display: flex; gap: 12px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border); }
+.ex-done { flex: 1 1 auto; }
+/* in the sheet every control takes the full width, one under another */
+.ex-stack { gap: 22px; }
+.ex-stack .ex-f, .ex-stack .sel, .ex-stack .sel-box, .ex-stack select, .ex-stack .ex-gsel select { width: 100%; }
+.ex-stack .ex-with { display: flex; width: 100%; }
+.ex-stack .segm { display: flex; flex: 1 1 auto; width: 100%; }
+.ex-stack .segm > button { flex: 1 1 0; padding: 0 12px; }
+.ex-stack .ex-brokers { padding-top: 6px; border-top: 1px solid var(--border); }
+.ex-stack .ex-chip-acts { justify-content: flex-start; clear: both; }
+.ex-stack .ex-legend { float: none; }
+.ex-stack .ex-chips { margin-top: 4px; }
+
+/* ---------- where each layout shows ---------- */
+.ex-bar { display: none; }
+@media (min-width: 1024px) {
+  .ex-bar { display: grid; }
+  .btn.ex-open { display: none; }
+  .ex-cards { margin-top: 24px; }
+}
+
+/* ---------- press feedback ---------- */
+.ex-pick, .ex-chip span, .ex-act { transition: transform .5s var(--ease-out), background-color .2s, color .2s; }
+.ex-pick:active, .ex-chip span:active { transform: scale(.95); }
+
+/* ---------- phones ---------- */
+@media (max-width: 599px) {
+  .ex-cards { gap: 12px; }
+  .ex-say { margin-bottom: 18px; }
+  .ex-rank { --name: 6.25rem; --val: 4.5rem; --gap: 10px; }
+  .ex-sheet { max-height: calc(100% - 56px); }
+  .ex-sheet-body { padding: 16px 16px 24px; }
+  .ex-sheet-foot { padding-inline: 16px; }
+}
+@media (max-width: 359px) {
+  .ex-rank { --name: 5.25rem; --val: 4.25rem; --gap: 8px; }
+  .ex-acts .btn { padding: 0 16px; }
+}
+
+/* the system's dark mode when no theme was picked: the same backdrop as the picked dark theme */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ex-sheet::backdrop { background: rgb(0 0 0 / .6); }
+}
+
+/* ---------- forced colours: fills drop out, so the marks and the chosen chips take system colours ---------- */
+@media (forced-colors: active) {
+  .ex-rank { forced-color-adjust: none; color: CanvasText; }
+  .ex-rank * { color: CanvasText; }
+  .ex-rail::before { background: GrayText; }
+  .ex-typ, .ex-zero { background: CanvasText; box-shadow: none; }
+  .ex-dot { background: Highlight; box-shadow: none; }
+  .ex-chip input:checked + span { forced-color-adjust: none; border-color: Highlight; background: Highlight; color: HighlightText; }
+}
+
+/* ---------- nothing moves for anyone who asked for less motion (index.css stops every transition too) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .ex-dot, .ex-typ, .ex-zero, .ex-typ-l, .ex-zero-l, .ex-pick svg { transition: none; }
+  .ex-sheet[open] { animation: none; }
+  .ex-pick:active, .ex-chip span:active { transform: none; }
+}
