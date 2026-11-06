@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { EChart } from "../charts/EChart";
 import { lines } from "../charts/options";
 import { FilterBar } from "../components/Filters";
+import { SETTLE, whole } from "../components/compare/Picker";
 import { ByBroker } from "../components/trading/ByBroker";
 import { firmSlots, quarterName, RULE_606, trim } from "../components/trading/names";
 import { PriceRails } from "../components/trading/PriceRails";
@@ -95,20 +96,44 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
   }, [d]);
   const picked = d.bySlug[pick] ?? brokerList[0];
 
-  // the picker only reports a choice; "Show" moves the address to it, which opens that broker's section (never on change)
+  // the picker only reports a choice; "Show" moves the address to it, which opens that broker's section (never on change).
+  // While the select names a broker other than the one shown, "Show" turns solid and names it ("Show Webull"), a line
+  // beside it says who is on screen, and the status line says the pick once it has settled (as Compare's picker does).
   const [choice, setChoice] = useState(pick);
   useEffect(() => setChoice(pick), [pick]);
+  const chosen = d.bySlug[choice];
+  const pending = !!chosen && !!picked && chosen.id !== picked.id;
   const show = (e: FormEvent) => {
     e.preventDefault();
+    const here = document.activeElement;
     if (location.hash.slice(1) === choice) section.current?.scrollIntoView({ block: "start" });
     else location.hash = choice;
+    // a jump to a #<slug> anchor (not focusable) hands focus to the page: keep it on "Show", where the visitor is
+    if (here instanceof HTMLElement && here !== document.body && document.activeElement !== here) here.focus({ preventScroll: true });
   };
-  // a change of broker, said once it has happened
   const [said, setSaid] = useState("");
   const shown = useRef(pick);
+  // the broker the status line last said was picked (null: none since the section last changed)
+  const told = useRef<string | null>(null);
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const choose = (v: string) => {
+    setChoice(v);
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => {
+      if (v === shown.current) { if (told.current) { told.current = null; setSaid(""); } }
+      else if (v !== told.current && d.bySlug[v]) {
+        told.current = v;
+        setSaid(`${d.bySlug[v].short} picked; press Show to see it.`);
+      }
+    }, SETTLE);
+  };
+  // a change of broker, said once it has happened (a pick still waiting to be said is moot then)
   useEffect(() => {
     if (shown.current === pick) return;
     shown.current = pick;
+    window.clearTimeout(timer.current);
+    told.current = null;
     if (picked) setSaid(`Showing ${picked.short}: where its orders go and what it is paid.`);
   }, [pick]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -147,9 +172,13 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
               <h2 id="by-broker-h" className="card-title">{picked?.short}: where its orders go and what it is paid</h2>
               {picked && files606(d, picked.crd) && <p className="card-sub">From its own payment reports ({RULE_606})</p>}
             </div>
-            <form className="card-right tf-pick js-only" onSubmit={show}>
-              <Select label="Broker" value={choice} onChange={setChoice} options={brokerList.map((b) => [b.slug, nameOf(b)] as [string, string])} />
-              <button type="submit" className="btn btn-solid">Show</button>
+            {/* under the heading at every width (not in its right-hand slot), so a longer "Show <broker>" never moves the select */}
+            <form className="tf-pick js-only" onSubmit={show}>
+              <Select label="Broker" value={choice} onChange={choose} options={brokerList.map((b) => [b.slug, nameOf(b)] as [string, string])} />
+              <button type="submit" className={`btn ${pending ? "btn-solid" : "btn-ghost"} tf-show`}>
+                {pending ? `Show ${whole(chosen.short)}` : "Show"}
+              </button>
+              {pending && <p className="tf-shown">Showing {whole(picked.short)}</p>}
             </form>
           </div>
           <p className="sr-only" role="status">{said}</p>

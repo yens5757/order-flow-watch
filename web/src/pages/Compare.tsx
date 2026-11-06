@@ -62,7 +62,9 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
             </p>
           )}
         </div>
-        <Picker d={d} A={A} B={B} />
+        {/* under the heading at every width, so a pick that names a new pair can say so in place without moving a box;
+            on compare/ the intro above it already says which pair is shown */}
+        <Picker d={d} A={A} B={B} showing={explicit} />
       </div>
 
       <div className="cmp-filter" role="group" aria-label="Filters">
@@ -87,7 +89,7 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
         // on phones and tablets (where cost by order size follows the table), under cost by order size on a desktop.
         <div className="cmp-board">
           <div className="cmp-col">
-            <AnswerCard d={d} f={f} A={A} B={B} rA={rA} rB={rB} pA={pA} pB={pB} feeA={feeA} feeB={feeB} places={places} monthName={monthName} />
+            <AnswerCard d={d} f={f} A={A} B={B} rA={rA} rB={rB} places={places} monthName={monthName} />
             <YearPair d={d} A={A} B={B} years={years} at="flow" />
             <SideBySide d={d} f={f} A={A} B={B} rA={rA} rB={rB} feeA={feeA} feeB={feeB} monthName={monthName} />
           </div>

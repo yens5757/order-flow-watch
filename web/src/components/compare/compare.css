@@ -13,9 +13,23 @@ html:has(.cmp-tbl) { scroll-padding-top: 72px; }
 
 /* ---------- the heading and the pair picker ---------- */
 .ph.cmp-head { margin-bottom: 20px; }
-.cmp-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; min-width: 0; }
+/* under the heading at every width, so nothing moves when a pick names a new pair: the two boxes stay put, "Compare"
+   turns solid and names the pair (growing to the right, its words wrapping inside it rather than past the edge), and the
+   line after it says which pair is on screen */
+.cmp-pick { display: flex; flex: 1 1 100%; flex-wrap: wrap; align-items: center; gap: 10px 12px; min-width: 0; }
+.cmp-boxes { display: flex; align-items: center; gap: 12px; min-width: 0; max-width: 100%; }
 .cmp-pick .sel select { padding: 0 42px 0 18px; }
 .cmp-vs { font-weight: 600; color: var(--ink-2); }
+.cmp-go {
+  max-width: 100%; padding-block: 8px; white-space: normal; text-align: center;
+  transition: transform .5s var(--ease-out), background-color .2s, border-color .2s, color .2s, box-shadow .25s;
+}
+.cmp-go-t { min-width: 0; text-wrap: balance; }
+.cmp-shown { color: var(--ink-2); font-weight: 500; }
+/* a tablet: "Compare" on its own line under the boxes, since a long pair's name doesn't fit beside them at this width */
+@media (min-width: 600px) and (max-width: 1023px) {
+  .cmp-boxes { flex-basis: 100%; }
+}
 
 /* ---------- the two filters and the month ---------- */
 .cmp-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
@@ -55,9 +69,8 @@ html:has(.cmp-tbl) { scroll-padding-top: 72px; }
 .cmp-lead { font-size: var(--fs-4); line-height: 1.3; font-weight: 700; letter-spacing: -.01em; text-wrap: balance; }
 .cmp-places { margin-top: 24px; }
 .cmp-answer .scale { margin-top: 22px; }
-.cmp-say { margin-top: 22px; max-width: 60ch; }
-.cmp-say p { font-size: var(--fs-3); line-height: 1.55; }
-.cmp-say p + p { margin-top: 12px; }
+/* the one sentence, at the broker page's lead size; the ruled foot under it is the shared card foot (ui.css) */
+.cmp-say { margin-top: 22px; max-width: 60ch; font-size: var(--fs-3); line-height: 1.55; }
 
 /* the scale's table: every broker it places, the two compared on Here-tinted rows */
 .cmp-rank { margin-top: 10px; }
@@ -151,10 +164,12 @@ html.js .cmp-tbl .c-more:not(.open) { display: none; }
 /* ---------- phone ---------- */
 @media (max-width: 599px) {
   .ph.cmp-head { margin-bottom: 16px; }
-  /* the picker spans the width: the two boxes side by side, "Compare" under them */
-  .cmp-pick { display: grid; flex: 1 1 100%; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  /* the picker spans the width: the two boxes side by side, "Compare" across the width under them, then the line saying
+     which pair is on screen */
+  .cmp-boxes { display: grid; flex-basis: 100%; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); column-gap: 12px; }
   .cmp-pick :is(.sel, .sel-box, select) { width: 100%; }
-  .cmp-pick .btn { grid-column: 1 / -1; }
+  .cmp-go, .cmp-shown { flex-basis: 100%; }
+  .cmp-shown { font-size: var(--fs-1); line-height: 1.35; }
   .cmp-filter { gap: 10px; }
   .cmp-ot { display: flex; width: 100%; gap: 8px; }
   .cmp-ot .segm { flex: 1 1 auto; width: auto; min-width: 0; }
@@ -198,7 +213,7 @@ html.js .cmp-tbl .c-more:not(.open) { display: none; }
 }
 /* the smallest phones: the two boxes one above the other */
 @media (max-width: 359px) {
-  .cmp-pick { grid-template-columns: minmax(0, 1fr); }
+  .cmp-boxes { grid-template-columns: minmax(0, 1fr); row-gap: 10px; }
   .cmp-vs { display: none; }
 }
 

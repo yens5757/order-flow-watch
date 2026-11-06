@@ -1,16 +1,18 @@
-// The answer: how much less one broker's customers paid above the fair price per $10,000 traded (the one big figure), each
-// broker's own figure and rank, both of them on the neutral scale among every broker, and the generated short answer: the
-// same-stock check, what each was paid, and whether fees change the picture. "Show as a table" under the scale lists every
-// broker it places, the two compared on Here-tinted rows.
+// The answer, in the broker page's pattern: how much less one broker's customers paid above the fair price per $10,000
+// traded (the one big figure), each broker's own figure and rank, both of them on the neutral scale among every broker,
+// and one generated sentence on the two measures (on average, and on the same stocks and order sizes: pair.ts
+// pairSentence). What each is paid and the fees have cards of their own, so the card doesn't restate them; its ruled
+// foot says what it isn't, in one line. "Show as a table" under the scale lists every broker it places, the two compared
+// on Here-tinted rows.
 import { useRef } from "react";
-import { money, rankWords, scaleOf, type Pay, type Place } from "../../lib/broker";
-import type { Data, Fee, Filters, Firm, Metric } from "../../lib/data";
+import { money, rankWords, scaleOf, type Place } from "../../lib/broker";
+import type { Data, Filters, Firm, Metric } from "../../lib/data";
 import { FAIR_COL, fairText } from "../../lib/metrics";
 import { brokerPath, href, pagePath } from "../../lib/routes";
 import { Scale } from "../broker/Scale";
 import { FairCell } from "../broker/WhereSits";
 import { Icon, Info, useSideScroll } from "../ui";
-import { capital, gapMoney, gapOf, moneyText, noPrice, ordersWord, priceText, sideOf, stocksWord } from "./pair";
+import { capital, gapMoney, gapOf, noPrices, ordersWord, pairSentence, sideOf, stocksWord } from "./pair";
 
 function RankTable({ places, A, B, caption }: { places: Place[]; A: Firm; B: Firm; caption: string }) {
   const ours = (id: string) => id === A.id || id === B.id;
@@ -50,10 +52,11 @@ function RankTable({ places, A, B, caption }: { places: Place[]; A: Firm; B: Fir
   );
 }
 
-export function AnswerCard({ d, f, A, B, rA, rB, pA, pB, feeA, feeB, places, monthName }: {
-  d: Data; f: Filters; A: Firm; B: Firm; rA: Metric; rB: Metric; pA: Pay; pB: Pay; feeA?: Fee; feeB?: Fee; places: Place[]; monthName: string;
+export function AnswerCard({ d, f, A, B, rA, rB, places, monthName }: {
+  d: Data; f: Filters; A: Firm; B: Firm; rA: Metric; rB: Metric; places: Place[]; monthName: string;
 }) {
   const g = gapOf(A, B, rA, rB);
+  const say = pairSentence(f, A, B, rA, rB);
   const pairs: [Firm, Metric][] = [[A, rA], [B, rB]];
   const rank = (F: Firm) => {
     const p = places.find((x) => x.m.id === F.id);
@@ -78,9 +81,7 @@ export function AnswerCard({ d, f, A, B, rA, rB, pA, pB, feeA, feeB, places, mon
           </p>
         </div>
       ) : (
-        <p className="cmp-lead">
-          {pairs.filter(([, r]) => r.cost10k == null).map(([F]) => capital(noPrice(d, F, f.month, monthName))).join(". ")}
-        </p>
+        <p className="cmp-lead">{noPrices(d, pairs.filter(([, r]) => r.cost10k == null).map(([F]) => F), f.month, monthName)}</p>
       )}
 
       <dl className="cmp-rows cmp-places">
@@ -101,14 +102,13 @@ export function AnswerCard({ d, f, A, B, rA, rB, pA, pB, feeA, feeB, places, mon
           caption={`Brokers by price above the fair price per $10,000 traded, ${stocksWord(f.sp)}, ${orders}, ${monthName}`} />
       )}
 
-      <div className="cmp-say">
-        <p>{priceText(d, f, A, B, rA, rB, monthName).join(" ")}</p>
-        <p>{moneyText(A, B, pA, pB, feeA, feeB, g).join(" ")}</p>
+      {say && <p className="cmp-say">{say}</p>}
+      <div className="card-foot">
+        <p>
+          Not a verdict on which broker is better overall.{" "}
+          <a className="cmp-a" href={href(pagePath("calculator"))}>Yearly cost calculator</a>
+        </p>
       </div>
-      <p className="cmp-note">
-        Not a verdict on which broker is better overall; for your own habits, use the{" "}
-        <a className="cmp-a" href={href(pagePath("calculator"))}>yearly cost calculator</a>.
-      </p>
     </section>
   );
 }

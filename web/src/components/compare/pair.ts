@@ -1,9 +1,9 @@
 // The numbers and words of a comparison page, generated from the data. Pure (no window, no React), so the pre-render and
 // the browser state the same answer. One price measure, as on the broker pages: dollars paid above the fair price per
 // $10,000 traded (Metric.cost10k), compared on the cents each page shows.
-import { cents, money, payAmount, payWhen, SP_GAP, type Pay, type Place } from "../../lib/broker";
+import { cents, money, SP_GAP, type Place } from "../../lib/broker";
 import { brokerRows, type Data, type Fee, type FeeKey, type Filters, type Firm, type Metric, type Ot, type Sp } from "../../lib/data";
-import { num, pct, quarterLong } from "../../lib/format";
+import { num, pct } from "../../lib/format";
 
 /** The page's filters: the visitor's stock group, order type, month and payment quarter; all sizes under $200,000
  *  averaged; retail brokers only (a clearing firm is never ranked, whatever another page last showed). */
@@ -36,6 +36,18 @@ export const reported = (d: Data, id: string, month: string) => {
 export const noPrice = (d: Data, F: Firm, month: string, monthName: string) =>
   reported(d, F.id, month) ? `${F.short}'s ${monthName} report has no figure for these orders` : `${F.short} hasn't published a ${monthName} price report yet`;
 
+/** The answer card's lead when a price is missing, as whole sentences: one for both brokers when the reason is the same
+ *  ("Cash App's and eToro's September 2026 reports have no figure for these orders."), each name as the broker writes it
+ *  ("eToro", never "EToro"). */
+export function noPrices(d: Data, firms: Firm[], month: string, monthName: string): string {
+  if (firms.length === 2) {
+    const [a, b] = firms.map((F) => reported(d, F.id, month));
+    if (a && b) return `${firms[0].short}'s and ${firms[1].short}'s ${monthName} reports have no figure for these orders.`;
+    if (!a && !b) return `${firms[0].short} and ${firms[1].short} haven't published a ${monthName} price report yet.`;
+  }
+  return firms.map((F) => `${noPrice(d, F, month, monthName)}.`).join(" ");
+}
+
 /* ---------- the gap between the two ---------- */
 
 /** Below this many cents per $10,000 the two are "about the same". */
@@ -62,85 +74,38 @@ export const SAME_LEVEL = 1;
 
 /* ---------- the short answer ---------- */
 
-/** First paragraph: who paid less and by how much, then whether that holds on the same stocks and order sizes. */
-export function priceText(d: Data, f: Filters, A: Firm, B: Firm, rA: Metric, rB: Metric, monthName: string): string[] {
-  const out: string[] = [];
+/** The answer card's one sentence, on the two measures it compares, in the words the card's own figure uses: who paid
+ *  less on average (the figure above it; "about the same" within LEVEL cents) and on the same stocks and order sizes
+ *  (market orders of every size, Metric.gap, whatever order type is shown; "level" within SAME_LEVEL points, where the
+ *  side-by-side table ticks neither rank). Said once when the two agree, joined by "but" when they part. What each is
+ *  paid and the fees have cards of their own, so they aren't repeated here. Null when there is nothing to say beyond the
+ *  card's own line about a missing price. */
+export function pairSentence(f: Filters, A: Firm, B: Firm, rA: Metric, rB: Metric): string | null {
   const g = gapOf(A, B, rA, rB);
-  const where = `per $10,000 of ${ordersWord(f.ot)} in ${stocksWord(f.sp)}`;
+  const on = f.ot === "ML" ? "for market orders on the same stocks and order sizes" : "on the same stocks and order sizes";
+  // the same stocks and order sizes: the broker whose customers paid less there, "level", or null without both figures
+  const s = rA.gap != null && rB.gap != null ? rA.gap - rB.gap : null; // > 0: B's customers paid less there
+  const same: Firm | "level" | null = s == null ? null : Math.abs(s) < SAME_LEVEL ? "level" : s > 0 ? B : A;
+  // a broker too few of whose trades match other brokers' has no same-stock figure (the broker page's words)
+  const unmatched = [rA.gap == null ? A : null, rB.gap == null ? B : null].filter((x): x is Firm => !!x);
+  const why = unmatched.length === 2 ? "their" : unmatched.length ? `${unmatched[0].short}'s` : "";
+  const tooFew = `too few of ${why} trades match other brokers' to compare them ${on}`;
+
   if (g.c == null) {
-    const gone = [rA.cost10k == null ? A : null, rB.cost10k == null ? B : null].filter((x): x is Firm => !!x);
-    out.push(`${gone.map((F) => noPrice(d, F, f.month, monthName)).join("; ")}.`);
-  } else if (!g.cheap) {
-    const [a, b] = [rA.cost10k!, rB.cost10k!];
-    const both = sideOf(a) === sideOf(b) ? `${money(Math.abs(a))} and ${money(Math.abs(b))} ${sideOf(a)}` : `${money(Math.abs(a))} ${sideOf(a)} and ${money(Math.abs(b))} ${sideOf(b)}`;
-    out.push(`${capital(where)}, ${A.short} and ${B.short} customers paid about the same: ${both}.`);
-  } else {
-    out.push(`${capital(where)}, ${g.cheap.short} customers paid about ${gapMoney(g.c)} less than ${g.dear!.short} customers.`);
+    // no figure to compare (the card's lead says whose price is missing): only the same stocks and order sizes, if known
+    return same == null ? null : same === "level" ? `${capital(on)}, the two are level.` : `${capital(on)}, ${same.short}'s customers paid less.`;
   }
-  // the same stocks and order sizes: market orders, all sizes (Metric.gap), whatever order type is shown
-  if (rA.gap != null && rB.gap != null) {
-    const s = rA.gap - rB.gap; // > 0: B gets the better price on the same stocks and sizes
-    const ml = f.ot === "ML";
-    const on = ml ? "For market orders on the same stocks and order sizes" : "On the same stocks and order sizes";
-    if (Math.abs(s) < SAME_LEVEL) out.push(`${on}, the two are level.`);
-    else {
-      const ahead = s > 0 ? B : A;
-      out.push(!g.cheap
-        ? `${on}, ${ahead.short} comes out ahead.`
-        : ahead.id === g.cheap.id
-          ? ml ? "For market orders, that holds on the same stocks and order sizes too." : "That holds on the same stocks and order sizes too."
-          : `${on}, though, ${ahead.short} comes out ahead: part of the gap is what each broker's customers trade.`);
-    }
+  if (g.cheap) {
+    const X = g.cheap, Y = g.dear!;
+    if (same == null) return `${X.short}'s customers paid less on average; ${tooFew}.`;
+    if (same === "level") return `${X.short}'s customers paid less on average, but the two are level ${on}.`;
+    return same.id === X.id
+      ? `${X.short}'s customers paid less, on average and ${on}.`
+      : `${X.short}'s customers paid less on average, but ${Y.short}'s paid less ${on}.`;
   }
-  return out;
-}
-
-/** "Fidelity was paid about $0.04 per $10,000", in the broker pages' words: a payment to a trading firm only when the 606
- *  shows one; money that goes to exchanges is exchange fees. */
-function paidPhrase(F: Firm, p: Pay): string {
-  switch (p.kind) {
-    case "none": return `${F.short} files no payment report of its own (another firm routes its orders)`;
-    case "missing": return `${F.short}'s payment report has no figure for these orders this quarter`;
-    case "paid": return `${F.short} was paid about ${payAmount(p)}`;
-    case "pays": return `${F.short} paid its trading firm about ${payAmount(p)}`;
-    case "fees": return `no trading firm paid ${F.short}, which paid about ${payAmount(p)} in exchange fees`;
-    default: return `${F.short} wasn't paid for its customers' orders`;
-  }
-}
-
-/** Second paragraph: what each was paid for the orders (a late filer's quarter named), then whether fees change the picture. */
-export function moneyText(A: Firm, B: Firm, pA: Pay, pB: Pay, feeA: Fee | undefined, feeB: Fee | undefined, g: Gap): string[] {
-  const out: string[] = [];
-  // a late filer's quarter, named once: "(Public: Apr–Jun 2026, the latest it has filed)", "(both from Apr–Jun 2026, …)"
-  const late = ([[A, pA], [B, pB]] as [Firm, Pay][]).filter(([, p]) => p.fallback && p.quarter);
-  const when = !late.length ? ""
-    : late.length === 2 && late[0][1].quarter === late[1][1].quarter ? ` (both from ${quarterLong(late[0][1].quarter!)}, the latest they have filed)`
-      : ` (${late.map(([F, p]) => `${F.short}: ${payWhen(p)}`).join("; ")})`;
-  if (pA.kind === "paid" && pB.kind === "paid" && pA.v != null && pB.v != null) {
-    out.push(`Trading firms paid ${A.short} about ${money(pA.v)} and ${B.short} about ${money(pB.v)} per $10,000 of orders${when}.`);
-  } else {
-    out.push(`${capital(paidPhrase(A, pA))}; ${paidPhrase(B, pB)}${when}.`);
-  }
-  const ca = feeA?.commission ?? null, cb = feeB?.commission ?? null;
-  if (ca != null && cb != null) {
-    if (ca === cb) out.push(ca === 0 ? "Neither charges a stock commission." : `Both charge ${feeDollars(ca)} per stock trade.`);
-    else {
-      const [hi, lo] = ca > cb ? [A, B] : [B, A];
-      const gap = Math.abs(ca - cb);
-      const vs = g.c == null ? "" : `, ${gap * 100 > Math.abs(g.c) ? "more" : "less"} than the price gap on a $10,000 trade`;
-      out.push(`${hi.short} charges ${feeDollars(Math.max(ca, cb))} per stock trade and ${lo.short} ${feeDollars(Math.min(ca, cb))}${vs}.`);
-    }
-  } else {
-    for (const [F, fee] of [[A, feeA], [B, feeB]] as [Firm, Fee | undefined][]) {
-      if (fee?.commission != null) continue;
-      out.push(fee?.varies.includes("commission") ? `${F.short}'s stock commission varies.`
-        : fee && !fee.retail ? `${F.short} publishes no price list (advisor-managed accounts only).`
-          : `${F.short}'s stock commission isn't confirmed yet.`);
-    }
-  }
-  const oa = feeA?.optionsFee ?? null, ob = feeB?.optionsFee ?? null;
-  if (oa != null && ob != null && oa !== ob) out.push(`Options cost ${feeDollars(oa)} per contract at ${A.short} and ${feeDollars(ob)} at ${B.short}.`);
-  return out;
+  if (same == null) return `Both brokers' customers paid about the same on average; ${tooFew}.`;
+  if (same === "level") return `Both brokers' customers paid about the same, on average and ${on}.`;
+  return `Both brokers' customers paid about the same on average, but ${same.short}'s paid less ${on}.`;
 }
 
 /* ---------- fees and other figures, as the broker pages show them ---------- */

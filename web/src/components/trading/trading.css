@@ -117,7 +117,14 @@
 .tf-by { scroll-margin-top: 16px; }
 /* the broker anchors sit at the card's top edge, so a jump to one shows the whole heading */
 .tf-anchor { position: absolute; top: 0; left: 0; width: 1px; height: 1px; scroll-margin-top: 16px; pointer-events: none; }
-.tf-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+/* the picker: under the heading at every width, so the select never moves when "Show" turns solid and names a broker
+   (it grows to the right), with the line saying who is on screen after it */
+.tf-pick { display: flex; flex: 1 1 100%; flex-wrap: wrap; align-items: center; gap: 10px 12px; min-width: 0; }
+.tf-show {
+  max-width: 100%; padding-block: 8px; white-space: normal; text-align: center;
+  transition: transform .5s var(--ease-out), background-color .2s, border-color .2s, color .2s, box-shadow .25s;
+}
+.tf-shown { color: var(--ink-2); font-weight: 500; }
 .tf-parts { display: grid; column-gap: 40px; }
 .tf-part { min-width: 0; margin-top: 26px; padding-top: 24px; border-top: 1px solid var(--border); }
 .tf-part:first-child { margin-top: 4px; padding-top: 0; border-top: 0; }
@@ -154,21 +161,15 @@
 @media (max-width: 599px) {
   .tf-stack { gap: 12px; }
   .tf-say { margin-bottom: 16px; }
-  .tf-pick { width: 100%; flex-wrap: nowrap; }
-  .tf-pick .sel { flex: 1 1 auto; flex-wrap: nowrap; }
+  /* the select across the width ("Edward Jones" shows whole down to 320px), "Show" under it */
+  .tf-pick .sel { flex: 1 1 100%; flex-wrap: nowrap; }
   .tf-pick .sel-box { flex: 1 1 auto; }
   .tf-pick .sel select { width: 100%; }
-  .tf-pick .btn { flex: none; }
+  .tf-shown { font-size: var(--fs-1); line-height: 1.35; }
   .tf-mx-tools { width: 100%; }
   .tf-key th, .tf-key td { padding-inline: 8px; }
   .tf-key tr > :first-child { padding-left: 0; }
   .tf-key tr > :last-child { padding-right: 0; }
-}
-/* phones under 400px: the broker select takes its own row and "Show" goes under it, so the longest name ("Edward Jones")
-   shows whole instead of "W…" */
-@media (max-width: 399px) {
-  .tf-pick { flex-wrap: wrap; }
-  .tf-pick .sel { flex-basis: 100%; }
 }
 /* the smallest phones: the key's four columns a little closer, so they fit before the box has to scroll */
 @media (max-width: 359px) {
