@@ -16,19 +16,19 @@ import { StockSwitch } from "../components/broker/StockSwitch";
 import { WhereSits } from "../components/broker/WhereSits";
 import { YearCard } from "../components/broker/YearCard";
 import { Breadcrumb } from "../components/ui";
-import { cents, groupOf, money, sameStockWords, yearFor, type Group } from "../lib/broker";
+import { cents, groupOf, money, ranksSaid, yearFor, type Group } from "../lib/broker";
 import type { Data, Sp } from "../lib/data";
 import { monthLong } from "../lib/format";
 import { href, pagePath } from "../lib/routes";
 
-/** What the live region says when the switch flips: the group, the price and both ranks the card shows, in one line. */
+/** What the live region says when the switch flips: the group, the price and both ranks the card shows with their bases,
+ *  in one line ("…, 10th cheapest of 25 on average; 13th of 25 on the same stocks and order sizes."). */
 function status(v: Group, month: string): string {
   const c = v.m.cost10k;
   if (c == null) return `${v.name}: no price report for ${month}.`;
   const side = cents(c) > 0 ? "above" : cents(c) < 0 ? "below" : "at";
-  const rank = v.rank ? `, ${v.rank.charAt(0).toLowerCase()}${v.rank.slice(1)}` : "";
-  const same = v.same ? `; ${sameStockWords(v.same)} on the same stocks and order sizes` : "";
-  return `${v.name}: ${money(Math.abs(c))} ${side} the fair price per $10,000 traded${rank}${same}.`;
+  const ranks = ranksSaid(v);
+  return `${v.name}: ${money(Math.abs(c))} ${side} the fair price per $10,000 traded${ranks ? `, ${ranks.charAt(0).toLowerCase()}${ranks.slice(1)}` : ""}.`;
 }
 
 /** Each shown table row's top, relative to the "Where … sits" card, by broker id. */

@@ -51,6 +51,11 @@ html.js .bp-def-note:not(.open) { display: none; }
   align-items: center; align-items: last baseline; column-gap: 16px; margin-top: 22px;
 }
 .bp-rank-l { grid-area: rank; font-size: var(--fs-4); line-height: 1.3; font-weight: 700; letter-spacing: -.01em; text-wrap: balance; }
+/* each rank names its basis, built alike: the rank in 700, its basis in 500 ("10th cheapest of 25 on average"). A rank
+   with a basis wraps greedily, so a narrow column breaks between the two ("10th cheapest of 25" over "on average")
+   rather than balancing "of 25" onto the second line; "of 25" and "on average" are held together (PriceCard.tsx). */
+.bp-rank-l.on { text-wrap: wrap; }
+.bp-on { font-weight: 500; }
 .bp-rank > .go { grid-area: all; }
 /* the rank on the same stocks and order sizes: at the rank's size, in ink; its rank first in the rank's 700, the words
    after it in 500, so the two ranks read down the left edge. One step from the rank's last line to it (about 33px, a
@@ -77,6 +82,8 @@ html.js .bp-def-note:not(.open) { display: none; }
 .bp-rows dd { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
 .bp-rows dd.unknown { font-weight: 600; color: var(--ink-2); }
 .bp-yr-rank { margin-top: 20px; font-weight: 700; line-height: 1.4; text-wrap: balance; }
+/* who the yearly rank is among, said once under the short rank, in secondary ink */
+.bp-yr-pool { margin-top: 2px; color: var(--ink-2); line-height: 1.45; text-wrap: balance; }
 .bp-note { margin-top: 14px; color: var(--ink-2); }
 /* the priced line (cash interest, moving out): its words in secondary ink, its figures in ink like every other figure */
 .bp-cash strong { color: var(--ink); }

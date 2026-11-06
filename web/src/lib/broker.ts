@@ -46,6 +46,12 @@ export function placeBrokers(d: Data, sp: Sp, month: string = d.meta.month): Pla
   return rows.map((m, i) => ({ m, rank: c.indexOf(c[i]) + 1, tied: c.filter((x) => x === c[i]).length > 1 }));
 }
 
+/** What each of the answer card's two ranks ranks on, in the sentence's own words (priceSentence): the price of everything
+ *  a broker's customers traded, averaged, then the same stocks and order sizes. Each rank line ends in its own, so
+ *  neither reads as the verdict over the other. */
+export const ON_AVERAGE = "on average";
+export const ON_SAME = "on the same stocks and order sizes";
+
 /** "10th cheapest of 25", "the cheapest of 25", "the most expensive of 25", "tied 9th cheapest of 25". */
 export function rankWords(places: Place[], p: Place): string {
   const n = places.length, c = cents(p.m.cost10k!);
@@ -117,8 +123,8 @@ export function sameStockRank(d: Data, id: string, sp: Sp): SameRank | null {
   return { rank: p.rank, n: places.length, tied: p.tied, grade: sameStockVerdict(p.rank, places.length, p.tied) };
 }
 
-/** The answer card's same-stock line, numbers first: "13th of 25", "1st of 25", "tied 9th of 25" (then "on the same
- *  stocks and order sizes"). Plain ordinals, so it reads beside the price rank without a score's words. */
+/** The answer card's same-stock line, numbers first: "13th of 25", "1st of 25", "tied 9th of 25" (then ON_SAME). Plain
+ *  ordinals, so it reads beside the price rank without a score's words. */
 export const sameStockWords = (s: SameRank) => `${s.tied ? "tied " : ""}${ordinal(s.rank)} of ${s.n}`;
 
 /** The line behind the same-stock line's (i), in plain words (the points of the spread stay on How we measure): what the
@@ -143,14 +149,13 @@ const tone = (g: Grade) => (g === "first" || g === "top" ? 1 : g === "middle" ? 
  *  because of what its customers trade). `same` null: no same-stock rank, and `unmatched` says it is because too few of
  *  its trades match other brokers'. */
 export function priceSentence(short: string, price: Grade, same: Grade | null, unmatched = false): string {
-  const on = "on the same stocks and order sizes";
   if (same == null) {
     return unmatched
-      ? `${short} is ${PRICE_WORDS[price]} on average; too few of its trades match other brokers' to compare them ${on}.`
-      : `${short} is ${PRICE_WORDS[price]} on average.`;
+      ? `${short} is ${PRICE_WORDS[price]} ${ON_AVERAGE}; too few of its trades match other brokers' to compare them ${ON_SAME}.`
+      : `${short} is ${PRICE_WORDS[price]} ${ON_AVERAGE}.`;
   }
   if (same === price) return `${short} is ${PRICE_WORDS[price]} either way.`;
-  return `${short} is ${PRICE_WORDS[price]} on average${tone(price) === tone(same) ? " and" : ", but"} ${SAME_WORDS[same]} ${on}.`;
+  return `${short} is ${PRICE_WORDS[price]} ${ON_AVERAGE}${tone(price) === tone(same) ? " and" : ", but"} ${SAME_WORDS[same]} ${ON_SAME}.`;
 }
 
 /* ---------- what the broker is paid ---------- */
@@ -233,17 +238,18 @@ export function yearHeadline(l: CostLine): string {
 }
 
 /** Who the yearly rank is among: the habit counts trade prices and commissions only, so a broker is ranked once both its
- *  price groups are reported and its commission is confirmed (every broker has prices today). */
+ *  price groups are reported and its commission is confirmed (every broker has prices today). The yearly cards say it
+ *  once, outside the rank: "Ranked among the 20 brokers whose commission is confirmed." */
 export const yearPool = (n: number) => `the ${n} brokers whose commission is confirmed`;
 
-/** "11th cheapest of the 20 brokers whose commission is confirmed" (the cheapest, the most expensive, ties as on the price card). */
+/** "11th cheapest of 20" (the cheapest, the most expensive, ties as on the price card): a short rank, its 20 named once
+ *  beside it with yearPool, so it reads as one rank, not a third basis. */
 export function yearRankWords(y: Year): string | null {
   if (y.rank == null || !y.line) return null;
   const n = y.complete.length, c = cents(y.line.total);
-  const of = `of ${yearPool(n)}`;
-  if (c === cents(y.complete[0].total)) return `${y.tied ? "Tied cheapest" : "The cheapest"} ${of}`;
-  if (c === cents(y.complete[n - 1].total)) return `${y.tied ? "Tied most expensive" : "The most expensive"} ${of}`;
-  return `${y.tied ? "Tied " : ""}${ordinal(y.rank)} cheapest ${of}`;
+  if (c === cents(y.complete[0].total)) return `${y.tied ? "Tied cheapest" : "The cheapest"} of ${n}`;
+  if (c === cents(y.complete[n - 1].total)) return `${y.tied ? "Tied most expensive" : "The most expensive"} of ${n}`;
+  return `${y.tied ? "Tied " : ""}${ordinal(y.rank)} cheapest of ${n}`;
 }
 
 /* ---------- the price scale ---------- */
@@ -292,8 +298,11 @@ export interface Group {
   /** this broker's place; null for a clearing firm (not ranked among the brokers) or without a price */
   me: Place | null;
   m: Metric;
-  /** "10th cheapest of 25"; for a clearing firm "Not ranked: a clearing firm"; null without a price */
+  /** "10th cheapest of 25", then `basis`; for a clearing firm "Not ranked: a clearing firm"; null without a price */
   rank: string | null;
+  /** what `rank` ranks on, "on average" (ON_AVERAGE), said after it on the answer card and in the status line, as the
+   *  same-stock line says its own; null when `rank` is no rank (a clearing firm, the only broker with a price) */
+  basis: string | null;
   /** the rank on the same stocks and order sizes (the answer card's second line, sameStockWords); null for a clearing
    *  firm, without a price or without a same-stock figure (the card then says nothing) */
   same: SameRank | null;
@@ -344,6 +353,7 @@ export function groupOf(d: Data, firm: Firm, sp: Sp): Group {
     sp, g: sp === "Y" ? "sp" : "ot", name: sp === "Y" ? `S&P${SP_GAP}500 stocks` : "Other stocks", orders: sp === "Y" ? `S&P${SP_GAP}500 orders` : "other-stock orders",
     places, me, m,
     rank: m.cost10k == null ? null : clearing ? "Not ranked: a clearing firm" : me ? rankWords(places, me) : null,
+    basis: me && places.length > 1 ? ON_AVERAGE : null,
     same,
     diff: gapLine(places, m, clearing),
     sentence,
@@ -351,6 +361,14 @@ export function groupOf(d: Data, firm: Firm, sp: Sp): Group {
     pay: payment(d, m, sp),
     last,
   };
+}
+
+/** Both ranks as the answer card shows them, each with its basis, for the status line a pick or a flip announces:
+ *  "10th cheapest of 25 on average; 13th of 25 on the same stocks and order sizes". Empty when there is no rank. */
+export function ranksSaid(g: Group): string {
+  if (!g.rank) return "";
+  const first = g.basis ? `${g.rank} ${g.basis}` : g.rank;
+  return g.same ? `${first}; ${sameStockWords(g.same)} ${ON_SAME}` : first;
 }
 
 /** "Jul–Sep 2026" or "Apr–Jun 2026, the latest it has filed" (a late filer's previous quarter, named as such). */

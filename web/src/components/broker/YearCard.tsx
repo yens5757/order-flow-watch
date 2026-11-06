@@ -1,11 +1,11 @@
 // What a typical year of trading costs at this broker: trade prices plus commissions at one stated habit (lib/broker.ts
 // HABIT), "at least" when a part is missing, ranked only among the brokers whose commission is confirmed (all the habit
-// needs besides prices), then one priced line for the money the figure leaves out (lib/cash.ts: what $1,000 of cash kept
-// there earns against the best-paying broker, on the calculator's own arithmetic, and the fee for moving the account out),
-// and a "Change" link that opens the calculator on exactly these inputs with this broker picked, so it shows the same
-// figure. A figure below zero is said in words ("$0.22 ahead"). The note and "Change" sit in a ruled footer right under
-// the card's content. The page holds two copies (`at`): "flow" after the price card on phones and tablets, "side" heading
-// the right column on a desktop.
+// needs besides prices: a short rank, "11th cheapest of 20", that pool named once under it), then one priced line for
+// the money the figure leaves out (lib/cash.ts: what $1,000 of cash kept there earns against the best-paying broker, on
+// the calculator's own arithmetic, and the fee for moving the account out), and a "Change" link that opens the
+// calculator on exactly these inputs with this broker picked, so it shows the same figure. A figure below zero is said in
+// words ("$0.22 ahead"). The note and "Change" sit in a ruled footer right under the card's content. The page holds two
+// copies (`at`): "flow" after the price card on phones and tablets, "side" heading the right column on a desktop.
 import { Fragment, type ReactNode } from "react";
 import { calcSearch } from "../../lib/cost";
 import { HABIT, scaleOf, SP_GAP, yearHeadline, yearly, yearPool, yearRankWords, type Year } from "../../lib/broker";
@@ -78,7 +78,9 @@ export function YearCard({ d, firm, y, at }: { d: Data; firm: Firm; y: Year; at:
             : <dd>{yearly(l.commissions)}</dd>}
         </div>
       </dl>
+      {/* the rank short ("11th cheapest of 20"), who the 20 are said once under it, as on Compare's yearly card */}
       <p className="bp-yr-rank">{ranked ?? `Not ranked: only ${yearPool(y.complete.length)} are.`}</p>
+      {ranked && <p className="bp-yr-pool">Ranked among {yearPool(y.complete.length)}.</p>}
       {scale && <Scale sets={[{ data: scale }]} fmt={yearSaid} small />}
       {why.map((w) => <p key={w} className="bp-note">{w}</p>)}
       {cash && <p className="bp-note bp-cash"><PricedText line={cash} nw="nw" /></p>}

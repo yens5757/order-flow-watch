@@ -15,7 +15,7 @@ import { Pairs } from "../components/home/Pairs";
 import { Ranking } from "../components/home/Ranking";
 import { YearLine } from "../components/home/YearLine";
 import { Segmented, Select } from "../components/ui";
-import { cents, groupOf, money, sameStockWords, SP_GAP, yearFor, type Group } from "../lib/broker";
+import { cents, groupOf, money, ranksSaid, SP_GAP, yearFor, type Group } from "../lib/broker";
 import type { Data, Sp } from "../lib/data";
 import { monthLong } from "../lib/format";
 import { useBrowserLayoutEffect } from "../lib/hooks";
@@ -23,13 +23,16 @@ import { useBrowserLayoutEffect } from "../lib/hooks";
 const STOCKS: [Sp, string][] = [["Y", `S&P${SP_GAP}500 stocks`], ["N", "Other stocks"]];
 
 /** What the live region says after a pick or a flip: the broker, the stock group, the price and both ranks the card
- *  shows, in one line. */
+ *  shows with their bases, in one line ("…, 10th cheapest of 25 on average; 13th of 25 on the same stocks and order
+ *  sizes."). */
 function status(g: Group, month: string): string {
   const c = g.m.cost10k;
   if (c == null) return `${g.m.f.short}: no ${g.sp === "N" ? "other-stock" : "S&P 500"} price report for ${month}.`;
   const side = cents(c) > 0 ? "above" : cents(c) < 0 ? "below" : "at";
-  const same = g.same ? `; ${sameStockWords(g.same)} on the same stocks and order sizes` : "";
-  return `${g.m.f.short}, ${g.name}: ${money(Math.abs(c))} ${side} the fair price per $10,000 traded${g.rank ? `, ${g.rank}` : ""}${same}.`;
+  const ranks = ranksSaid(g);
+  // mid-sentence, "other stocks" in lower case ("Webull, other stocks: …")
+  const group = g.sp === "N" ? g.name.toLowerCase() : g.name;
+  return `${g.m.f.short}, ${group}: ${money(Math.abs(c))} ${side} the fair price per $10,000 traded${ranks ? `, ${ranks}` : ""}.`;
 }
 
 /** The ranking on screen: the page holds two copies and CSS shows one (Ranking.tsx). */

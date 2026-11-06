@@ -6,11 +6,11 @@
 // on exactly these inputs. A figure below zero is said in words ("$0.22 ahead"). Like the broker page's yearly card, the
 // page holds two copies (`at`): "flow" after the answer on phones and tablets, "side" in the right column on a desktop,
 // under cost by order size.
-import { cents, HABIT, scaleOf, SP_GAP, yearPool, type Year } from "../../lib/broker";
+import { cents, HABIT, scaleOf, SP_GAP, yearPool, yearRankWords, type Year } from "../../lib/broker";
 import { cashPair, yearSaid } from "../../lib/cash";
 import { calcSearch, type CostLine } from "../../lib/cost";
 import type { Data, Firm } from "../../lib/data";
-import { num, ordinal, usd2 } from "../../lib/format";
+import { num, usd2 } from "../../lib/format";
 import { href, pagePath } from "../../lib/routes";
 import { PricedText } from "../broker/YearCard";
 import { Scale } from "../broker/Scale";
@@ -18,15 +18,6 @@ import { Icon } from "../ui";
 
 /** The part that is counted, as its row shows it, never rounded up: "At least $8.95". */
 const atLeast = (l: CostLine) => `At least ${l.total <= 0 ? "$0" : l.total < 100 ? usd2(l.total) : `$${Math.floor(l.total).toLocaleString("en-US")}`}`;
-
-/** "The cheapest of 20", "11th cheapest of 20", "Tied most expensive of 20". */
-function shortRank(y: Year): string | null {
-  if (y.rank == null || !y.line) return null;
-  const n = y.complete.length, c = cents(y.line.total);
-  if (c === cents(y.complete[0].total)) return `${y.tied ? "Tied cheapest" : "The cheapest"} of ${n}`;
-  if (c === cents(y.complete[n - 1].total)) return `${y.tied ? "Tied most expensive" : "The most expensive"} of ${n}`;
-  return `${y.tied ? "Tied " : ""}${ordinal(y.rank)} cheapest of ${n}`;
-}
 
 /** Why a year is incomplete, in plain words; a missing part is left out of the total, never counted as $0. */
 function why(d: Data, F: Firm, l: CostLine): string[] {
@@ -71,7 +62,7 @@ export function YearPair({ d, A, B, years, at }: { d: Data; A: Firm; B: Firm; ye
           <div key={F.id}>
             <dt>
               {F.short}
-              <small>{shortRank(y) ?? (y.line ? "Not ranked: part of its year is missing" : "No price report this month")}</small>
+              <small>{yearRankWords(y) ?? (y.line ? "Not ranked: part of its year is missing" : "No price report this month")}</small>
             </dt>
             {!y.line ? <dd className="unknown">No estimate</dd>
               : done(y) ? <dd>{yearSaid(y.line.total)}</dd>
