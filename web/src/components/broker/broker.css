@@ -141,6 +141,10 @@ html.js .bp-def-note:not(.open) { display: none; }
 .bp-tbl tr.you > :first-child { border-radius: 14px 0 0 14px; }
 .bp-tbl tr.you > :last-child { border-radius: 0 14px 14px 0; }
 .bp-tbl tr.you + tr > * { border-top-color: transparent; }
+/* the Here row also carries a mark that isn't colour (its tint is 1.16:1 on the card in light, 1.24:1 in dark): a 3px
+   ink bracket on its inner left edge, following the rounded end (ink is 9.9:1 on the card in light, 12.4:1 in dark).
+   Ink, not teal: the broker page's own row doesn't press; keyboard focus rings the row in teal over it. */
+.bp-tbl tr.you > :first-child { box-shadow: inset 3px 0 0 var(--ink); }
 html.js .bp-where:not(.all) tr.far { display: none; }
 .bp-cap-near { display: none; }
 html.js .bp-where:not(.all) .bp-cap-near { display: inline; }
@@ -209,6 +213,8 @@ html.js .bp-where:not(.all) .bp-fn.far { display: none; }
   .bp-tbl .k { display: inline; }
   .bp-tbl tr.you { background: var(--here); border-radius: 14px; border-top-color: transparent; }
   .bp-tbl tr.you > * { background: none; border-radius: 0; }
+  .bp-tbl tr.you { box-shadow: inset 3px 0 0 var(--ink); }
+  .bp-tbl tr.you > :first-child { box-shadow: none; }
   .bp-tbl tr.you + tr { border-top-color: transparent; }
 }
 

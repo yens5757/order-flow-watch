@@ -80,6 +80,8 @@ html:has(.cmp-tbl) { scroll-padding-top: 72px; }
 .cmp-rank .tbl tr.here > :first-child { border-radius: 14px 0 0 14px; }
 .cmp-rank .tbl tr.here > :last-child { border-radius: 0 14px 14px 0; }
 .cmp-rank .tbl tr.here + tr > * { border-top-color: transparent; }
+/* and the Here row's mark that isn't colour, as in every ranking (broker.css): a 3px ink bracket on its inner left edge */
+.cmp-rank .tbl tr.here > :first-child { box-shadow: inset 3px 0 0 var(--ink); }
 /* a price below the fair price says "below", lighter than its figure, as in the ranking tables (broker.css) */
 .cmp-rank .fair-w { font-weight: 500; color: var(--ink-2); }
 

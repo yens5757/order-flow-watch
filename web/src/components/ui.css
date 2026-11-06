@@ -197,6 +197,10 @@ html:not(.js) .tip:is(:hover, :focus-within) .tip-text {
 .dt tr.here > :first-child { border-radius: 14px 0 0 14px; }
 .dt tr.here > :last-child { border-radius: 0 14px 14px 0; }
 .dt tr.here + tr > * { border-top-color: transparent; }
+/* and a mark that isn't colour, as in every ranking (broker.css): a 3px ink bracket on its inner left edge; a pinned name
+   cell keeps its edge hairline once the table has scrolled */
+.dt tr.here > :first-child { box-shadow: inset 3px 0 0 var(--ink); }
+.dt-box.is-scrolled tr.here > .pin:first-child { box-shadow: inset 3px 0 0 var(--ink), 1px 0 0 var(--rule); }
 .dt-none { padding: 24px 12px; color: var(--ink-2); text-align: center; white-space: normal; }
 
 /* ---------- filter bar: a row on the ground; it sticks to the top only on a desktop, kept short ---------- */
