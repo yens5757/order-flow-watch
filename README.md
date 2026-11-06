@@ -93,7 +93,7 @@ fetch_context.py ────┘                           └─> build_site.py
 |---|---|
 | Collect | Python, requests, BeautifulSoup |
 | Store + analyse | DuckDB (SQL), permutation tests and bootstrap intervals in plain Python (`stats.py`) |
-| Present | React + TypeScript + Tailwind (Vite), interactive Apache ECharts (dark by default), every page pre-rendered to static HTML at build time; matplotlib for the README chart |
+| Present | React + TypeScript + Tailwind (Vite), interactive Apache ECharts (light and dark, following the visitor's system), every page pre-rendered to static HTML at build time; matplotlib for the README chart |
 | Schedule + host | GitHub Actions (weekly) + GitHub Pages |
 
 ## Run it locally
