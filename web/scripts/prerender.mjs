@@ -6,6 +6,7 @@
 //      dist/sitemap.xml and dist/robots.txt.
 // Runs on Windows and Linux. SITE_BASE (vite.config.ts) and VITE_SITE_URL, both set in .github/workflows/weekly.yml,
 // say where the site lives; the defaults are the GitHub Pages address.
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -50,7 +51,10 @@ const routes = [...pages, ...profiles, ...pairs];
 
 // ---- 3. one file per page: the template minus its generic title/description/og tags (the page's own go in at
 // <!--app-head-->) and minus the loader (the page's HTML goes in at <!--app-html-->)
-const withImage = (t) => t.replace(/(property="og:image" content=")[^"]*"/, `$1${esc(SITE_URL)}og.png"`);
+// link previews (Discord, LinkedIn, Slack...) cache an image by its address: the file's hash in the query makes a redrawn
+// card a new address, so no app keeps showing the old one
+const ogHash = createHash("sha256").update(readFileSync(join(web, "public", "og.png"))).digest("hex").slice(0, 8);
+const withImage = (t) => t.replace(/(property="og:image" content=")[^"]*"/, `$1${esc(SITE_URL)}og.png?v=${ogHash}"`);
 const pageTemplate = withImage(template)
   .replace(/^[ \t]*<title>.*<\/title>[ \t]*\r?\n/m, "")
   .replace(/^[ \t]*<meta (?:name="description"|property="og:(?:title|url|description)") [^>]*>[ \t]*\r?\n/gm, "")

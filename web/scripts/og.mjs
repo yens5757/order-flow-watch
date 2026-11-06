@@ -1,5 +1,5 @@
-// Renders the link-preview card: web/public/og.png (1280x640, the og:image and the GitHub social preview) and
-// docs/social-preview.png (the README banner: the same image).
+// Renders the link-preview card: web/public/og.png (1280x640, the og:image) and docs/social-preview.png (the README
+// banner: the same image). GitHub's own social preview is a separate hand upload of that file (repo Settings).
 //
 //   PLAYWRIGHT_CORE=<path to an installed playwright-core package> node scripts/og.mjs
 //
