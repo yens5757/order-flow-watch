@@ -21,6 +21,21 @@
 .ex-gsel select { width: min(24rem, 100%); }
 .ex-reset { align-self: flex-end; margin-left: auto; }
 
+/* the order filters as one group (Controls.tsx Orders): laid out like the row it sits in */
+.ex-orders { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 24px; min-width: 0; margin: 0; padding: 0; border: 0; }
+/* while every measure shown is a fee they rest: grey edges and words, no teal (nothing there can be pressed), under one
+   line in ink that says why. A disabled fieldset takes them out of the tab order. */
+.ex-off { margin-bottom: 12px; padding: 0; font-size: var(--fs-1); font-weight: 600; line-height: 1.35; color: var(--ink); }
+.ex-orders:disabled .segm { border-color: var(--baseline); }
+.ex-orders:disabled .segm > button { color: var(--ink-2); cursor: default; }
+.ex-orders:disabled .segm > button:hover { background: none; }
+.ex-orders:disabled .segm > button[aria-checked="true"] { background: var(--surface-3); color: var(--ink); box-shadow: none; }
+.ex-orders:disabled .sel select { border-color: var(--baseline); color: var(--ink-2); opacity: 1; cursor: default; }
+.ex-orders:disabled .sel select:hover { background: var(--surface); }
+.ex-orders:disabled .sel-i { color: var(--mark); }
+.ex-orders:disabled .info { color: var(--mark); cursor: default; }
+.ex-orders:disabled .info:hover { background: none; }
+
 /* the Brokers button: drawn like the select pills beside it; it opens the broker chips in place */
 .ex-pick {
   display: inline-flex; align-items: center; justify-content: space-between; gap: 14px; min-width: 11rem; min-height: 48px;
@@ -74,6 +89,23 @@
 .ex-cards .card-foot p + p { margin-top: 6px; }
 .ex-unk { font-weight: 600; color: var(--ink-2); }
 
+/* ---------- the scatter (scatter.ts): its key above, the plot, one quiet line when a dot has no name ---------- */
+.ex-key { margin-bottom: 6px; }
+.ex-names { margin-top: 6px; font-size: var(--fs-1); line-height: 1.5; color: var(--ink-2); }
+/* the verb follows the pointer: a phone taps a dot, a mouse points at it */
+.ex-touch { display: none; }
+@media (hover: none) {
+  .ex-touch { display: inline; }
+  .ex-mouse { display: none; }
+}
+
+/* ---------- the table: 14 columns scroll sideways inside the card; the right edge fades while more wait there ---------- */
+/* only the mask's alpha counts: the opaque token is any colour that keeps the rest of the box whole */
+.ex-tbl[data-more] .dt-box {
+  -webkit-mask-image: linear-gradient(to left, transparent, var(--ink) 2.5rem);
+  mask-image: linear-gradient(to left, transparent, var(--ink) 2.5rem);
+}
+
 /* ---------- the ranked rail chart (RankChart.tsx): the price scale, one row per broker ---------- */
 .ex-rank { --r: 7px; --name: 8.5rem; --val: 5.5rem; --gap: 14px; }
 .ex-rank-edge, .ex-rank-row { display: grid; grid-template-columns: var(--name) minmax(0, 1fr) var(--val); column-gap: var(--gap); }
@@ -120,6 +152,7 @@ html.ex-locked { overflow: hidden; }
 .ex-done { flex: 1 1 auto; }
 /* in the sheet every control takes the full width, one under another */
 .ex-stack { gap: 22px; }
+.ex-stack .ex-orders { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; }
 .ex-stack .ex-f, .ex-stack .sel, .ex-stack .sel-box, .ex-stack select, .ex-stack .ex-gsel select { width: 100%; }
 .ex-stack .ex-with { display: flex; width: 100%; }
 .ex-stack .segm { display: flex; flex: 1 1 auto; width: 100%; }

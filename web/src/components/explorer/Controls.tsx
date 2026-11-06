@@ -3,13 +3,14 @@
 // place. On phones and tablets: one column in the bottom sheet behind "Change view".
 // Standard controls only: native selects that only report the pick (the measure lists come in two groups), the pill
 // switch for two- and three-way choices (one Tab stop, arrow keys pick), checkboxes drawn as chips for the brokers, and
-// the shared toggles. Every pick applies at once; the page writes it into the link.
+// the shared toggles. Every pick applies at once; the page writes it into the link. While every measure shown is a fee,
+// the order filters rest (Orders below).
 import { useId, useState, type ReactNode } from "react";
 import { BUCKETS, type Data, type Metric, type Ot, type Sp } from "../../lib/data";
 import { quarterLong } from "../../lib/format";
 import type { MetricKey } from "../../lib/metrics";
 import { Icon, Info, Segmented, Select, Switch } from "../ui";
-import { measureGroups, type View } from "./view";
+import { isFee, measureGroups, type View } from "./view";
 import { Sheet } from "./Sheet";
 
 export interface ControlProps {
@@ -48,6 +49,19 @@ function GroupSelect({ label, value, onChange, groups, first }: {
 /** A labelled field whose control names itself (a pill switch's aria-label): the visible word is for the eye only. */
 const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   <div className="ex-f"><span className="ex-l" aria-hidden="true">{label}</span>{children}</div>
+);
+
+/** Every measure shown is a fee: fees come from each broker's price list, so the order filters would change nothing. */
+const feesOnly = (s: View) => isFee(s.m) && (!s.vs || isFee(s.vs));
+
+/** The order filters as one group. While only fees are shown they rest: greyed, out of the tab order (a disabled
+ *  fieldset), under one line that says why, which is also the group's name for screen readers. Their picks stay in the
+ *  view and the link, for when a price or payment comes back. */
+const Orders = ({ off, children }: { off: boolean; children: ReactNode }) => (
+  <fieldset className="ex-orders" disabled={off}>
+    <legend className={off ? "ex-off" : "sr-only"}>{off ? "Fees don't depend on these." : "Which orders"}</legend>
+    {children}
+  </fieldset>
 );
 
 /** Which brokers the chart and table show: a chip per broker (a checkbox: checked = shown), all or none at once, and
@@ -143,10 +157,12 @@ export function ControlBar(p: ControlProps) {
         <Brokers s={p.s} set={p.set} pool={p.pool} />
       </div>
       <div className="ex-row">
-        {stocks}
-        {orderType}
-        {size}
-        {quarter}
+        <Orders off={feesOnly(p.s)}>
+          {stocks}
+          {orderType}
+          {size}
+          {quarter}
+        </Orders>
         {p.changed && <button type="button" className="btn btn-ghost ex-reset" onClick={p.reset}>Reset view</button>}
       </div>
     </section>
@@ -166,10 +182,12 @@ export function ControlSheet(p: ControlProps & { open: boolean; onClose: () => v
       <div className="ex-ctl ex-stack">
         {measure}
         {versus}
-        {stocks}
-        {orderType}
-        {size}
-        {quarter}
+        <Orders off={feesOnly(p.s)}>
+          {stocks}
+          {orderType}
+          {size}
+          {quarter}
+        </Orders>
         <Brokers s={p.s} set={p.set} pool={p.pool} />
       </div>
       <p className="sr-only" role="status">{p.count === 1 ? "1 broker" : `${p.count} brokers`} in the chart</p>

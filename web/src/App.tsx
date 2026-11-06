@@ -75,7 +75,7 @@ export function AppShell({ data, path, search }: { data: Data | Raw; path: strin
     : route.page === "trading-firms" ? <MarketMakers d={d} f={filters} set={set} />
     : route.page === "firms" ? <AllFirms d={d} f={filters} set={set} />
     : route.page === "how-we-measure" ? <Method d={d} />
-    : route.page === "not-found" ? <NotFound />
+    : route.page === "not-found" ? <NotFound d={d} path={path} />
     : <Home d={d} />;
 
   return (

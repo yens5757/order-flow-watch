@@ -4,16 +4,16 @@
 // whose names link to the broker pages. The whole view lives in the query string (components/explorer/view.ts), so a view
 // can be linked. On a desktop the controls sit in two rows on the ground over the chart; on phones and tablets they wait
 // in a bottom sheet behind "Change view", so the chart comes straight after the heading.
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { EChart } from "../charts/EChart";
 import { DataTable, type Col } from "../components/DataTable";
 import { ControlBar, ControlSheet, type ControlProps } from "../components/explorer/Controls";
 import { CopyLink } from "../components/explorer/CopyLink";
 import "../components/explorer/explorer.css";
 import { RankChart } from "../components/explorer/RankChart";
-import { scatterOption } from "../components/explorer/scatter";
+import { PLOT_H, scatterOption } from "../components/explorer/scatter";
 import { cap, defaults, fromUrl, isFee, isPay, tidy, toQuery, type Sort, type View } from "../components/explorer/view";
-import { Card, Icon, PageHeader, Segmented } from "../components/ui";
+import { Card, Icon, Legend, PageHeader, Segmented } from "../components/ui";
 import { andList } from "../lib/broker";
 import { brokerRows, BUCKET_LABEL, files606, type Data, type FeeKey, type Metric } from "../lib/data";
 import { dayLong, monthLong, quarterLong, strength } from "../lib/format";
@@ -23,9 +23,57 @@ import { brokerPath, href, pagePath, parseRoute } from "../lib/routes";
 import { median, spearman } from "../lib/stats";
 import { useTheme } from "../lib/theme";
 
+/** A box's width, kept current as it resizes (0 until measured, and on the server); a change waits 150ms to settle, so
+ *  dragging a window edge doesn't rebuild the scatter on every frame. `on`: the box is on the page. */
+function useWidth(ref: RefObject<HTMLElement>, on: boolean): number {
+  const [w, setW] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!on || !el) return;
+    let timer: number | undefined;
+    const read = () => setW(Math.round(el.getBoundingClientRect().width));
+    read();
+    const ro = new ResizeObserver(() => { window.clearTimeout(timer); timer = window.setTimeout(read, 150); });
+    ro.observe(el);
+    return () => { ro.disconnect(); window.clearTimeout(timer); };
+  }, [on]); // eslint-disable-line react-hooks/exhaustive-deps
+  return w;
+}
+
+/** Whether a table's scroll box (DataTable's .dt-box inside `ref`) is wider inside than out (`over`), and whether
+ *  columns wait to its right (`more`: its edge fades while they do). Both true until measured, as they always are for
+ *  the 14 columns here, so the pre-rendered page has the cue too and nothing moves once the script runs. `key` changes
+ *  when the table is rebuilt. */
+function useSideCue(ref: RefObject<HTMLElement>, key: string): { over: boolean; more: boolean } {
+  const [cue, setCue] = useState({ over: true, more: true });
+  useEffect(() => {
+    const box = ref.current?.querySelector<HTMLElement>(".dt-box");
+    if (!box) return;
+    const check = () => {
+      const over = box.scrollWidth > box.clientWidth + 1, more = box.scrollLeft + box.clientWidth < box.scrollWidth - 1;
+      setCue((c) => (c.over === over && c.more === more ? c : { over, more }));
+    };
+    check();
+    box.addEventListener("scroll", check, { passive: true });
+    const ro = new ResizeObserver(check);
+    ro.observe(box);
+    if (box.firstElementChild) ro.observe(box.firstElementChild);
+    return () => { box.removeEventListener("scroll", check); ro.disconnect(); };
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  return cue;
+}
+
 /** `search`: the query string the page was opened with; later same-page changes arrive through onNavigate. */
 export default function Explore({ d, search }: { d: Data; search: string }) {
   const { t } = useTheme();
+  // the scatter's names are placed for the width it is drawn at (scatter.ts), and again once the site's face has loaded
+  const plot = useRef<HTMLDivElement>(null);
+  const [fonts, setFonts] = useState(false);
+  useEffect(() => {
+    let live = true;
+    document.fonts?.ready.then(() => { if (live) setFonts(true); });
+    return () => { live = false; };
+  }, []);
   const [s, setS] = useState<View>(() => fromUrl(d, search));
   const [sheet, setSheet] = useState(false); // the controls' sheet on phones and tablets
   const set = (p: Partial<View>) => setS((x) => ({ ...x, ...p, ...(p.m && p.m === x.vs ? { vs: "" as const } : {}) }));
@@ -66,6 +114,8 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
     `* ${andList(rs.map((r) => r.f.short))}: payments from ${quarterLong(rs[0].payQ!)}, the latest ${rs.length > 1 ? "they have" : "it has"} filed.`;
   const payOn = isPay(s.m) || isPay(s.vs);
   const feeOn = isFee(s.m) || isFee(s.vs);
+  // every measure shown is a fee: the order filters change nothing in the chart (Controls.tsx greys them out)
+  const feeOnly = isFee(s.m) && (!s.vs || isFee(s.vs));
 
   // ---- the one sentence, rewritten for every view; ties are the brokers showing the same figure
   const n = withV.length, missing = shown.length - n;
@@ -117,10 +167,13 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
 
   // ---- what the figures cover, and what they leave out
   const lower = (x: string) => x.charAt(0).toLowerCase() + x.slice(1);
-  const scope = [s.sp === "Y" ? "S&P 500 stocks" : "Other stocks", `${s.ot === "M" ? "market" : "marketable limit"} orders`,
-    lower(BUCKET_LABEL[s.b]), monthLong(d.meta.month), ...(payOn ? [`payments ${quarterLong(s.q)}`] : [])].join(" · ");
+  const orders = [s.sp === "Y" ? "S&P 500 stocks" : "Other stocks", `${s.ot === "M" ? "market" : "marketable limit"} orders`,
+    lower(BUCKET_LABEL[s.b]), monthLong(d.meta.month)];
+  const scope = [...orders, ...(payOn ? [`payments ${quarterLong(s.q)}`] : [])].join(" · ");
   const feeScope = d.meta.feesChecked ? `fees checked ${dayLong(d.meta.feesChecked)}` : "fees from each broker's price list";
-  const sub = isFee(s.m) && (!V || isFee(s.vs)) ? cap(feeScope) : feeOn ? `${scope} · ${feeScope}` : scope;
+  const sub = feeOnly ? cap(feeScope) : feeOn ? `${scope} · ${feeScope}` : scope;
+  // the table holds every measure, so its caption names every scope, whatever the chart shows
+  const tableScope = [...orders, `payments ${quarterLong(s.q)}`, feeScope].join(" · ");
 
   /** Why a broker has no figure for a measure, in the words the fee list and the payment reports use. */
   const why = (r: Metric): string => {
@@ -137,7 +190,7 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
   if (s.m === "fract" || s.vs === "fract") {
     notes.push(`Fractional vs whole: market orders under $200,000 in ${monthLong(d.meta.detailMonth)}; the order type, size and quarter filters don't apply.`);
   }
-  if (feeOn) notes.push("Fees ignore the stock and order filters.");
+  if (feeOn && !feeOnly) notes.push("Fees ignore the stock and order filters.");
   const late = payOn ? withV.filter(lateOf) : [];
   if (late.length) notes.push(lateNote(late));
   const left = new Map<string, string[]>();
@@ -160,11 +213,13 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
   const tipRows = (r: Metric): [string | null, string, string][] =>
     [s.m, ...(s.vs ? [s.vs] : []), ...METRIC_KEYS.filter((k) => k !== s.m && k !== s.vs && METRICS[k].get(r) != null)]
       .map((k) => [null, METRICS[k].short, show(k)(METRICS[k].get(r))]);
-  const scatter = useMemo(() => (V ? scatterOption(t, withV.map((r) => ({ id: r.id, name: r.f.short, x: V.get(r)!, y: M.get(r)!, rows: tipRows(r) })), {
+  const cw = useWidth(plot, !!V && n > 0);
+  const scatter = useMemo(() => (V && cw > 0 && n > 0 ? scatterOption(t, withV.map((r) => ({ id: r.id, name: r.f.short, x: V.get(r)!, y: M.get(r)!, rows: tipRows(r) })), {
     x: { name: V.label, short: V.short, fmt: (v) => tidy(V.axis(v)) },
     y: { name: M.label, short: M.short, fmt: (v) => tidy(M.axis(v)) },
     typical: [median(withV.map((r) => V.get(r)!)) ?? 0, med ?? 0],
-  }) : null), [t, s, all]); // eslint-disable-line react-hooks/exhaustive-deps
+    width: cw,
+  }) : null), [t, s, all, cw, fonts]); // eslint-disable-line react-hooks/exhaustive-deps
   const ranked = sorted.map((r) => ({ id: r.id, name: r.f.short, v: M.get(r)!, text: fmt(M.get(r)) + (isPay(s.m) && lateOf(r) ? "*" : "") }));
   const orderWords = s.sort === "az" ? "A to Z" : M.better ? (s.sort === "worst" ? "worst first" : "best first") : s.sort === "worst" ? "low to high" : "high to low";
   const sortOpts: [Sort, string][] = M.better
@@ -187,6 +242,11 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
     { key: "name", label: "Broker", pin: true, value: (r) => r.f.short },
     ...colOrder.map((k): Col<Metric> => ({ key: k, label: METRICS[k].short, num: true, hint: METRICS[k].desc, value: (r) => METRICS[k].get(r), render: (r) => cell(r, k) })),
   ];
+
+  // a new measure or order rebuilds the table, starting it sorted on that measure
+  const tableKey = `${s.m}-${s.sort}`;
+  const table = useRef<HTMLDivElement>(null);
+  const { over, more } = useSideCue(table, tableKey);
 
   const controls: ControlProps = { d, s, set, reset: () => setS(def), changed, all, pool, shown: shown.length, noData };
 
@@ -218,20 +278,36 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
             <div className="ex-result" role="status">
               {say ? <p className="ex-say">{say}</p> : empty ? <div className="empty ex-empty">{empty}</div> : null}
             </div>
-            {n > 0 && (V
-              ? <EChart option={scatter!} height={440} label={`${M.label} against ${V.label.toLowerCase()}: one dot per broker, ${n} brokers. Every figure is in the table below.`} />
-              : <RankChart rows={ranked} typ={med!} typText={fmt(med)} zeroText={tidy(M.axis(0))}
-                label={`${M.label}: ${n} brokers, ${orderWords}. Every figure is in the table below.`} />)}
+            {n > 0 && (V ? (
+              <>
+                {/* the typical lines' name, as a key, so no word inside the plot can run into a dot's name */}
+                <div className="ex-key"><Legend items={[{ color: "var(--mark)", label: "Typical broker", dashed: true }]} /></div>
+                <div ref={plot} className="ex-plot" style={{ minHeight: PLOT_H }}>
+                  {scatter && <EChart option={scatter.option} height={PLOT_H} label={`${M.label} against ${V.label.toLowerCase()}: one dot per broker, ${n} brokers. Every figure is in the table below.`} />}
+                </div>
+                {/* a dot whose name had no clear place: the tooltip names it, the table lists it; "tap" or "point at" by the pointer */}
+                {scatter && scatter.unnamed > 0 && (
+                  <p className="ex-names">Unnamed dots: <span className="ex-touch">tap</span><span className="ex-mouse">point at</span> one for its name, or see the table below.</p>
+                )}
+              </>
+            ) : (
+              <RankChart rows={ranked} typ={med!} typText={fmt(med)} zeroText={tidy(M.axis(0))}
+                label={`${M.label}: ${n} brokers, ${orderWords}. Every figure is in the table below.`} />
+            ))}
           </Card>
 
-          <Card title="Every number in one table" sub="Each broker's name opens its page."
+          {/* 14 columns don't fit the card: one sentence says the table scrolls sideways, and its right edge fades while
+              columns wait there (data-more, explorer.css) */}
+          <Card title="Every number in one table" sub={`Each broker's name opens its page.${over ? " Scroll sideways for more columns." : ""}`}
             right={<a className="go" href={href(pagePath("firms"))}>All {Object.keys(d.reporters).length} firms that report prices<Icon name="arrow" size={20} /></a>}
             foot={tableNotes.length ? tableNotes.map((x) => <p key={x}>{x}</p>) : undefined}>
-            <DataTable key={`${s.m}-${s.sort}`} rows={shown} cols={cols} highlight={[s.m, s.vs]} rowKey={(r) => r.id}
-              initial={s.sort === "az" ? { key: "name", dir: 1 } : { key: s.m, dir: ((M.better ? dir : -1) * (s.sort === "worst" ? -1 : 1)) as 1 | -1 }}
-              rowHref={(r) => href(brokerPath(r.f.slug))} search={(r) => `${r.f.short} ${r.f.name}`} searchLabel="Search brokers"
-              caption={`Every number for the brokers shown: ${sub}`}
-              file={`brokers-${s.sp === "Y" ? "sp500" : "other-stocks"}-${s.ot === "M" ? "market" : "marketable-limit"}-orders.csv`} />
+            <div ref={table} className="ex-tbl" data-more={more ? "" : undefined}>
+              <DataTable key={tableKey} rows={shown} cols={cols} highlight={[s.m, s.vs]} rowKey={(r) => r.id}
+                initial={s.sort === "az" ? { key: "name", dir: 1 } : { key: s.m, dir: ((M.better ? dir : -1) * (s.sort === "worst" ? -1 : 1)) as 1 | -1 }}
+                rowHref={(r) => href(brokerPath(r.f.slug))} search={(r) => `${r.f.short} ${r.f.name}`} searchLabel="Search brokers"
+                caption={`Every number for the brokers shown: ${tableScope}`}
+                file={`brokers-${s.sp === "Y" ? "sp500" : "other-stocks"}-${s.ot === "M" ? "market" : "marketable-limit"}-orders.csv`} />
+            </div>
           </Card>
         </div>
       </div>

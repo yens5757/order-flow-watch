@@ -12,13 +12,13 @@ The not-found page: web/src/pages/NotFound.tsx. It answers any address the site 
 ## Audience, job, proof, constraints
 
 - Anyone arriving on a dead link (an old hash route the rewriter could not map, a removed broker, a typo), on a phone or a desktop.
-- Job: say plainly that there is no page at this address and give a way back in one step.
-- Proof: three ways back (Home, Brokers, Compare) as the broker page's soft pills, plus the full header nav and the footer, which every page carries.
+- Job: say plainly that there is no page at this address and give a way back in one step; for a mistyped broker or pair, the page they meant.
+- Proof: three ways back (Home, Brokers, Compare) as the broker page's soft pills, plus the full header nav and the footer, which every page carries. A broker address (brokers/, or the old broker/ and explore/) or a pair (compare/<a>-vs-<b>/) whose name is a near miss of exactly one firm's (spelled the same but for hyphens, one starting with the other, or one to three letters off by length: suggestPath in lib/routes.ts) adds "Did you mean Robinhood?" ("Fidelity vs Robinhood" for a pair) to the line under the heading; a tie or anything else adds nothing.
 - Constraints: no alarm colour, illustration, error code shown as decoration, kicker or cheerleading; the same header, footer, ground and h1 scale as every page; one h1, the pills in a labelled nav ("Other pages"); 44px targets; no horizontal scroll at 320px; noindex and no canonical so search engines never list it.
 
 ## Composition and memorable moment
 
-The h1 "Page not found" with one plain line under it ("There's no page at this address."), then one soft white card at the 44rem reading width holding the three pills, three across from 640px and stacked on phones. Memorable moment: none is wanted. The calm is the point; the price scale or a big figure here would be decoration.
+The h1 "Page not found" with one plain line under it ("There's no page at this address."), then one soft white card at the 44rem reading width holding the three pills, three across from 640px and stacked on phones. When the address is a near miss, the same line goes on "Did you mean Robinhood?", the name an in-text link (ink, teal underline, padded to a 44px target without moving the line) to that page: the first thing read under the heading, no box or button of its own. Memorable moment: none is wanted. The calm is the point; the price scale or a big figure here would be decoration.
 
 ## Direction contract
 
@@ -26,7 +26,7 @@ THESIS: A dead end that is not a dead end: name the problem in plain words and p
 
 OWN-WORLD: The established world in DESIGN.md, unchanged: soft white card on the teal-tinted Sage Ground (dark: dim sage with a lighter card), Figtree, sage-grey ink, the action teal only on pressable things (the pills are Deep Teal on Soft Teal, as the broker page's "Compare with" pills), Lift shadow, the one ease-out curve on press.
 
-STORY: The visitor sees at once that the address has no page, picks Home, Brokers or Compare, and is back in the site in one press.
+STORY: The visitor sees at once that the address has no page, takes the page it most likely meant when the line offers one, or picks Home, Brokers or Compare, and is back in the site in one press.
 
 FIRST VIEWPORT: Header with no page current; h1 and its line; the card of three pills. Phone and desktop alike show all of it without scrolling.
 

@@ -5,7 +5,7 @@
 // state in the query string) · "brokers/<slug>/" · "trading-firms/" · "firms/" · "how-we-measure/". Any other
 // address (or an unknown broker or pair) is the not-found page, which GitHub Pages reaches through 404.html.
 import { cents, money, placeBrokers, rankWords } from "./broker";
-import { asData, metric, type Data, type Filters, type Firm, type Raw } from "./data";
+import { asData, metric, slugify, type Data, type Filters, type Firm, type Raw } from "./data";
 import { monthLong } from "./format";
 import { METRICS, type MetricKey } from "./metrics";
 import { SITE_NAME, SITE_URL } from "./site";
@@ -79,6 +79,73 @@ export function parseRoute(data: Data, path: string): Route {
     case "how-we-measure": case "method": return { page: "how-we-measure" };
     default: return NOT_FOUND;
   }
+}
+
+/** A typed name as a slug ("Robin Hood", "robin%20hood" -> robin-hood), and the same without hyphens for comparing. */
+const typed = (s: string) => {
+  let t = s;
+  try { t = decodeURIComponent(s); } catch { /* a malformed escape: compare it as typed */ }
+  return slugify(t);
+};
+const bare = (s: string) => s.replace(/-/g, "");
+
+/** Optimal string alignment distance: letters added, dropped, changed or swapped with a neighbour ("fidelty" is 1 from
+ *  "fidelity", "vangaurd" 1 from "vanguard"). */
+function distance(a: string, b: string): number {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array<number>(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const c = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + c);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+    }
+  }
+  return d[a.length][b.length];
+}
+
+/** The firm a mistyped URL name most likely means: its URL name, short name or full name spelled the same but for
+ *  hyphens, one starting with the other (at least 3 letters), or a few letters off (1 for 4–5 letters, 2 for 6–9,
+ *  3 from 10). The closest wins, the URL name before the other names; a tie between two firms names neither. */
+function nearFirm(d: Data, s: string): Firm | null {
+  const t = bare(typed(s));
+  if (t.length < 3) return null;
+  const most = t.length < 4 ? 0 : t.length < 6 ? 1 : t.length < 10 ? 2 : 3;
+  let best: Firm | null = null, score = Infinity, tie = false;
+  for (const f of d.firms) {
+    const keys = [f.slug, slugify(f.short), slugify(f.name)];
+    for (let k = 0; k < keys.length; k++) {
+      const n = bare(keys[k]);
+      if (n.length < 3) continue;
+      const off = n === t ? 0 : n.startsWith(t) || t.startsWith(n) ? 1 : distance(t, n) <= most ? 1 + distance(t, n) : Infinity;
+      const sc = off + (k ? 0.5 : 0); // the URL name before the short and full names
+      if (sc < score - 1e-9) { best = f; score = sc; tie = false; } else if (sc === score && sc < Infinity && best !== f) tie = true;
+    }
+  }
+  return !tie ? best : null;
+}
+
+/** For an address the site has no page for: the page it most likely meant, when it is a broker's address (brokers/,
+ *  or the old broker/ and explore/) or a pair's (compare/<a>-vs-<b>/) with a mistyped name that is close to exactly one
+ *  firm's. Null for any other address, or when no name is close. Pure: the not-found page renders it from the path. */
+export function suggestPath(data: Data, path: string): { path: string; name: string } | null {
+  const d = asData(data);
+  const segs = segments(path);
+  const sub = segs[1];
+  if (!sub) return null;
+  if (segs[0] === "brokers" || segs[0] === "broker" || segs[0] === "explore") {
+    const f = firmOf(d, sub) ?? nearFirm(d, sub);
+    return f ? { path: brokerPath(f.slug), name: f.short } : null;
+  }
+  if (segs[0] === "compare") {
+    const parts = sub.split(/-(?:vs|v|versus)-/i);
+    if (parts.length !== 2) return null;
+    const [x, y] = parts.map((p) => firmOf(d, p) ?? nearFirm(d, p));
+    if (!x || !y || x === y) return null;
+    const [a, b] = pairOrder(x, y);
+    return { path: comparePath(a.slug, b.slug), name: `${a.short} vs ${b.short}` };
+  }
+  return null;
 }
 
 /** The canonical path of a route (the not-found page has none: "" here, and no canonical link in its head). */
