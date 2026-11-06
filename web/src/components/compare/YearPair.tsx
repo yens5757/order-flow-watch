@@ -2,10 +2,10 @@
 // $2,000, half S&P 500 and half other stocks; trade prices and commissions), the difference as the heading when both years
 // are complete, "at least" when a part is missing, ranked only among the brokers whose commission is confirmed, both on
 // the small scale, then one priced line for the money the figures leave out (lib/cash.ts: where $1,000 of cash earns
-// more and where moving the account out costs less, on the calculator's own arithmetic), and "Change" into the calculator
-// on exactly these inputs. A figure below zero is said in words ("$0.22 ahead"). Like the broker page's yearly card, the
-// page holds two copies (`at`): "flow" after the answer on phones and tablets, "side" in the right column on a desktop,
-// under cost by order size.
+// more, on the calculator's own arithmetic, then what moving the account out costs at each, the dearer first: "Moving
+// out: $100 at Robinhood, $0 at Fidelity."), and "Change" into the calculator on exactly these inputs. A figure below
+// zero is said in words ("$0.22 ahead"). Like the broker page's yearly card, the page holds two copies (`at`): "flow"
+// after the answer on phones and tablets, "side" in the right column on a desktop, under cost by order size.
 import { cents, HABIT, scaleOf, SP_GAP, yearPool, yearRankWords, type Year } from "../../lib/broker";
 import { cashPair, yearSaid } from "../../lib/cash";
 import { calcSearch, type CostLine } from "../../lib/cost";

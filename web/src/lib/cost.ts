@@ -42,8 +42,10 @@ export function calcSearch(inp: CostInputs, slug: string): string {
 
 export type PartKey = "spread" | "commissions" | "optionsFees" | "cashDrag" | "marginInterest";
 /** The five parts of the total in stack order, each with its series colour slot (t.s[slot]) and the `missing` labels it owns.
- *  Slots follow metrics.ts where the stack stays colourblind-safe (validated in both modes): options takes slot 6 (purple)
- *  because red fails next to every warm neighbour, and margin slot 3 (gold) so the legend doesn't carry two greens. */
+ *  The calculator draws trade prices neutral (calculator/chart.ts partColor: ramp-2 on other brokers' bars, the visitor's
+ *  whole bar in ink), so the spread's slot is unused; the other slots match metrics.ts's fee measures. Validated in both
+ *  modes beside ramp-2; one latent pair: idle cash (slot 4) next to commissions (slot 2) falls under the colour-blind floor
+ *  (deutan OKLab ΔE 6.1 light, 1.6 dark), unseen while every confirmed commission is $0. */
 export const PARTS: { key: PartKey; label: string; slot: number; facts: string[] }[] = [
   { key: "spread", label: "Trade prices", slot: 1, facts: ["S&P 500 prices", "other-stock prices"] },
   { key: "commissions", label: "Commissions", slot: 2, facts: ["commission"] },

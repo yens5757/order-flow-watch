@@ -34,11 +34,15 @@ The ranked table in plain units (Nov 2026, from the critique's second P1): no mi
 
 Polish (Nov 2026, the final pass after the three fixes): one unit wording on the whole card: the price scale's end captions and the gap line's bracket say "Fidelity $0.09 below" (lib/broker.ts fairText, Compare's words; a no-break space keeps "$0.09 below" together, so a 320px caption wraps before the figure), never "−$0.09". Every scale writes its typical figure in its own format ("Typical $8.29" beside "Webull $21.34"; the yearly cards' rounded "about $8" is gone). The stray "[": where this broker's dot covers the typical tick (Robinhood's and IBKR's yearly cards, Wealthfront's S&P 500 price card, IBKR's and Webull's on a phone), the tick hangs from the rail's lower edge down to its "Typical" label, clear of the dot's ring, instead of showing a sliver beside it; Scale.tsx measures the real width (the pre-render judges a 250px scale), and the tick only takes its place on load, gliding only when the switch moves a dot onto it or off it. The switch's status line names both ranks ("…, 10th cheapest of 25 on average; 13th of 25 on the same stocks and order sizes", the basis added with the rank's own below). Fees uses Compare's names for every fee (lib/metrics.ts labels): "Options fee per contract", "Margin interest rate" on a $25,000 loan, and "Transfer-out fee", noted "moving your whole account out", so the yearly line's "Moving out: $100" and the fee row name one thing. The priced line's figures are ink, its words secondary ink.
 
+One calculator address (Nov 2026, the third critique: "Change" and the "Compare with" card's "Yearly cost with your own numbers" opened the calculator on two addresses): both now open it on the yearly card's own inputs with this broker picked (calculator/?n=24&b=<slug>, lib/cost.ts calcSearch), so it shows the yearly card's figure; a returning visitor's saved inputs are kept, not shown.
+
 ## Unresolved decisions
 
 None blocking. The rest of the site keeps its current structure until the rollout; on this branch it inherits the new tokens and type.
 
 The phone's first screen after the rank's basis (Nov 2026, measured above): the yearly card's top edge now shows by 30px for 4 brokers and by 3px for 15 at 390x844. Hiding the gap line's bracket below 600px (it repeats the scale's "Cheapest" caption one line further down) would show it by 27 to 55px for 19 of 25 on S&P 500 stocks and 14 on other stocks, more than before the basis; tighter scale spacing is the other lever. Owner's call.
+
+The "Compare with" card's button still says "Yearly cost with your own numbers" though it now opens on the yearly card's inputs (24 trades of $2,000), not a returning visitor's saved ones; Home's "Your own numbers" still opens the saved ones (calculator/?b=<slug>). Reword the button, or keep it as an invitation to put one's own numbers in: owner's call.
 
 ## Direction contract
 

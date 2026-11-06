@@ -12,7 +12,7 @@ import { href, pagePath } from "../../lib/routes";
 import { useTheme } from "../../lib/theme";
 import { DataTable, type Col } from "../DataTable";
 import { Card, Empty, Legend } from "../ui";
-import { stackedBars } from "./chart";
+import { partColor, stackedBars } from "./chart";
 import { bestYield, missingFact, partsInUse, pool, poolClause, totalWords, unknownWord, usd, type Ranked } from "./model";
 
 /** The parts in use, the same array while the answers that pick them stay the same (so the chart isn't rebuilt). */
@@ -38,7 +38,7 @@ export function Ranking({ d, lines, ranked, me, inp, onPick }: {
       foot={<>Prices: each broker's SEC Rule 605 report for {monthLong(d.meta.month)}, on orders of {usd(inp.size)}. Fees: each broker's own pages, {checked}. Estimates, not advice.</>}>
       {rows.length ? (
         <>
-          {keyed.length > 1 && <div className="calc-key"><Legend items={keyed.map((p) => ({ color: t.s[p.slot], label: p.label }))} /></div>}
+          {keyed.length > 1 && <div className="calc-key"><Legend items={keyed.map((p) => ({ color: partColor(t, p), label: p.label }))} /></div>}
           <EChart option={chart} height={rows.length * 30 + 36}
             label={`Yearly cost at ${pool(rows.length, poolClause(inp))}, cheapest first${parts.length > 1 ? `, split into ${andList(parts.map((p) => p.label.toLowerCase()))}` : ""}. The table below lists every figure.`}
             onClick={(p) => { if (p.data?.id) onPick(p.data.id); }} />
