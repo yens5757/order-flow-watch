@@ -117,6 +117,14 @@
     scroll-padding-right: 1rem;
   }
 }
+/* under 360px the first measure has about 114px between the pinned names and the fade: a long name may take two lines
+   and the measure's heading wraps its words (its unit kept whole) inside a fixed 6.75rem column, so every first measure's
+   figures show whole, not only the default one's (measured: 13-28px clear of the fade for all ten) */
+@media (max-width: 359px) {
+  .ex-tbl .dt .pin, .ex-tbl .dt .pin .dt-go { white-space: normal; }
+  .ex-tbl .dt thead th.hl .dt-h > span:first-child { white-space: normal; }
+  .ex-tbl .dt thead th.hl { min-width: 6.75rem; }
+}
 
 /* ---------- the ranked rail chart (RankChart.tsx): the price scale, one row per broker ---------- */
 .ex-rank { --r: 7px; --name: 8.5rem; --val: 5.5rem; --gap: 14px; }
