@@ -207,7 +207,7 @@ export function normalizeLocation(data: Data, path: string, search: string, hash
   return want != null && want !== path ? { path: want, search } : null;
 }
 
-const HOME_DESCRIPTION = "Which US brokers get you the best price on a trade, from the reports they must publish by law (SEC Rules 605 and 606). Updated weekly.";
+const HOME_DESCRIPTION = "Which US brokers get you the best price on a trade, from the reports they must publish by law (SEC Rules 605 and 606). Checked for new reports every week.";
 
 /** <title>, meta description and canonical URL per page, so search results and shared links say what the page is about.
  *  The title ends with " · Fills and Fees" except on home. The not-found page has no canonical URL (an empty string) and

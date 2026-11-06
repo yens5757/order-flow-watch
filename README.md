@@ -4,7 +4,7 @@
 
 **Do retail brokers that are paid more for routing customer orders give their customers worse fills?**
 
-An automated pipeline that joins two SEC disclosures, refreshed weekly and published as a website, **Fills and Fees**
+An automated pipeline that joins two SEC disclosures, checks for new reports every week and publishes them as a website, **Fills and Fees**
 (what your broker's trades really cost; the repository keeps its original name, `order-flow-watch`, for now):
 
 - **Rule 606**: which market makers each broker sends orders to, and how much it is paid.
