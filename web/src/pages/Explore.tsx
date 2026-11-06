@@ -6,6 +6,7 @@
 // in a bottom sheet behind "Change view", so the chart comes straight after the heading.
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { EChart } from "../charts/EChart";
+import { savedBroker } from "../components/calculator/store";
 import { DataTable, type Col } from "../components/DataTable";
 import { ControlBar, ControlSheet, type ControlProps } from "../components/explorer/Controls";
 import { CopyLink } from "../components/explorer/CopyLink";
@@ -16,29 +17,12 @@ import { cap, defaults, fromUrl, isFee, isPay, tidy, toQuery, type Sort, type Vi
 import { Card, Icon, Legend, PageHeader, Segmented } from "../components/ui";
 import { andList } from "../lib/broker";
 import { brokerRows, BUCKET_LABEL, files606, type Data, type FeeKey, type Metric } from "../lib/data";
-import { dayLong, monthLong, quarterLong, strength } from "../lib/format";
-import { onNavigate, readLocation, readQuery, writeQuery } from "../lib/hooks";
-import { METRIC_KEYS, METRICS, type MetricKey } from "../lib/metrics";
+import { dayLong, DOT, monthLong, quarterLong, strength } from "../lib/format";
+import { onNavigate, readLocation, readQuery, useWidth, writeQuery } from "../lib/hooks";
+import { METRIC_KEYS, METRICS, type MetricDef, type MetricKey } from "../lib/metrics";
 import { brokerPath, href, pagePath, parseRoute } from "../lib/routes";
 import { median, spearman } from "../lib/stats";
 import { useTheme } from "../lib/theme";
-
-/** A box's width, kept current as it resizes (0 until measured, and on the server); a change waits 150ms to settle, so
- *  dragging a window edge doesn't rebuild the scatter on every frame. `on`: the box is on the page. */
-function useWidth(ref: RefObject<HTMLElement>, on: boolean): number {
-  const [w, setW] = useState(0);
-  useEffect(() => {
-    const el = ref.current;
-    if (!on || !el) return;
-    let timer: number | undefined;
-    const read = () => setW(Math.round(el.getBoundingClientRect().width));
-    read();
-    const ro = new ResizeObserver(() => { window.clearTimeout(timer); timer = window.setTimeout(read, 150); });
-    ro.observe(el);
-    return () => { ro.disconnect(); window.clearTimeout(timer); };
-  }, [on]); // eslint-disable-line react-hooks/exhaustive-deps
-  return w;
-}
 
 /** Whether a table's scroll box (DataTable's .dt-box inside `ref`) is wider inside than out (`over`), and whether
  *  columns wait to its right (`more`: its edge fades while they do). Both true until measured, as they always are for
@@ -74,6 +58,9 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
     document.fonts?.ready.then(() => { if (live) setFonts(true); });
     return () => { live = false; };
   }, []);
+  // the visitor's own broker, if they have picked one on Home or in the calculator: the scatter names it even on a phone
+  const [mine, setMine] = useState<string | null>(null);
+  useEffect(() => { setMine(savedBroker()); }, []);
   const [s, setS] = useState<View>(() => fromUrl(d, search));
   const [sheet, setSheet] = useState(false); // the controls' sheet on phones and tablets
   const set = (p: Partial<View>) => setS((x) => ({ ...x, ...p, ...(p.m && p.m === x.vs ? { vs: "" as const } : {}) }));
@@ -89,6 +76,9 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
   }), [d, s]);
 
   const M = METRICS[s.m], V = s.vs ? METRICS[s.vs] : null;
+  // a measure in a pair's title: a label with a "vs" of its own ("Same-stock gap vs other brokers", "Fractional vs whole
+  // shares") is named by its noun ("same-stock gap"), so the title says "vs" once
+  const paired = (x: MetricDef) => (x.label.includes(" vs ") ? cap(x.noun) : x.label);
   /** a measure's figure as shown: a true minus, never "−$0.00" */
   const show = (k: MetricKey) => (v: number | null) => tidy(METRICS[k].fmt(v));
   const fmt = show(s.m);
@@ -169,11 +159,11 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
   const lower = (x: string) => x.charAt(0).toLowerCase() + x.slice(1);
   const orders = [s.sp === "Y" ? "S&P 500 stocks" : "Other stocks", `${s.ot === "M" ? "market" : "marketable limit"} orders`,
     lower(BUCKET_LABEL[s.b]), monthLong(d.meta.month)];
-  const scope = [...orders, ...(payOn ? [`payments ${quarterLong(s.q)}`] : [])].join(" · ");
+  const scope = [...orders, ...(payOn ? [`payments ${quarterLong(s.q)}`] : [])].join(DOT);
   const feeScope = d.meta.feesChecked ? `fees checked ${dayLong(d.meta.feesChecked)}` : "fees from each broker's price list";
-  const sub = feeOnly ? cap(feeScope) : feeOn ? `${scope} · ${feeScope}` : scope;
+  const sub = feeOnly ? cap(feeScope) : feeOn ? `${scope}${DOT}${feeScope}` : scope;
   // the table holds every measure, so its caption names every scope, whatever the chart shows
-  const tableScope = [...orders, `payments ${quarterLong(s.q)}`, feeScope].join(" · ");
+  const tableScope = [...orders, `payments ${quarterLong(s.q)}`, feeScope].join(DOT);
 
   /** Why a broker has no figure for a measure, in the words the fee list and the payment reports use. */
   const why = (r: Metric): string => {
@@ -218,8 +208,8 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
     x: { name: V.label, short: V.short, fmt: (v) => tidy(V.axis(v)) },
     y: { name: M.label, short: M.short, fmt: (v) => tidy(M.axis(v)) },
     typical: [median(withV.map((r) => V.get(r)!)) ?? 0, med ?? 0],
-    width: cw,
-  }) : null), [t, s, all, cw, fonts]); // eslint-disable-line react-hooks/exhaustive-deps
+    width: cw, mine,
+  }) : null), [t, s, all, cw, fonts, mine]); // eslint-disable-line react-hooks/exhaustive-deps
   const ranked = sorted.map((r) => ({ id: r.id, name: r.f.short, v: M.get(r)!, text: fmt(M.get(r)) + (isPay(s.m) && lateOf(r) ? "*" : "") }));
   const orderWords = s.sort === "az" ? "A to Z" : M.better ? (s.sort === "worst" ? "worst first" : "best first") : s.sort === "worst" ? "low to high" : "high to low";
   const sortOpts: [Sort, string][] = M.better
@@ -268,7 +258,7 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
         <ControlSheet {...controls} open={sheet} onClose={() => setSheet(false)} count={n} />
 
         <div className="ex-cards">
-          <Card title={V ? `${M.label} vs ${V.label.toLowerCase()}` : M.label} sub={sub}
+          <Card title={V ? `${paired(M)} vs ${paired(V).toLowerCase()}` : M.label} sub={sub}
             info={V ? `${M.label}: ${M.desc} ${V.label}: ${V.desc}` : M.desc} infoTopic={V ? "the two measures" : M.label}
             right={!V && n > 1 ? (
               <span className="ex-sort js-only"><Segmented<Sort> size="sm" label="Sort the brokers" value={s.sort} onChange={(sort) => set({ sort })} options={sortOpts} /></span>
@@ -283,7 +273,7 @@ export default function Explore({ d, search }: { d: Data; search: string }) {
                 {/* the typical lines' name, as a key, so no word inside the plot can run into a dot's name */}
                 <div className="ex-key"><Legend items={[{ color: "var(--mark)", label: "Typical broker", dashed: true }]} /></div>
                 <div ref={plot} className="ex-plot" style={{ minHeight: PLOT_H }}>
-                  {scatter && <EChart option={scatter.option} height={PLOT_H} label={`${M.label} against ${V.label.toLowerCase()}: one dot per broker, ${n} brokers. Every figure is in the table below.`} />}
+                  {scatter && <EChart option={scatter.option} height={PLOT_H} label={`${paired(M)} against ${paired(V).toLowerCase()}: one dot per broker, ${n} brokers. Every figure is in the table below.`} />}
                 </div>
                 {/* a dot whose name had no clear place: the tooltip names it, the table lists it; "tap" or "point at" by the pointer */}
                 {scatter && scatter.unnamed > 0 && (

@@ -26,6 +26,7 @@ html:has(.cmp-tbl) { scroll-padding-top: 72px; }
 }
 .cmp-go-t { min-width: 0; text-wrap: balance; }
 .cmp-shown { color: var(--ink-2); font-weight: 500; }
+.cmp-shown[data-rest] { visibility: hidden; }
 /* a tablet: "Compare" on its own line under the boxes, since a long pair's name doesn't fit beside them at this width */
 @media (min-width: 600px) and (max-width: 1023px) {
   .cmp-boxes { flex-basis: 100%; }

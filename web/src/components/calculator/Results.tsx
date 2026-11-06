@@ -1,18 +1,19 @@
 // Below the answer, full width: the ranking as stacked bars with an HTML key (only the brokers whose figure is complete:
 // a minimum can't be ranked against full figures), every broker as a sortable table (the visitor's broker on the Here row,
 // each name picks that broker, an incomplete figure reads "at least"), and how the parts add up with the sources.
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { EChart } from "../../charts/EChart";
 import { andList } from "../../lib/broker";
 import { yearSaid } from "../../lib/cash";
 import type { CostInputs, CostLine } from "../../lib/cost";
 import type { Data } from "../../lib/data";
-import { dayLong, monthLong, pct } from "../../lib/format";
+import { dayLong, DOT, monthLong, pct } from "../../lib/format";
+import { useWidth } from "../../lib/hooks";
 import { href, pagePath } from "../../lib/routes";
 import { useTheme } from "../../lib/theme";
 import { DataTable, type Col } from "../DataTable";
 import { Card, Empty, Legend } from "../ui";
-import { partColor, stackedBars } from "./chart";
+import { partColor, partEdge, stackedBars } from "./chart";
 import { bestYield, missingFact, partsInUse, pool, poolClause, totalWords, unknownWord, usd, type Ranked } from "./model";
 
 /** The parts in use, the same array while the answers that pick them stay the same (so the chart isn't rebuilt). */
@@ -27,7 +28,10 @@ export function Ranking({ d, lines, ranked, me, inp, onPick }: {
   const { t } = useTheme();
   const parts = useParts(inp);
   const rows = ranked.complete;
-  const chart = useMemo(() => stackedBars(t, rows, me?.id, parts), [t, rows, me?.id, parts]);
+  // the chart's axis is laid out for the width it is drawn at (chart.ts): it waits for the page to measure it
+  const box = useRef<HTMLDivElement>(null);
+  const width = useWidth(box, rows.length > 0);
+  const chart = useMemo(() => (width > 0 ? stackedBars(t, rows, me?.id, parts, width) : null), [t, rows, me?.id, parts, width]);
   // the key lists the parts that show as bars; a part at $0 everywhere (commissions, today) is in the tooltip and the table
   const keyed = parts.filter((p) => rows.some((l) => Math.abs(l[p.key]) >= 0.005));
   const left = lines.filter((l) => l.gaps.length);
@@ -38,10 +42,14 @@ export function Ranking({ d, lines, ranked, me, inp, onPick }: {
       foot={<>Prices: each broker's SEC Rule 605 report for {monthLong(d.meta.month)}, on orders of {usd(inp.size)}. Fees: each broker's own pages, {checked}. Estimates, not advice.</>}>
       {rows.length ? (
         <>
-          {keyed.length > 1 && <div className="calc-key"><Legend items={keyed.map((p) => ({ color: partColor(t, p), label: p.label }))} /></div>}
-          <EChart option={chart} height={rows.length * 30 + 36}
-            label={`Yearly cost at ${pool(rows.length, poolClause(inp))}, cheapest first${parts.length > 1 ? `, split into ${andList(parts.map((p) => p.label.toLowerCase()))}` : ""}. The table below lists every figure.`}
-            onClick={(p) => { if (p.data?.id) onPick(p.data.id); }} />
+          {keyed.length > 1 && <div className="calc-key"><Legend items={keyed.map((p) => ({ color: partColor(t, p), edge: partEdge(t, p), label: p.label }))} /></div>}
+          <div ref={box} style={{ minHeight: rows.length * 30 + 36 }}>
+            {chart && (
+              <EChart option={chart} height={rows.length * 30 + 36}
+                label={`Yearly cost at ${pool(rows.length, poolClause(inp))}, cheapest first${parts.length > 1 ? `, split into ${andList(parts.map((p) => p.label.toLowerCase()))}` : ""}. The table below lists every figure.`}
+                onClick={(p) => { if (p.data?.id) onPick(p.data.id); }} />
+            )}
+          </div>
         </>
       ) : <Empty>{lines.length ? "No broker has every fee these trades need confirmed, so none is ranked. The table below has what is known." : `No broker reports prices for orders of ${usd(inp.size)} this month.`}</Empty>}
       {rows.length > 0 && left.length > 0 && (
@@ -69,7 +77,7 @@ export function Breakdown({ lines, ranked, me, inp, onPick }: { lines: CostLine[
     })),
   ];
   return (
-    <Card id="breakdown" className="calc-tablecard" title="Every broker, in dollars" sub="A year of your trades · pick a broker to see it above">
+    <Card id="breakdown" className="calc-tablecard" title="Every broker, in dollars" sub={`A year of your trades${DOT}pick a broker to see it above`}>
       <DataTable rows={lines} cols={cols} initial={{ key: "rank", dir: 1 }} rowKey={(r) => r.id} here={(r) => r.id === me?.id}
         onRow={(r) => onPick(r.id)} rowLabel={(r) => (r.id === me?.id ? `${r.short}, your broker` : `Pick ${r.short}`)}
         search={(r) => `${r.name} ${r.short}`} searchLabel="Find a broker" file="yearly-cost-by-broker.csv" caption="Yearly cost at each broker, in dollars" />

@@ -318,7 +318,11 @@ export interface Group {
 
 /** The price card's second line: how far the broker is from the cheapest (or, for the cheapest, from the next one).
  *  `who` is the broker compared with and its price, shown in brackets and kept on one line. */
-export interface GapLine { lead: string; who: string | null }
+export interface GapLine {
+  lead: string; who: string | null;
+  /** `who` is the scale's own "Cheapest" caption over again (one cheapest broker, its figure): a phone drops it */
+  repeats: boolean;
+}
 function gapLine(places: Place[], m: Metric, clearing: boolean): GapLine | null {
   if (m.cost10k == null || !places.length) return null;
   const c = cents(m.cost10k), low = cents(places[0].m.cost10k!);
@@ -326,13 +330,14 @@ function gapLine(places: Place[], m: Metric, clearing: boolean): GapLine | null 
   const named = (ps: Place[]) => (ps.length > 3 ? `${ps.slice(0, 3).map((p) => p.m.f.short).join(", ")} and others` : andList(ps.map((p) => p.m.f.short)));
   const by = (n: number) => usd2(Math.abs(n) / 100);
   const cheapest = `${named(lowest)}, ${fairText(places[0].m.cost10k!)}`;
-  if (c < low) return { lead: `${by(low - c)} less than the cheapest broker`, who: cheapest };
+  const repeats = lowest.length === 1 && lowest[0].m.id === places[0].m.id;
+  if (c < low) return { lead: `${by(low - c)} less than the cheapest broker`, who: cheapest, repeats };
   if (c === low) {
-    if (lowest.length) return { lead: `Level with ${named(lowest)} at the lowest price`, who: null };
+    if (lowest.length) return { lead: `Level with ${named(lowest)} at the lowest price`, who: null, repeats: false };
     const next = places.find((p) => cents(p.m.cost10k!) > c);
-    return next ? { lead: `${by(cents(next.m.cost10k!) - c)} less than the next cheapest`, who: `${next.m.f.short}, ${fairText(next.m.cost10k!)}` } : null;
+    return next ? { lead: `${by(cents(next.m.cost10k!) - c)} less than the next cheapest`, who: `${next.m.f.short}, ${fairText(next.m.cost10k!)}`, repeats: false } : null;
   }
-  return { lead: `${by(c - low)} more than the cheapest${clearing ? " broker" : ""}`, who: cheapest };
+  return { lead: `${by(c - low)} more than the cheapest${clearing ? " broker" : ""}`, who: cheapest, repeats };
 }
 
 export function groupOf(d: Data, firm: Firm, sp: Sp): Group {

@@ -10,7 +10,7 @@ import { FirmTable } from "../components/firms/FirmTable";
 import { FilterBar } from "../components/Filters";
 import { Breadcrumb, PageHeader, Select } from "../components/ui";
 import { BUCKET_LABEL, OT_LABEL, SP_LABEL, type Data, type Filters, type Sp } from "../lib/data";
-import { monthLong } from "../lib/format";
+import { DOT, monthLong } from "../lib/format";
 import { href, pagePath } from "../lib/routes";
 
 export default function AllFirms({ d, f, set }: { d: Data; f: Filters; set: (p: Partial<Filters>) => void }) {
@@ -21,7 +21,7 @@ export default function AllFirms({ d, f, set }: { d: Data; f: Filters; set: (p: 
   const scale = useMemo(() => d.meta.months.flatMap((month) => (["Y", "N"] as Sp[]).flatMap((sp) =>
     firmRows(d, { sp, ot, b, month, quarter: d.meta.quarter, clearing: false }))), [d, ot, b]);
   const month = monthLong(f.month);
-  const scope = `${SP_LABEL[f.sp]} · ${OT_LABEL[f.ot].toLowerCase()} orders · ${BUCKET_LABEL[f.b].toLowerCase()}`;
+  const scope = `${SP_LABEL[f.sp]}${DOT}${OT_LABEL[f.ot].toLowerCase()} orders${DOT}${BUCKET_LABEL[f.b].toLowerCase()}`;
   const file = `rule605_firms_${f.month}_${f.sp === "Y" ? "sp500" : "other"}_${f.ot === "M" ? "market" : "marketable-limit"}_${f.b}.csv`;
 
   return (

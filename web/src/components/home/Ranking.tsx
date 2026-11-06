@@ -7,7 +7,7 @@
 import { useRef } from "react";
 import { andList, payment, type Group, type Pay } from "../../lib/broker";
 import type { Data } from "../../lib/data";
-import { monthLong, ordinal, quarterLong } from "../../lib/format";
+import { DOT, monthLong, ordinal, quarterLong } from "../../lib/format";
 import { FAIR_COL } from "../../lib/metrics";
 import { brokerPath, href } from "../../lib/routes";
 import { FairCell, PayCell } from "../broker/WhereSits";
@@ -47,7 +47,7 @@ export function Ranking({ d, g, all, setAll, at }: { d: Data; g: Group; all: boo
 
   return (
     <Card id={at === "flow" ? "rank" : undefined} className={`hm-rank hm-rank-${at}${all ? " all" : ""}`} title={`All ${n} brokers, cheapest first`}
-      sub={<>Per $10,000 traded · {g.name}</>}>
+      sub={<>Per $10,000 traded{DOT}{g.name}</>}>
       <div className="bp-tbl">
         <table role="table">
           <caption className="sr-only">

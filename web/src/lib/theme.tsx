@@ -13,8 +13,14 @@ export interface Tokens {
   ink: string; ink2: string; muted: string; grid: string; baseline: string; border: string;
   /** the scale's end-dot grey (non-text marks, 3:1 on the card) and its rail */
   mark: string; track: string;
+  /** the Here tint: the row (or a chart's band) of the broker the page is about */
+  here: string;
   accent: string; accent2: string;
   s: string[];
+  /** each series colour's edge on the card, for a mark that needs 3:1 there: its own colour where that already reaches
+   *  it, else the same hue's deeper step (the dark theme's, which does; light idle-cash pink, margin amber, commissions
+   *  green) */
+  rim: string[];
   better: string; worse: string; context: string; neutral: string;
   good: string; warning: string; critical: string;
   seq: string[];
@@ -36,16 +42,29 @@ const VARS: Record<"dark" | "light", Record<string, string>> = (() => {
   return out;
 })();
 
+/** WCAG contrast of two #rrggbb colours. */
+function contrast(a: string, b: string): number {
+  const lum = (h: string) => {
+    const [r, g, bl] = [1, 3, 5].map((i) => { const c = parseInt(h.slice(i, i + 2), 16) / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+  };
+  const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+}
+
 function read(dark: boolean): Tokens {
   const vars = VARS[dark ? "dark" : "light"];
   const v = (n: string) => vars[n.replace(/^--/, "")] ?? "";
+  const s = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => v(`--s${i}`)), surface = v("--surface");
+  const hex = (c: string) => /^#[0-9a-f]{6}$/i.test(c);
   return {
     dark,
     page: v("--page"), surface: v("--surface"), surface2: v("--surface-2"),
     ink: v("--ink"), ink2: v("--ink-2"), muted: v("--muted"), grid: v("--grid"), baseline: v("--baseline"), border: v("--border"),
-    mark: v("--mark"), track: v("--track"),
+    mark: v("--mark"), track: v("--track"), here: v("--here"),
     accent: v("--accent"), accent2: v("--accent-2"),
-    s: [1, 2, 3, 4, 5, 6, 7, 8].map((i) => v(`--s${i}`)),
+    s,
+    rim: s.map((c, i) => (!hex(c) || !hex(surface) || contrast(c, surface) >= 3 ? c : VARS.dark[`s${i + 1}`] ?? c)),
     better: v("--better"), worse: v("--worse"), context: v("--context"), neutral: v("--neutral"),
     good: v("--good"), warning: v("--warning"), critical: v("--critical"),
     seq: [0, 1, 2, 3, 4].map((i) => v(`--seq-${i}`)),

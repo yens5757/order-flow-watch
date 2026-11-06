@@ -14,7 +14,7 @@ import { base, tip, tooltip } from "../../charts/kit";
 import { lines, stackedColumns } from "../../charts/options";
 import { isExchange, money } from "../../lib/broker";
 import { execKey, files606, SP_LABEL, type Data, type Filters, type Firm } from "../../lib/data";
-import { cents, dollars, monthLong, pct, quarterLong, quarterShort } from "../../lib/format";
+import { cents, dollars, DOT, monthLong, pct, quarterLong, quarterShort } from "../../lib/format";
 import type { Tokens } from "../../lib/theme";
 import { useTheme } from "../../lib/theme";
 import { ChartTable, Empty, Legend, useSideScroll } from "../ui";
@@ -136,12 +136,12 @@ export function ByBroker({ d, f, firm, slot }: { d: Data; f: Filters; firm: Firm
   if (!has606) {
     return <Empty>{firm.short} files no payment report of its own (another firm routes its orders).</Empty>;
   }
-  const scope = `${SP_LABEL[f.sp]} · ${f.ot === "M" ? "market" : "marketable limit"} orders`;
+  const scope = `${SP_LABEL[f.sp]}${DOT}${f.ot === "M" ? "market" : "marketable limit"} orders`;
   return (
     <div className="tf-parts">
       <div className="tf-part tf-where">
         <h3>Where its orders go</h3>
-        <p className="tf-sub">By trading firm · {scope} · {quarterName(routeQ)}{late && ", the latest it has filed"}</p>
+        <p className="tf-sub">By trading firm{DOT}{scope}{DOT}{quarterName(routeQ)}{late && ", the latest it has filed"}</p>
         {slices.length ? (
           <div className="tf-ring">
             <div className="tf-ring-chart"><EChart option={routing} height={232} label={`Where ${firm.short}'s orders go, ${quarterLong(routeQ)}`} /></div>
@@ -149,7 +149,7 @@ export function ByBroker({ d, f, firm, slot }: { d: Data; f: Filters; firm: Firm
               <div ref={keyBox} className="tbox" tabIndex={over ? 0 : undefined} role={over ? "region" : undefined}
                 aria-label={over ? `Where ${firm.short}'s orders went, scrolls sideways` : undefined}>
                 <table className="tbl tf-key">
-                  <caption className="sr-only">Where {firm.short}'s orders went and what each trading firm paid: {scope.replace(" · ", ", ")}, {quarterLong(routeQ)}</caption>
+                  <caption className="sr-only">Where {firm.short}'s orders went and what each trading firm paid: {scope.replace(DOT, ", ")}, {quarterLong(routeQ)}</caption>
                   <thead>
                     <tr>
                       <th scope="col">Trading firm</th><th scope="col" className="num">Share of orders</th>
@@ -178,7 +178,7 @@ export function ByBroker({ d, f, firm, slot }: { d: Data; f: Filters; firm: Firm
 
       <div className="tf-part">
         <h3>Payment rate over time</h3>
-        <p className="tf-sub">Cents per 100 shares, averaged across its trading firms · {scope}</p>
+        <p className="tf-sub">Cents per 100 shares, averaged across its trading firms{DOT}{scope}</p>
         {/* the one place on the site a payment stays in cents: dollars per $10,000 need each quarter's share prices */}
         <p className="tf-sub tf-cents">In cents only: the share prices needed for dollars start in {firstMonth}.</p>
         {known.length ? (

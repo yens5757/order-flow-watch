@@ -18,7 +18,7 @@ import { YearCard } from "../components/broker/YearCard";
 import { Breadcrumb } from "../components/ui";
 import { cents, groupOf, money, ranksSaid, yearFor, type Group } from "../lib/broker";
 import type { Data, Sp } from "../lib/data";
-import { monthLong } from "../lib/format";
+import { DOT, monthLong } from "../lib/format";
 import { href, pagePath } from "../lib/routes";
 
 /** What the live region says when the switch flips: the group, the price and both ranks the card shows with their bases,
@@ -92,7 +92,7 @@ export default function BrokerProfile({ d, id }: { d: Data; id: string }) {
       <h1 className="bp-h1">{firm.short}</h1>
       <div className="bp-filter">
         <StockSwitch onPick={announce} onBefore={snapshot} />
-        <p className="bp-scope">Market orders · {month}</p>
+        <p className="bp-scope">Market orders{DOT}{month}</p>
       </div>
       <p className="sr-only" aria-live="polite">{said}</p>
 

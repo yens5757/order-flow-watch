@@ -77,7 +77,9 @@ function NoteLine({ note, id, children }: { note: Note; id: string; children: Re
 
 /** The first rank and its basis, built like the same-stock line under it: the rank in the line's 700, "on average" after
  *  it in 500. "of 25" and "on average" never part at a line end, so a narrow column breaks between the rank and its
- *  basis ("10th cheapest of 25" over "on average"), never inside either. */
+ *  basis ("10th cheapest of 25" over "on average"), never inside either; a rank wider than its column on its own (an end
+ *  or a tie beside "See all" on a phone, "The most expensive of 25") breaks before its count instead, the count and the
+ *  basis together ("The most expensive" over "of 25 on average"). */
 function RankLine({ v }: { v: Group }) {
   const rank = capital(v.rank!).replace(/ of (\d+)$/, ` of${NB}$1`);
   return (
@@ -132,7 +134,9 @@ export function Answer({ d, v, fair, same, see }: { d: Data; v: Group; fair: Not
           <a className="ulink" href={`${how}#same-stocks`}>How we measure</a>
         </NoteLine>
       )}
-      {v.diff && <p className="bp-diff">{v.diff.lead}{v.diff.who && <> <span className="nw">({v.diff.who})</span></>}</p>}
+      {/* the cheapest broker in brackets, which a phone drops where the scale's "Cheapest" caption right under it says
+          the same (broker.css) */}
+      {v.diff && <p className="bp-diff">{v.diff.lead}{v.diff.who && <> <span className={v.diff.repeats ? "nw bp-who" : "nw"}>({v.diff.who})</span></>}</p>}
     </>
   );
 }

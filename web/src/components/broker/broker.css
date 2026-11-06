@@ -34,12 +34,15 @@ html:has(#sg-ot:checked) [data-g="sp"] { display: none !important; }
 .bp-fig { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; column-gap: 18px; row-gap: 6px; }
 .bp-amt { font-size: var(--fs-7); line-height: .92; font-weight: 800; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
 .bp-per { padding-bottom: 4px; font-size: var(--fs-4); line-height: 1.3; font-weight: 600; }
+/* a 44px target that paints a 28px disc (the padding stays clear of the fill), so the hover and open fills stay inside a
+   line of text and never cover the line above or the word before it; the ring hugs the disc, 3px clear of it */
 .bp-def {
-  display: inline-grid; place-items: center; width: 44px; height: 44px; margin: -12px -10px -12px 0; border-radius: 50%;
-  color: var(--accent); vertical-align: middle;
+  display: inline-grid; place-items: center; width: 44px; height: 44px; margin: -12px -10px -12px 0; padding: 8px;
+  border-radius: 50%; background-clip: content-box; color: var(--accent); vertical-align: middle;
 }
-.bp-def:hover { background: var(--accent-soft); color: var(--accent-hover); }
-.bp-def[aria-expanded="true"] { background: var(--accent); color: var(--on-accent); }
+.bp-def:hover { background-color: var(--accent-soft); color: var(--accent-hover); }
+.bp-def[aria-expanded="true"] { background-color: var(--accent); color: var(--on-accent); }
+.bp-def:focus-visible { outline-offset: -5px; }
 /* the (i) opens a plain line of text in place: nothing floats over the figures. Without a script it is simply shown. */
 .bp-def-note { margin-top: 14px; max-width: 46ch; color: var(--ink-2); }
 .bp-def-note a { padding: 12px 0; }
@@ -64,6 +67,11 @@ html.js .bp-def-note:not(.open) { display: none; }
 .bp-same { grid-area: same; font-size: var(--fs-4); line-height: 1.3; font-weight: 500; letter-spacing: -.01em; text-wrap: pretty; }
 .bp-same b { font-weight: 700; }
 .bp-diff { color: var(--ink-2); }
+/* on a phone the gap line drops its bracket when the scale's "Cheapest" caption, right under it, names the same broker
+   and figure: a line less, so the yearly card's top edge shows in the first screen */
+@media (max-width: 599px) {
+  .bp-who { display: none; }
+}
 /* under the two ranks the gap to the cheapest leads into the scale it describes, apart from the same-stock line */
 .bp-rank.two ~ .bp-diff { margin-top: 12px; }
 .bp-say { margin-top: 22px; font-size: var(--fs-3); line-height: 1.55; max-width: 62ch; text-wrap: pretty; }

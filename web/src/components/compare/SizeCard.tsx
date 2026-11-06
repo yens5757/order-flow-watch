@@ -8,7 +8,7 @@ import { tip } from "../../charts/kit";
 import { lines } from "../../charts/options";
 import { money } from "../../lib/broker";
 import { BUCKET_LABEL, execKey, SIZE_STEPS, type Data, type Filters, type Firm } from "../../lib/data";
-import { pct } from "../../lib/format";
+import { DOT, pct } from "../../lib/format";
 import { fairText } from "../../lib/metrics";
 import { useTheme } from "../../lib/theme";
 import { Card, ChartTable, Empty, Legend, Segmented } from "../ui";
@@ -67,7 +67,7 @@ export function SizeCard({ d, f, A, B, monthName }: { d: Data; f: Filters; A: Fi
   const label = `Cost by order size, ${A.short} and ${B.short}, ${unit === "usd" ? "dollars above the fair price per $10,000 traded" : "share of the spread paid"}`;
 
   return (
-    <Card title="Cost by order size" className="cmp-size" sub={`${capital(stocksWord(f.sp))} · ${ordersWord(f.ot)} · ${monthName}`}
+    <Card title="Cost by order size" className="cmp-size" sub={`${capital(stocksWord(f.sp))}${DOT}${ordersWord(f.ot)}${DOT}${monthName}`}
       right={<Segmented<Unit> size="sm" label="Unit" value={unit} onChange={setUnit} options={[["usd", "$ per $10,000"], ["pct", "% of spread"]]} />}
       foot={foot}>
       {has ? (

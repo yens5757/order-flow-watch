@@ -36,13 +36,13 @@ Polish (Nov 2026, the final pass after the three fixes): one unit wording on the
 
 One calculator address (Nov 2026, the third critique: "Change" and the "Compare with" card's "Yearly cost with your own numbers" opened the calculator on two addresses): both now open it on the yearly card's own inputs with this broker picked (calculator/?n=24&b=<slug>, lib/cost.ts calcSearch), so it shows the yearly card's figure; a returning visitor's saved inputs are kept, not shown.
 
+After the third round's verifiers (Nov 2026), the two calls left below took this brief's own remedy, since a 3px sliver of the yearly card read as a glitch and the same words opened two calculator states. The phone's first screen: below 600px the gap line drops its bracket where the scale's "Cheapest" caption, one line further down, names the same broker and figure (lib/broker.ts gapLine `repeats`); Fidelity's "$0.01 less than the next cheapest (J.P. Morgan, $0.08 below)" keeps it, since the scale doesn't name J.P. Morgan. At 390x844 on S&P 500 stocks the yearly card's top edge now shows by 27 to 55px for 19 of 25 brokers and no sliver remains; the 6 whose ranks differ end exactly at the fold. The "Compare with" card's button says "Yearly cost calculator" (the address "Change" uses, calculator/?n=24&b=<slug>), so "your own numbers" is only Home's yearly line, which opens a returning visitor's saved inputs (calculator/?b=<slug>). A rank wider than its column on its own ("The most expensive of 25" beside "See all" at 390 and 414) breaks before "of 25", the count and basis together ("The most expensive" over "of 25 on average"); holding the rank whole would overflow the column, and moving "See all" under it cost the card 44px. The answer card's (i)s paint a 28px disc on their 44px target, clear of the line above.
+
 ## Unresolved decisions
 
 None blocking. The rest of the site keeps its current structure until the rollout; on this branch it inherits the new tokens and type.
 
-The phone's first screen after the rank's basis (Nov 2026, measured above): the yearly card's top edge now shows by 30px for 4 brokers and by 3px for 15 at 390x844. Hiding the gap line's bracket below 600px (it repeats the scale's "Cheapest" caption one line further down) would show it by 27 to 55px for 19 of 25 on S&P 500 stocks and 14 on other stocks, more than before the basis; tighter scale spacing is the other lever. Owner's call.
-
-The "Compare with" card's button still says "Yearly cost with your own numbers" though it now opens on the yearly card's inputs (24 trades of $2,000), not a returning visitor's saved ones; Home's "Your own numbers" still opens the saved ones (calculator/?b=<slug>). Reword the button, or keep it as an invitation to put one's own numbers in: owner's call.
+Apex, a clearing firm with only the price card and the table, keeps the left column alone on a desktop (the table needs more than the 448px track); nothing it could hold on the right is in the data. Owner's call.
 
 ## Direction contract
 

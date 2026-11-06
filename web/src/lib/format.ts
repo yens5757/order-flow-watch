@@ -51,3 +51,7 @@ export const ordinal = (n: number) => {
   const s = ["th", "st", "nd", "rd"], v = n % 100;
   return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
 };
+
+/** The separator between the parts of a scope line ("S&P 500 stocks · market orders · September 2026"), held to the part
+ *  before it by a no-break space, so a wrapped line never starts with "·". */
+export const DOT = "\u00a0· ";

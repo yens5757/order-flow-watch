@@ -259,14 +259,15 @@ export function Status({ kind, children }: { kind: "good" | "bad" | "neutral"; c
   );
 }
 
-/** A chart's key in HTML: a swatch (or a dashed line) and a word per series; it wraps instead of paging on a phone. */
-export function Legend({ items }: { items: { color: string; label: string; dashed?: boolean }[] }) {
+/** A chart's key in HTML: a swatch (or a dashed line) and a word per series; it wraps instead of paging on a phone. `edge`
+ *  edges a swatch whose colour alone falls under 3:1 on the card, as its marks are (theme.tsx rim). */
+export function Legend({ items }: { items: { color: string; label: string; dashed?: boolean; edge?: string | null }[] }) {
   return (
     <ul className="lgd">
       {items.map((i) => (
         <li key={i.label}>
           {i.dashed ? <span className="lgd-dash" style={{ borderColor: i.color }} aria-hidden="true" />
-            : <span className="lgd-sw" style={{ background: i.color }} aria-hidden="true" />}
+            : <span className="lgd-sw" style={{ background: i.color, ...(i.edge ? { boxShadow: `inset 0 0 0 1px ${i.edge}` } : {}) }} aria-hidden="true" />}
           {i.label}
         </li>
       ))}
@@ -300,20 +301,32 @@ export function useSideScroll(ref: RefObject<HTMLElement>, deps: unknown[] = [])
   return s;
 }
 
-/** The numbers behind a chart as a real table, collapsed under "Show as a table" (the same words under every chart): the
- *  text version for screen readers and anyone who wants to copy them. The first column names the row; a wide table
- *  scrolls sideways inside the card with that column pinned. `caption` names the table (read with it, and after "Show
- *  as a table" for screen readers when a page has several). */
+/** "Show as a table" (the same words under every chart; "Hide the table" while open) over the table it opens. With a
+ *  `caption` the summary is named in one string that starts with its visible words and follows the open state, "Show as a
+ *  table: <caption>" (WCAG 2.5.3), so a page with several tells them apart: a hidden span inside the flex summary was read
+ *  as a separate block, which put a stray space before its colon ("Show as a table : …"). */
+export function TableToggle({ caption, className, children }: { caption?: string; className?: string; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <details className={className ? `ctab ${className}` : "ctab"} onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary aria-label={caption ? `${open ? "Hide the table" : "Show as a table"}: ${caption}` : undefined}>
+        <span className="ct-show">Show as a table</span><span className="ct-hide">Hide the table</span>
+        <Icon name="down" size={20} />
+      </summary>
+      {children}
+    </details>
+  );
+}
+
+/** The numbers behind a chart as a real table, collapsed under "Show as a table" (TableToggle): the text version for
+ *  screen readers and anyone who wants to copy them. The first column names the row; a wide table scrolls sideways inside
+ *  the card with that column pinned. `caption` names the table (read with it, and after "Show as a table" for screen
+ *  readers when a page has several). */
 export function ChartTable({ head, rows, caption }: { head: string[]; rows: ReactNode[][]; caption?: string }) {
   const box = useRef<HTMLDivElement>(null);
   const { over } = useSideScroll(box);
   return (
-    <details className="ctab">
-      <summary>
-        <span className="ct-show">Show as a table</span><span className="ct-hide">Hide the table</span>
-        {caption && <span className="sr-only">: {caption}</span>}
-        <Icon name="down" size={20} />
-      </summary>
+    <TableToggle caption={caption}>
       {/* focusable only when it scrolls, so a keyboard can scroll it */}
       <div ref={box} className="tbox" tabIndex={over ? 0 : undefined} role={over ? "region" : undefined}
         aria-label={over ? `${caption ?? "Table"}, scrolls sideways` : undefined}>
@@ -331,6 +344,6 @@ export function ChartTable({ head, rows, caption }: { head: string[]; rows: Reac
           </tbody>
         </table>
       </div>
-    </details>
+    </TableToggle>
   );
 }

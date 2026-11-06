@@ -18,4 +18,6 @@ export function loadInputs(): CostInputs {
 }
 export function saveInputs(i: CostInputs) { try { localStorage.setItem(STORE, JSON.stringify(i)); } catch { /* private mode: the inputs just won't persist */ } }
 export const loadBroker = () => { try { return localStorage.getItem(BROKER) ?? "HOOD"; } catch { return "HOOD"; } };
+/** The broker the visitor picked, only if they have picked one here (no default): the explorer's scatter names it. */
+export const savedBroker = () => { try { return localStorage.getItem(BROKER); } catch { return null; } };
 export const saveBroker = (id: string) => { try { localStorage.setItem(BROKER, id); } catch { /* private mode */ } };

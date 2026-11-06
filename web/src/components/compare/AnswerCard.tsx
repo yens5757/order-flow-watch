@@ -5,26 +5,24 @@
 // foot says what it isn't, in one line. "Show as a table" under the scale lists every broker it places, the two compared
 // on Here-tinted rows.
 import { useRef } from "react";
-import { money, rankWords, scaleOf, type Place } from "../../lib/broker";
+import { money, ON_AVERAGE, rankWords, scaleOf, type Place } from "../../lib/broker";
 import type { Data, Filters, Firm, Metric } from "../../lib/data";
 import { FAIR_COL, fairText } from "../../lib/metrics";
 import { brokerPath, href, pagePath } from "../../lib/routes";
 import { Scale } from "../broker/Scale";
 import { FairCell } from "../broker/WhereSits";
-import { Icon, Info, useSideScroll } from "../ui";
+import { Info, TableToggle, useSideScroll } from "../ui";
 import { capital, gapMoney, gapOf, noPrices, ordersWord, pairSentence, sideOf, stocksWord } from "./pair";
+
+/** A no-break space: "of 25" and "on average" stay whole at a line end. */
+const NB = " ";
 
 function RankTable({ places, A, B, caption }: { places: Place[]; A: Firm; B: Firm; caption: string }) {
   const ours = (id: string) => id === A.id || id === B.id;
   const box = useRef<HTMLDivElement>(null);
   const { over } = useSideScroll(box);
   return (
-    <details className="ctab cmp-rank">
-      <summary>
-        <span className="ct-show">Show as a table</span><span className="ct-hide">Hide the table</span>
-        <span className="sr-only">: {caption}</span>
-        <Icon name="down" size={20} />
-      </summary>
+    <TableToggle caption={caption} className="cmp-rank">
       {/* focusable only when it scrolls, so a keyboard can scroll it */}
       <div ref={box} className="tbox" tabIndex={over ? 0 : undefined} role={over ? "region" : undefined}
         aria-label={over ? `${caption}, scrolls sideways` : undefined}>
@@ -48,7 +46,7 @@ function RankTable({ places, A, B, caption }: { places: Place[]; A: Firm; B: Fir
           </tbody>
         </table>
       </div>
-    </details>
+    </TableToggle>
   );
 }
 
@@ -58,9 +56,13 @@ export function AnswerCard({ d, f, A, B, rA, rB, places, monthName }: {
   const g = gapOf(A, B, rA, rB);
   const say = pairSentence(f, A, B, rA, rB);
   const pairs: [Firm, Metric][] = [[A, rA], [B, rB]];
+  // each rank names its basis, as on the broker page ("10th cheapest of 25 on average"); "of 25" and "on average" are held
+  // together, so a narrow row breaks between the two, never leaving "25" alone on a line
   const rank = (F: Firm) => {
     const p = places.find((x) => x.m.id === F.id);
-    return p ? capital(rankWords(places, p)) : F.type === "clearing_firm" ? "Not ranked: a clearing firm" : null;
+    if (!p) return F.type === "clearing_firm" ? "Not ranked: a clearing firm" : null;
+    const words = capital(rankWords(places, p)).replace(/ of (\d+)$/, ` of${NB}$1`);
+    return places.length > 1 ? `${words} ${ON_AVERAGE.replace(/ /g, NB)}` : words;
   };
   const marks = pairs.filter(([, r]) => r.cost10k != null).map(([F, r]) => ({ name: F.short, v: r.cost10k! }));
   const scale = marks.length && places.length ? scaleOf(places.map((p) => ({ name: p.m.f.short, v: p.m.cost10k! })), null, marks) : null;

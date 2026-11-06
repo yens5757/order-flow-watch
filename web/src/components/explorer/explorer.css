@@ -100,10 +100,22 @@
 }
 
 /* ---------- the table: 14 columns scroll sideways inside the card; the right edge fades while more wait there ---------- */
-/* only the mask's alpha counts: the opaque token is any colour that keeps the rest of the box whole */
+/* only the mask's alpha counts: the opaque token is any colour that keeps the rest of the box whole. The scroll padding
+   is the fade's width, so a heading or name that takes keyboard focus is scrolled clear of it (DataTable reads it). */
 .ex-tbl[data-more] .dt-box {
   -webkit-mask-image: linear-gradient(to left, transparent, var(--ink) 2.5rem);
   mask-image: linear-gradient(to left, transparent, var(--ink) 2.5rem);
+  scroll-padding-right: 2.5rem;
+}
+/* a phone: the cells sit closer and the fade is narrower, so the first measure's figures show whole beside the pinned
+   names at 320px, its heading's unit on a second line (DataTable headParts) */
+@media (max-width: 599px) {
+  .ex-tbl .tbl :is(th, td) { padding-inline: 8px; }
+  .ex-tbl[data-more] .dt-box {
+    -webkit-mask-image: linear-gradient(to left, transparent, var(--ink) 1rem);
+    mask-image: linear-gradient(to left, transparent, var(--ink) 1rem);
+    scroll-padding-right: 1rem;
+  }
 }
 
 /* ---------- the ranked rail chart (RankChart.tsx): the price scale, one row per broker ---------- */

@@ -19,7 +19,7 @@ import { YearPair } from "../components/compare/YearPair";
 import { Info, Segmented } from "../components/ui";
 import { payment, SP_GAP, yearFor, type Year } from "../lib/broker";
 import { metric, type Data, type Fee, type Filters, type Ot, type Sp } from "../lib/data";
-import { monthLong } from "../lib/format";
+import { DOT, monthLong } from "../lib/format";
 import { comparePath, DEFAULT_PAIR, href } from "../lib/routes";
 
 /** `explicit`: the pair is in the URL (compare/<a>-vs-<b>/). On the bare compare/ page the heading names the page and the
@@ -73,7 +73,7 @@ export default function Compare({ d, f, set, a, b, explicit }: { d: Data; f: Fil
           <Segmented<Ot> label="Order type" value={f.ot} onChange={(ot) => set({ ot })} options={[["M", "Market orders"], ["ML", "Marketable limit"]]} />
           <Info topic="order types">Market orders fill at once; marketable limit orders add a price cap.</Info>
         </span>
-        <p className="cmp-scope">Orders under $200,000 · {monthName}</p>
+        <p className="cmp-scope">Orders under $200,000{DOT}{monthName}</p>
       </div>
       <p className="sr-only" role="status">{said}</p>
 

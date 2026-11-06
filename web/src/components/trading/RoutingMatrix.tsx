@@ -7,7 +7,7 @@
 import { useRef, useState, type MouseEvent } from "react";
 import { andList } from "../../lib/broker";
 import { nameOf, SP_LABEL, type Data, type Filters } from "../../lib/data";
-import { quarterLong } from "../../lib/format";
+import { DOT, quarterLong } from "../../lib/format";
 import { Card, Empty, Info, Segmented, Switch, useSideScroll } from "../ui";
 import { centsCell, quarterName, shareCell, trim } from "./names";
 
@@ -79,7 +79,7 @@ export function RoutingMatrix({ d, f, set, pick }: { d: Data; f: Filters; set: (
 
   return (
     <Card className="tf-matrix" title="Who sends orders where"
-      sub={`${SP_LABEL[f.sp]} · ${orders} · ${quarterName(f.quarter)} · ${metric === "share" ? "share of each broker's orders" : "cents per 100 shares paid to the broker"}`}
+      sub={`${SP_LABEL[f.sp]}${DOT}${orders}${DOT}${quarterName(f.quarter)}${DOT}${metric === "share" ? "share of each broker's orders" : "cents per 100 shares paid to the broker"}`}
       info="From each broker's own payment report (SEC Rule 606): the trading firms it sent orders to, the share each got and the rate each paid it."
       infoTopic="this table"
       right={

@@ -6,7 +6,7 @@
 // only with a script (firms.css); a search shows every match. On phones each firm restacks into a short list item, the
 // table roles kept. When the order changes (a filter, a sort, the group), the rows glide to their new places.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { num, pct } from "../../lib/format";
+import { DOT, num, pct } from "../../lib/format";
 import { useBrowserLayoutEffect } from "../../lib/hooks";
 import { brokerPath, href } from "../../lib/routes";
 import { Card, Icon, Segmented, Select } from "../ui";
@@ -111,7 +111,7 @@ export function FirmTable({ rows, scope, month, file }: { rows: FirmRow[]; scope
   const options: [number, string][] = GROUPS.map((g, i) => [i, g.pill]);
 
   return (
-    <Card className="af-list" title="All firms" sub={`${scope} · ${month}`} right={
+    <Card className="af-list" title="All firms" sub={`${scope}${DOT}${month}`} right={
       <>
         <span className="af-gseg js-only"><Segmented<number> size="sm" label="Firm group" value={group} onChange={setGroup} options={[[-1, "All"], ...options]} /></span>
         <span className="af-gsel js-only"><Select<number> label="Show" value={group} onChange={setGroup} options={[[-1, "All firms"], ...options]} /></span>

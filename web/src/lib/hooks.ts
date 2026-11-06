@@ -1,7 +1,7 @@
 // Browser-side navigation: history, the current location and the query string. Everything here touches window,
 // so it is only ever called from effects and event handlers (never while rendering: the pages also render on the
 // server, see entry-server.tsx). The pure path logic lives in routes.ts.
-import { useEffect, useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect, useState, type RefObject } from "react";
 import type { Data } from "./data";
 import { BASE, href, normalizeLocation } from "./routes";
 
@@ -56,3 +56,20 @@ export function fixLocation(d: Data): boolean {
 
 /** useLayoutEffect in the browser (state read from localStorage lands before the first paint), a plain effect on the server. */
 export const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+/** A box's width, kept current as it resizes (0 until measured, and on the server); a change waits 150ms to settle, so
+ *  dragging a window edge doesn't rebuild a chart laid out for its width on every frame. `on`: the box is on the page. */
+export function useWidth(ref: RefObject<HTMLElement>, on = true): number {
+  const [w, setW] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!on || !el) return;
+    let timer: number | undefined;
+    const read = () => setW(Math.round(el.getBoundingClientRect().width));
+    read();
+    const ro = new ResizeObserver(() => { window.clearTimeout(timer); timer = window.setTimeout(read, 150); });
+    ro.observe(el);
+    return () => { ro.disconnect(); window.clearTimeout(timer); };
+  }, [on]); // eslint-disable-line react-hooks/exhaustive-deps
+  return w;
+}

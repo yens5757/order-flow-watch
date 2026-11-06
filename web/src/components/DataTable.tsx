@@ -2,8 +2,13 @@
 // inside its own box, the name column pinned. Rows that open something do it through a real control in the name cell: a
 // link (rowHref) for a page, a button (onRow) for an action on this page; a press anywhere else on the row does the same,
 // but the row itself is never a Tab stop. Every chart that ranks brokers has one of these, or a ChartTable, beside it.
-import { useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { Fragment, useMemo, useRef, useState, type FocusEvent, type MouseEvent, type ReactNode } from "react";
 import { Icon, useSideScroll } from "./ui";
+
+/** A heading split before its unit (" / $10k", " (% spread)"), each part kept to one line: a phone may set the unit on a
+ *  second line ("Vs fair price" over "/ $10k"), so a column is no wider than its widest part (ui.css). */
+const headParts = (label: string): ReactNode =>
+  label.split(/ (?=[/(])/).map((p, i) => <Fragment key={i}>{i > 0 && " "}<span>{p}</span></Fragment>);
 
 export interface Col<R> {
   key: string;
@@ -60,6 +65,26 @@ export function DataTable<R>({ rows, cols, initial, rowHref, onRow, rowLabel, ro
   const box = useRef<HTMLDivElement>(null);
   const { scrolled } = useSideScroll(box); // it watches the table's own width too, so a sort or a search is seen
 
+  // keyboard focus on a heading or a name the box only partly shows (under the pinned column, past its right edge, or
+  // under a fade the page draws there, given as the box's scroll-padding-right): scroll sideways until all of it shows.
+  // The browser leaves a stop that is partly in view where it is, which can leave its ring a sliver at the edge.
+  const reveal = (e: FocusEvent<HTMLDivElement>) => {
+    const el = e.target as HTMLElement, b = box.current;
+    if (!b || el === b || el.closest(".pin")) return; // the pinned column is always in view
+    const s = b.scrollLeft, bx = b.getBoundingClientRect().left + b.clientLeft;
+    const r = el.getBoundingClientRect(), ex = r.left - bx + s; // the stop's place along the table
+    const view = b.clientWidth - (parseFloat(getComputedStyle(b).scrollPaddingRight) || 0);
+    const pin = b.querySelector<HTMLElement>("thead .pin");
+    // where the pinned column sits when nothing is scrolled (the widths of the columns before it: a sticky cell's own
+    // offset moves with it), and its width (it covers what scrolls under it)
+    const before = pin ? [...pin.parentElement!.children].slice(0, [...pin.parentElement!.children].indexOf(pin)) : [];
+    const pinAt = before.reduce((a, c) => a + (c as HTMLElement).offsetWidth, 0), pw = pin ? pin.offsetWidth : 0;
+    const latest = pin && ex >= pinAt + pw ? Math.max(ex - pw, pinAt) : ex; // further and the stop is under the pin (or off the left edge)
+    const earliest = ex + r.width - view; // less and the stop runs past the right edge
+    const next = Math.round(Math.max(Math.min(s, latest), Math.min(earliest, latest)));
+    if (Math.abs(next - s) > 1) b.scrollLeft = next;
+  };
+
   const csv = () => {
     const cell = (v: unknown) => (v == null ? "" : /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
     const text = [cols.map((c) => cell(c.label)).join(","), ...shown.map((r) => cols.map((c) => cell(c.value(r))).join(","))].join("\n");
@@ -96,7 +121,7 @@ export function DataTable<R>({ rows, cols, initial, rowHref, onRow, rowLabel, ro
         </div>
       )}
       {search && <p className="dt-count" role="status">{q ? `${shown.length} of ${rows.length} shown` : ""}</p>}
-      <div ref={box} className={`tbox dt-box${scrolled ? " is-scrolled" : ""}`} style={maxHeight ? { maxHeight } : undefined}>
+      <div ref={box} className={`tbox dt-box${scrolled ? " is-scrolled" : ""}`} style={maxHeight ? { maxHeight } : undefined} onFocus={reveal}>
         <table className="tbl">
           {caption && <caption className="sr-only">{caption}</caption>}
           <thead>
@@ -105,7 +130,7 @@ export function DataTable<R>({ rows, cols, initial, rowHref, onRow, rowLabel, ro
                 <th key={c.key} scope="col" aria-sort={sort.key === c.key ? (sort.dir === 1 ? "ascending" : "descending") : undefined}
                   className={[c.num ? "num" : "", c.pin ? "pin" : "", hl(c.key).trim()].filter(Boolean).join(" ") || undefined}>
                   <button type="button" className="dt-sort" title={c.hint} onClick={() => sortBy(c)}>
-                    {c.label}<Icon name={sort.key === c.key && sort.dir === 1 ? "up" : "down"} size={16} />
+                    <span className="dt-h">{headParts(c.label)}</span><Icon name={sort.key === c.key && sort.dir === 1 ? "up" : "down"} size={16} />
                   </button>
                 </th>
               ))}

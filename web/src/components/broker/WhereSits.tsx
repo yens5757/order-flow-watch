@@ -6,7 +6,7 @@
 import { useRef } from "react";
 import { andList, money, payment, payWhen, type Group, type Pay, type Place } from "../../lib/broker";
 import type { Data, Firm } from "../../lib/data";
-import { monthLong, ordinal, quarterLong } from "../../lib/format";
+import { DOT, monthLong, ordinal, quarterLong } from "../../lib/format";
 import { FAIR_COL, fairParts } from "../../lib/metrics";
 import { brokerPath, href } from "../../lib/routes";
 import { Icon } from "../ui";
@@ -124,7 +124,7 @@ export function WhereSits({ d, firm, views, all, setAll }: { d: Data; firm: Firm
   return (
     <section className={`card bp-where${all ? " all" : ""}`} id="where" aria-labelledby="where-h">
       <h2 id="where-h">Where {firm.short} sits</h2>
-      <p className="bp-sub">Per $10,000 traded, cheapest first · {month}</p>
+      <p className="bp-sub">Per $10,000 traded, cheapest first{DOT}{month}</p>
       {views.map((v) => <Table key={v.g} d={d} v={v} firm={firm} month={month} />)}
       <button ref={more} type="button" className="btn btn-ghost bp-more js-only" aria-expanded={all} aria-controls="where" onClick={toggle}>
         {/* one label span: inside the flex button, the per-group counts would otherwise sit a gap apart from "See all" */}

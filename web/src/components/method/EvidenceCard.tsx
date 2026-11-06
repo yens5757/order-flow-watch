@@ -8,7 +8,7 @@
 // are simply open.
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { metric, type Data, type Evidence, type Sp } from "../../lib/data";
-import { monthLong, quarterLong } from "../../lib/format";
+import { DOT, monthLong, quarterLong } from "../../lib/format";
 import { Card, Icon, Status } from "../ui";
 import { titleOf } from "./Contents";
 import {
@@ -128,7 +128,7 @@ export function EvidenceCard({ d }: { d: Data }) {
 
   return (
     <Card id="evidence" title={titleOf("evidence")} className={`mx-ev${open ? " open" : ""}`}
-      sub={<>{both != null && <>{both} brokers publish both reports · </>}prices {monthLong(d.meta.month)} · payments {quarterLong(d.meta.quarter)}</>}>
+      sub={<>{both != null && <>{both} brokers publish both reports{DOT}</>}prices {monthLong(d.meta.month)}{DOT}payments {quarterLong(d.meta.quarter)}</>}>
       {/* the answer, then the table that backs it, then what goes with prices instead; on a desktop the table sits beside
           the other two (method.css) */}
       <div className="mx-ans">

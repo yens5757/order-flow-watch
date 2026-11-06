@@ -10,7 +10,7 @@
 import { useId, useState } from "react";
 import { sameStockNote, sameStockRank, sameStockWords, type SameRank } from "../../lib/broker";
 import type { Data, Fee, FeeKey, Filters, Firm, Metric } from "../../lib/data";
-import { dayLong, ms, pct } from "../../lib/format";
+import { dayLong, DOT, ms, pct } from "../../lib/format";
 import { fairText, METRICS, type MetricKey } from "../../lib/metrics";
 import { brokerPath, href, pagePath } from "../../lib/routes";
 import { Card, Icon, Info } from "../ui";
@@ -61,7 +61,7 @@ export function SideBySide({ d, f, A, B, rA, rB, feeA, feeB, monthName }: {
   // two gaps within a point are "level" in the short answer above, so neither rank gets the tick then
   const level = rA.gap != null && rB.gap != null && Math.abs(rA.gap - rB.gap) < SAME_LEVEL;
   const sameRow: Row = {
-    key: "same", label: "On the same stocks and order sizes", topic: "the same stocks and order sizes", note: `rank, cheapest first${ml ? ` · ${ml}` : ""}`,
+    key: "same", label: "On the same stocks and order sizes", topic: "the same stocks and order sizes", note: `rank, cheapest first${ml ? `${DOT}${ml}` : ""}`,
     info: pool ? sameStockNote(d, pool, placesFor(d, { ...pairFilters(f), ot: "M" }).length) : undefined,
     better: level ? null : "low", v: [same[0]?.rank ?? null, same[1]?.rank ?? null], fmt: (_, i) => capital(sameStockWords(same[i]!)),
     blank: [unranked(A), unranked(B)],
@@ -69,7 +69,7 @@ export function SideBySide({ d, f, A, B, rA, rB, feeA, feeB, monthName }: {
 
   const groups: Group[] = [
     {
-      title: "Prices", sub: `${monthName} · ${stocksWord(f.sp)} · ${ordersWord(f.ot)}`,
+      title: "Prices", sub: `${monthName}${DOT}${stocksWord(f.sp)}${DOT}${ordersWord(f.ot)}`,
       rows: [
         // no minus sign: a price below the fair price says "below" (lib/metrics.ts fairText)
         measured("cost10k", fairText, { note: "above the fair price", info: undefined }),

@@ -5,7 +5,7 @@
 import type { ReactNode } from "react";
 import { andList, cents, money, placeBrokers, SP_GAP } from "../../lib/broker";
 import { files606, type Data } from "../../lib/data";
-import { dayLong, monthLong, pct, quarterLong, signed, usd2 } from "../../lib/format";
+import { dayLong, DOT, monthLong, pct, quarterLong, signed, usd2 } from "../../lib/format";
 import { METRICS } from "../../lib/metrics";
 import { brokerPath, href, pagePath } from "../../lib/routes";
 import { Card, Icon } from "../ui";
@@ -114,7 +114,7 @@ export function SameStocks({ d }: { d: Data }) {
   const sp = d.sameStock.brokers.filter((x) => x.sp === "Y" && x.cells >= 100).sort((a, b) => a.gap - b.gap);
   const name = (id: string) => d.byId[id]?.short ?? id;
   return (
-    <Card id="same-stocks" title={titleOf("same-stocks")} sub={`Market orders under $200,000 · ${monthLong(d.meta.detailMonth)}`}>
+    <Card id="same-stocks" title={titleOf("same-stocks")} sub={`Market orders under $200,000${DOT}${monthLong(d.meta.detailMonth)}`}>
       <div className="mx-prose">
         <p>
           Averages flatter brokers whose customers trade big, busy stocks. So each broker is also compared with the others on
@@ -139,7 +139,7 @@ export function Payments({ d }: { d: Data }) {
   const none = d.brokers.filter((b) => !files606(d, b.crd)).map((b) => b.short);
   const partial = [d.byId.SOFI && "SoFi's report covers only part of its orders", d.byId.FUTM && "moomoo's is filed by Futu Clearing"].filter(Boolean);
   return (
-    <Card id="payments" title={titleOf("payments")} sub={`Market orders · ${q}`}>
+    <Card id="payments" title={titleOf("payments")} sub={`Market orders${DOT}${q}`}>
       <div className="mx-prose">
         <p>
           Brokers report each quarter what trading firms paid for their customers' orders. Weighted by where the orders went,

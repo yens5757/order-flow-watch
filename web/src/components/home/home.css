@@ -78,10 +78,9 @@
 .hm-finds > li:first-child { padding-top: 0; border-top: 0; }
 .hm-f-lead { font-weight: 700; line-height: 1.4; text-wrap: pretty; }
 .hm-f-text { margin-top: 4px; color: var(--ink-2); }
-/* the caveat ends in the broker page's in-place (i) (broker.css bp-def), a short space after its last word; the line it
-   opens sits right under it in the label size, a step below the caveat, so nothing floats over the next finding.
-   Without a script the line is simply shown. */
-.hm-f-text .bp-def { margin-left: -4px; }
+/* the caveat ends in the broker page's in-place (i) (broker.css bp-def), a space after its last word, its disc clear of
+   the full stop; the line it opens sits right under it in the label size, a step below the caveat, so nothing floats
+   over the next finding. Without a script the line is simply shown. */
 .hm-f-note { margin-top: 10px; max-width: 64ch; font-size: var(--fs-1); line-height: 1.5; }
 .hm-find .card-foot { margin-top: 8px; padding-top: 6px; }
 .hm-find .card-foot .go { font-size: var(--fs-2); }

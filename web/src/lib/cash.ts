@@ -131,21 +131,21 @@ export function cashLine(d: Data, F: Firm): PricedLine | null {
  *  broker's own rate and fee are in the side-by-side table on the same page, so the line needs no (i). A cash rate that
  *  can't be compared names only the broker it is missing at ("tastytrade's cash interest isn't confirmed."; "Cash interest:
  *  0.50% at Webull, not offered at Cash App."); a moving-out fee nobody confirmed is said in words at its broker, after the
- *  known one ("Moving out: $100 at Robinhood; not confirmed at Albert."). Null for a pair with an advisor-only broker
- *  without a public price list, whose note on the card already says why, unless the other has nothing confirmed either. */
+ *  known one ("Moving out: $100 at Robinhood; not confirmed at Edward Jones."), so the other broker's fee is said beside an
+ *  advisor-only broker too. Nothing confirmed at either: one sentence. Null only for two advisor-only brokers without a
+ *  public price list, whose notes on the card already say why. */
 export function cashPair(d: Data, A: Firm, B: Firm): PricedLine | null {
   const F = [A, B] as const;
   const cash = [factOf(d.fees[A.id], "cashYield"), factOf(d.fees[B.id], "cashYield")] as const;
   const move = [factOf(d.fees[A.id], "transferOut"), factOf(d.fees[B.id], "transferOut")] as const;
   const line = (...runs: Run[]): PricedLine => ({ runs, info: null, topic: "" });
 
-  // a broker with neither fact confirmed: one sentence about it when nothing about the other can be set beside it (the
-  // card's note on an advisor-only broker covers that one); beside a broker with a fee to name, the two halves below
+  // neither fact confirmed at either broker: one sentence (none when both are advisor-only, which the card's notes cover);
+  // a broker with nothing confirmed beside one with a fee to name: the two halves below
   const blank = [0, 1].filter((i) => [cash[i], move[i]].every((x) => "w" in x && x.w === "not confirmed"));
-  const noted = blank.filter((i) => priceListless(d.fees[F[i].id]));
-  const unsaid = blank.filter((i) => !noted.includes(i));
-  if (unsaid.length === 2) return line("Cash interest and the moving-out fee aren't confirmed at either.");
-  if (noted.length) return unsaid.length ? line(`${F[unsaid[0]].short}'s cash interest and moving-out fee aren't confirmed.`) : null;
+  if (blank.length === 2) {
+    return blank.every((i) => priceListless(d.fees[F[i].id])) ? null : line("Cash interest and the moving-out fee aren't confirmed at either.");
+  }
 
   // cash: the difference between the calculator's figures for the two (the difference between their rates); "no interest"
   // covers a 0.00% rate and a broker that pays none alike

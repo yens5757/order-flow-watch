@@ -18,9 +18,9 @@ import "../components/trading/trading.css";
 import { Card, ChartTable, Empty, Icon, Legend, PageHeader, Select } from "../components/ui";
 import { andList } from "../lib/broker";
 import { files606, nameOf, SP_LABEL, type Data, type Filters } from "../lib/data";
-import { monthLong, pct, quarterLong, quarterShort } from "../lib/format";
-import { onNavigate } from "../lib/hooks";
-import { brokerPath, href, pagePath } from "../lib/routes";
+import { DOT, monthLong, pct, quarterLong, quarterShort } from "../lib/format";
+import { onNavigate, readLocation } from "../lib/hooks";
+import { brokerPath, href, pagePath, parseRoute } from "../lib/routes";
 import { useTheme } from "../lib/theme";
 
 /** The broker a "By broker" section opens on before the address names one: Robinhood, the most looked-up. */
@@ -76,24 +76,27 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
   // "By broker": one section, one anchor per broker (trading-firms/#robinhood, which a broker page's payment line links to).
   // The first render is the pre-rendered one (the default broker); the address's hash is read once the page is live,
   // and again whenever it changes (a pick below, a name in the routing table, Back, another broker page's link while
-  // this page is open).
+  // this page is open). Back to the page's own address with no hash shows the default broker again, as a reload of that
+  // address would; a hash naming no broker (the skip link's #main) leaves the section as it is.
   const brokerList = useMemo(() => [...d.firms].sort((a, b) => a.short.localeCompare(b.short)), [d]);
-  const [pick, setPick] = useState<string>(() => d.byId[FIRST]?.slug ?? brokerList[0]?.slug ?? "");
+  const first = d.byId[FIRST]?.slug ?? brokerList[0]?.slug ?? "";
+  const [pick, setPick] = useState<string>(first);
   const section = useRef<HTMLElement>(null);
   useEffect(() => {
     const read = (scroll: boolean) => {
       let slug = location.hash.slice(1);
       try { slug = decodeURIComponent(slug); } catch { /* a malformed hash names no broker */ }
-      if (!d.bySlug[slug]) return;
-      setPick(slug);
-      if (scroll) section.current?.scrollIntoView({ block: "start" });
+      if (d.bySlug[slug]) {
+        setPick(slug);
+        if (scroll) section.current?.scrollIntoView({ block: "start" });
+      } else if (!slug && parseRoute(d, readLocation().path).page === "trading-firms") setPick(first);
     };
     read(true);
     const onHash = () => read(true);
     addEventListener("hashchange", onHash);
     const off = onNavigate(() => read(true));
     return () => { removeEventListener("hashchange", onHash); off(); };
-  }, [d]);
+  }, [d, first]);
   const picked = d.bySlug[pick] ?? brokerList[0];
 
   // the picker only reports a choice; "Show" moves the address to it, which opens that broker's section (never on change).
@@ -144,7 +147,7 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
       <FilterBar d={d} f={f} set={set} show={["sp", "ot", "quarter"]} />
 
       <div className="tf-stack">
-        <Card title="Prices on the same stocks and order sizes" sub={`${SP_LABEL[f.sp]} · market orders · ${detail}`}
+        <Card title="Prices on the same stocks and order sizes" sub={`${SP_LABEL[f.sp]}${DOT}market orders${DOT}${detail}`}
           info="The spread is the gap between the best price to buy and the best price to sell. A point is 1% of it; fewer points paid is a better price."
           infoTopic="points of the spread"
           foot={
@@ -193,7 +196,7 @@ export default function MarketMakers({ d, f, set }: { d: Data; f: Filters; set: 
         {/* last: market context (all off-exchange volume, not only retail orders) and the one card no filter changes, so the
             cards the filters change sit together under the bar */}
         <Card title="Share of off-exchange stock trading"
-          sub={qs.length ? `FINRA volume data · full quarters, ${quarterName(firstQ)} to ${quarterName(lastQ)}` : "FINRA volume data"}
+          sub={qs.length ? `FINRA volume data${DOT}full quarters, ${quarterName(firstQ)} to ${quarterName(lastQ)}` : "FINRA volume data"}
           info="Each firm's share of the stock trading FINRA records away from the exchanges, by quarter. The quarter still in progress is left out."
           infoTopic="off-exchange trading">
           {volumeSay && <p className="tf-say">{volumeSay}</p>}

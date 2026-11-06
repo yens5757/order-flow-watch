@@ -6,6 +6,7 @@
 // A mouse hover names a dot in a raised panel the pointer can move onto, and Escape hides it; the picture is hidden from
 // screen readers, which get one line per rail, and every number is in the table below.
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { DOT } from "../../lib/format";
 import { METRICS } from "../../lib/metrics";
 import { Card } from "../ui";
 import { CLIP, fieldOf, GROUPS, share, type Dot, type FirmRow, type Rail } from "./firms";
@@ -63,7 +64,7 @@ export function FirmField({ rows, scale, month }: { rows: FirmRow[]; scale: Firm
   const cut = [...field.cut].sort((a, b) => a.cust! - b.cust!);
   return (
     <Card className="af-field" title="Where the brokers on this site sit" info={`${METRICS.cust.label}. ${METRICS.cust.desc}`}
-      infoTopic="customer pays" sub={`Each dot is a firm · ${field.reported} of ${rows.length} reported these orders in ${month}`}
+      infoTopic="customer pays" sub={`Each dot is a firm${DOT}${field.reported} of ${rows.length} reported these orders in ${month}`}
       foot={cut.length > 0 && (
         <>Too far out to draw (below {tick(CLIP.lo)} or above {tick(CLIP.hi)}): {cut.length > 4 ? firms(cut.length)
           : cut.map((r) => `${r.name} ${share(r.cust!)}`).join(", ")}. {cut.length === 1 ? "It is" : "They are"} in the table below.</>

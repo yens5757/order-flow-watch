@@ -88,13 +88,21 @@ export const legend = (t: Tokens, extra: object = {}) => ({
 
 const esc = (s: string) => s.replace(/[&<>]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[m]!);
 
-/** Tooltip body: a title, then rows of [swatch colour | null, label, value], then an optional footnote. The tooltip is
- *  HTML in the page, so its text takes the theme's inks straight from the custom properties. */
-export function tip(title: string, rows: [string | null, string, string][], foot?: string) {
-  const row = ([c, l, v]: [string | null, string, string]) =>
+/** A tooltip row's swatch: a colour, or a colour with the edge that gives it 3:1 (theme.tsx rim), or none. */
+export type Swatch = string | { fill: string; edge?: string | null } | null;
+
+/** Tooltip body: a title, then rows of [swatch, label, value], then an optional footnote. The tooltip is HTML in the page,
+ *  so its text takes the theme's inks straight from the custom properties. */
+export function tip(title: string, rows: [Swatch, string, string][], foot?: string) {
+  const swatch = (c: Swatch) => {
+    if (!c) return "";
+    const { fill, edge } = typeof c === "string" ? { fill: c, edge: null } : c;
+    return `<i style="flex:none;width:10px;height:10px;border-radius:3px;background:${fill};${edge ? `box-shadow:inset 0 0 0 1px ${edge};` : ""}display:inline-block"></i>`;
+  };
+  const row = ([c, l, v]: [Swatch, string, string]) =>
     `<div style="display:flex;justify-content:space-between;align-items:center;gap:20px;line-height:1.6">` +
     `<span style="display:flex;align-items:center;gap:8px;color:var(--ink-2)">` +
-    (c ? `<i style="flex:none;width:10px;height:10px;border-radius:3px;background:${c};display:inline-block"></i>` : "") +
+    swatch(c) +
     `${esc(l)}</span><b style="font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums">${esc(v)}</b></div>`;
   return `<div style="font-weight:700;color:var(--ink);margin-bottom:4px">${esc(title)}</div>` + rows.map(row).join("") +
     (foot ? `<div style="margin-top:8px;color:var(--ink-2);max-width:16rem;white-space:normal;line-height:1.45">${esc(foot)}</div>` : "");

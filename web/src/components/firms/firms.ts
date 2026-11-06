@@ -31,10 +31,23 @@ export interface FirmRow {
   sz: number | null;
 }
 
+/** Exchanges FINRA's list names by their market code alone (XNYS), by the name they trade under. TFEX's reports sit in the
+ *  folder named for 24X National Exchange's market code (24EQ). Reporter codes stay off the page. */
+const EXCHANGES: Record<string, string> = {
+  XNYS: "New York Stock Exchange", ARCX: "NYSE Arca", XASE: "NYSE American", XCIS: "NYSE National", XCHI: "NYSE Chicago",
+  TFEX: "24X National Exchange",
+};
+/** A firm listed by its code alone that has no name here: its category, never the code ("An exchange"). */
+const unnamed = (cat: string) => {
+  const c = /^[A-Z]{2,}\b/.test(cat) ? cat : cat.toLowerCase();
+  return `${/^[aeiou]/i.test(c) ? "An" : "A"} ${c}`;
+};
+
 /** FINRA lists most names in capitals: title case them, keeping short letter runs without a vowel (PNC, HRT, GTS) and "US"
- *  in capitals. An exchange listed by its market code alone (XNYS) keeps it as it is. */
-function display(id: string, name: string): string {
-  if (name === id) return name;
+ *  in capitals. An exchange listed by its market code alone (XNYS) takes its trading name (EXCHANGES), or its category. */
+function display(id: string, name: string, cat: string): string {
+  if (EXCHANGES[id]) return EXCHANGES[id];
+  if (name === id) return unnamed(cat);
   const t = titleCase(name);
   if (t === name) return name;
   return t.replace(/\b[A-Z][a-z]{1,3}\b/g, (w) => (/^[B-DF-HJ-NP-TV-XZ][b-df-hj-np-tv-xz]+$/.test(w) || w === "Us" ? w.toUpperCase() : w));
@@ -49,7 +62,7 @@ export function firmRows(d: Data, f: Filters): FirmRow[] {
     const e = d.exec.get(execKey(id, f.month, f.sp, f.ot, f.b));
     const own = d.byId[id];
     return {
-      id, name: own?.short ?? display(id, r.name), cat: r.cat, g: groupOf(d, id, r.cat), slug: own?.slug ?? null,
+      id, name: own?.short ?? display(id, r.name, r.cat), cat: r.cat, g: groupOf(d, id, r.cat), slug: own?.slug ?? null,
       cust: e?.efq == null ? null : e.efq * 100, pi: e?.pi == null ? null : e.pi * 100, sz: e?.sz ?? null,
     };
   });

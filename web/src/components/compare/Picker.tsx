@@ -1,10 +1,11 @@
 // The pair picker: two selects that only report a pick (nothing happens on change, WCAG 3.2.2) and a real "Compare" link
 // whose address follows the two picks, so opening another pair is an explicit press. While the boxes name a pair other
 // than the one shown (in either order), the link turns solid and names that pair ("Compare Fidelity and Webull"), a line
-// beside it says what is on screen ("Showing Fidelity vs Robinhood"; not on compare/, whose intro already says so) and a
-// status line says the pick once it has settled; back on the pair shown, the link is quiet again. Picking in one box the
-// broker the other box shows swaps the two, so the boxes always name two different brokers (said too). Only works with a
-// script: without one it is hidden, and the list of every comparison below still links each pair.
+// beside it says what is on screen ("Showing Fidelity vs Robinhood"; its room is kept while nothing is pending, so it
+// never pushes the page down; not on compare/, whose intro already says so) and a status line says the pick once it has
+// settled; back on the pair shown, the link is quiet again. Picking in one box the broker the other box shows swaps the
+// two, so the boxes always name two different brokers (said too). Only works with a script: without one it is hidden,
+// and the list of every comparison below still links each pair.
 import { useEffect, useRef, useState, type FocusEvent } from "react";
 import type { Data, Firm } from "../../lib/data";
 import { comparePath, href } from "../../lib/routes";
@@ -76,7 +77,9 @@ export function Picker({ d, A, B, showing = true }: { d: Data; A: Firm; B: Firm;
           : <span>Compare<span className="sr-only"> {X.short} and {Y.short}</span></span>}
         <Icon name="arrow" size={20} />
       </a>
-      {pending && showing && <p className="cmp-shown">Showing {whole(A.short)} vs {whole(B.short)}</p>}
+      {/* the line holds its place while the pick matches the pair shown (hidden, not removed), so a pick never moves the
+          page under it */}
+      {showing && <p className="cmp-shown" data-rest={pending ? undefined : ""}>Showing {whole(A.short)} vs {whole(B.short)}</p>}
       <p className="sr-only" role="status">{said}</p>
     </div>
   );

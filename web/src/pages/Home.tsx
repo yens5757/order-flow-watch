@@ -17,7 +17,7 @@ import { YearLine } from "../components/home/YearLine";
 import { Segmented, Select } from "../components/ui";
 import { cents, groupOf, money, ranksSaid, SP_GAP, yearFor, type Group } from "../lib/broker";
 import type { Data, Sp } from "../lib/data";
-import { monthLong } from "../lib/format";
+import { DOT, monthLong } from "../lib/format";
 import { useBrowserLayoutEffect } from "../lib/hooks";
 
 const STOCKS: [Sp, string][] = [["Y", `S&P${SP_GAP}500 stocks`], ["N", "Other stocks"]];
@@ -108,7 +108,7 @@ export default function Home({ d }: { d: Data }) {
         <div className="hm-ctl">
           <Select label="Your broker" value={firm.id} onChange={choose} options={options} />
           <Segmented label="Stocks" value={sp} onChange={flip} options={STOCKS} />
-          <p className="hm-scope">Market orders · {month}</p>
+          <p className="hm-scope">Market orders{DOT}{month}</p>
         </div>
       </Hero>
       <p className="sr-only" role="status">{said}</p>

@@ -28,12 +28,15 @@
 
 /* ---------- the (i): a teal icon button; its line floats in a raised panel (portalled to <body>, placed by Info) ---------- */
 .tip { position: relative; display: inline-flex; vertical-align: middle; }
+/* a 44px target that paints a 28px disc (the padding stays clear of the fill), as the in-place (i) does (broker.css
+   bp-def): the hover and open fills never cover the heading beside it or the line under it; the ring hugs the disc */
 .info {
-  display: inline-grid; place-items: center; flex: none; width: 44px; height: 44px; margin: -12px -10px; border-radius: 50%;
-  color: var(--accent); cursor: pointer;
+  display: inline-grid; place-items: center; flex: none; width: 44px; height: 44px; margin: -12px -10px; padding: 8px;
+  border-radius: 50%; background-clip: content-box; color: var(--accent); cursor: pointer;
 }
-.info:hover { background: var(--accent-soft); color: var(--accent-hover); }
-.info[data-open] { background: var(--accent); color: var(--on-accent); }
+.info:hover { background-color: var(--accent-soft); color: var(--accent-hover); }
+.info[data-open] { background-color: var(--accent); color: var(--on-accent); }
+.info:focus-visible { outline-offset: -5px; }
 .tip-pop {
   position: fixed; z-index: 70; width: max-content; max-width: min(20rem, calc(100vw - 24px)); padding: 10px 14px;
   border: 1px solid transparent; border-radius: 14px; background: var(--surface-2); box-shadow: var(--pop);
@@ -168,6 +171,11 @@ html:not(.js) .tip:is(:hover, :focus-within) .tip-text {
   font: inherit; text-align: inherit; cursor: pointer;
 }
 .dt .num .dt-sort { flex-direction: row-reverse; }
+/* a heading's parts (DataTable headParts) each keep to one line; on a phone the unit may go under the words */
+.dt-h > span { white-space: nowrap; }
+@media (max-width: 599px) {
+  .dt thead th { white-space: normal; }
+}
 .dt-sort svg { visibility: hidden; color: var(--mark); }
 .dt-sort:is(:hover, :focus-visible) svg { visibility: visible; }
 .dt th[aria-sort] { color: var(--ink); font-weight: 700; }
@@ -190,6 +198,16 @@ html:not(.js) .tip:is(:hover, :focus-within) .tip-text {
 @supports selector(:has(*)) {
   .dt .dt-go:focus-visible { outline: none; }
   .dt tbody tr:has(.dt-go:focus-visible) { outline: 3px solid var(--accent); outline-offset: -3px; border-radius: 14px; }
+  /* the pinned name cell paints over the row's ring, so it draws its own part of it (its hairline top in the ring's
+     colour, then 2px more): top and bottom, and the rounded left end where it starts the row or has scrolled to the box's
+     edge */
+  .dt tbody tr:has(.dt-go:focus-visible) > .pin {
+    border-top-color: var(--accent); box-shadow: inset 0 2px 0 var(--accent), inset 0 -3px 0 var(--accent);
+  }
+  .dt tbody tr:has(.dt-go:focus-visible) > .pin:first-child,
+  .dt-box.is-scrolled tbody tr:has(.dt-go:focus-visible) > .pin {
+    border-radius: 14px 0 0 14px; box-shadow: inset 3px 0 0 var(--accent), inset 0 2px 0 var(--accent), inset 0 -3px 0 var(--accent);
+  }
 }
 .dt-go:focus-visible { outline-offset: -3px; }
 /* the row the page is about */
